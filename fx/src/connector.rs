@@ -182,10 +182,7 @@ macro_rules! impl_sql_meta {
 
             fn new(conn_str: &str) -> Self::FutSelf<'_> {
                 async move {
-                    let po = $db_pool_options::new()
-                        .connect(conn_str)
-                        .await
-                        .map_err(FxError::Sqlx)?;
+                    let po = $db_pool_options::new().connect(conn_str).await?;
                     Ok(po)
                 }
             }
@@ -207,12 +204,11 @@ macro_rules! impl_sql_meta {
                 pipe: PipeFn<<Self::DB as Database>::Row, T>,
             ) -> BoxFuture<'a, FxResult<Vec<T>>> {
                 let q = async move {
-                    sqlx::query(sql)
+                    Ok(sqlx::query(sql)
                         .try_map(|r| Ok(pipe(r)))
                         .fetch_all(self)
-                        .await
-                        .map_err(FxError::Sqlx)
-                        .and_then(|r| r.into_iter().collect::<FxResult<Vec<T>>>())
+                        .await?)
+                    .and_then(|r| r.into_iter().collect::<FxResult<Vec<T>>>())
                 };
                 Box::pin(q)
             }
@@ -223,12 +219,11 @@ macro_rules! impl_sql_meta {
                 pipe: PipeFn<<Self::DB as Database>::Row, T>,
             ) -> BoxFuture<'a, FxResult<T>> {
                 let q = async move {
-                    sqlx::query(sql)
+                    Ok(sqlx::query(sql)
                         .try_map(|r| Ok(pipe(r)))
                         .fetch_one(self)
-                        .await
-                        .map_err(FxError::Sqlx)
-                        .and_then(|r| r)
+                        .await?)
+                    .and_then(|r| r)
                 };
                 Box::pin(q)
             }
@@ -237,12 +232,7 @@ macro_rules! impl_sql_meta {
                 &'a self,
                 sql: &'a str,
             ) -> BoxFuture<'a, FxResult<Vec<T>>> {
-                let q = async move {
-                    sqlx::query_as::<_, T>(sql)
-                        .fetch_all(self)
-                        .await
-                        .map_err(FxError::Sqlx)
-                };
+                let q = async move { Ok(sqlx::query_as::<_, T>(sql).fetch_all(self).await?) };
                 Box::pin(q)
             }
 
@@ -253,12 +243,7 @@ macro_rules! impl_sql_meta {
                 &'a self,
                 sql: &'a str,
             ) -> BoxFuture<'a, FxResult<T>> {
-                let q = async move {
-                    sqlx::query_as::<_, T>(sql)
-                        .fetch_one(self)
-                        .await
-                        .map_err(FxError::Sqlx)
-                };
+                let q = async move { Ok(sqlx::query_as::<_, T>(sql).fetch_one(self).await?) };
                 Box::pin(q)
             }
 
@@ -266,7 +251,7 @@ macro_rules! impl_sql_meta {
                 &'a self,
                 sql: &'a str,
             ) -> BoxFuture<'a, FxResult<<Self::DB as Database>::QueryResult>> {
-                let q = async move { sqlx::query(sql).execute(self).await.map_err(FxError::Sqlx) };
+                let q = async move { Ok(sqlx::query(sql).execute(self).await?) };
                 Box::pin(q)
             }
         }
@@ -307,10 +292,10 @@ mod test_connector {
             }
 
             fn from_pg_row(row: PgRow) -> FxResult<Self> {
-                let email: String = row.try_get(0).map_err(FxError::Sqlx)?;
-                let nickname: String = row.try_get(1).map_err(FxError::Sqlx)?;
-                let hash: String = row.try_get(2).map_err(FxError::Sqlx)?;
-                let role: String = row.try_get(3).map_err(FxError::Sqlx)?;
+                let email: String = row.try_get(0)?;
+                let nickname: String = row.try_get(1)?;
+                let hash: String = row.try_get(2)?;
+                let role: String = row.try_get(3)?;
 
                 Ok(Self::new(email, nickname, hash, role))
             }

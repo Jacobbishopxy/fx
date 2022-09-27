@@ -25,7 +25,7 @@ impl Datagrid {
     }
 
     pub fn try_new(arrays: Vec<Box<dyn Array>>) -> FxResult<Self> {
-        let chunk = Chunk::try_new(arrays).map_err(FxError::Arrow)?;
+        let chunk = Chunk::try_new(arrays)?;
         Ok(Datagrid(chunk))
     }
 
@@ -54,7 +54,7 @@ impl Datagrid {
         schema: &Schema,
         compression: Option<avro_schema::file::Compression>,
     ) -> FxResult<()> {
-        let record = avro_write::to_record(schema).map_err(FxError::Arrow)?;
+        let record = avro_write::to_record(schema)?;
         let arrays = self.0.arrays();
 
         let mut serializers = arrays
@@ -69,21 +69,19 @@ impl Datagrid {
         let mut compressed_block = avro_schema::file::CompressedBlock::default();
 
         let _was_compressed =
-            avro_schema::write::compress(&mut block, &mut compressed_block, compression)
-                .map_err(FxError::ArrowAvro)?;
+            avro_schema::write::compress(&mut block, &mut compressed_block, compression)?;
 
-        avro_schema::write::write_metadata(writer, record, compression)
-            .map_err(FxError::ArrowAvro)?;
+        avro_schema::write::write_metadata(writer, record, compression)?;
 
-        avro_schema::write::write_block(writer, &compressed_block).map_err(FxError::ArrowAvro)?;
+        avro_schema::write::write_block(writer, &compressed_block)?;
 
         Ok(())
     }
 
     pub fn read_avro<R: Read>(&mut self, reader: &mut R) -> FxResult<()> {
-        let metadata = avro_schema::read::read_metadata(reader).map_err(FxError::ArrowAvro)?;
+        let metadata = avro_schema::read::read_metadata(reader)?;
 
-        let schema = avro_read::infer_schema(&metadata.record).map_err(FxError::Arrow)?;
+        let schema = avro_read::infer_schema(&metadata.record)?;
 
         let mut blocks = avro_read::Reader::new(reader, metadata, schema.fields, None);
 
@@ -115,30 +113,26 @@ impl Datagrid {
             .collect();
 
         let row_groups =
-            parquet_write::RowGroupIterator::try_new(iter.into_iter(), schema, options, encodings)
-                .map_err(FxError::Arrow)?;
+            parquet_write::RowGroupIterator::try_new(iter.into_iter(), schema, options, encodings)?;
 
-        let mut fw = parquet_write::FileWriter::try_new(writer, schema.clone(), options)
-            .map_err(FxError::Arrow)?;
+        let mut fw = parquet_write::FileWriter::try_new(writer, schema.clone(), options)?;
 
         for group in row_groups {
-            fw.write(group.map_err(FxError::Arrow)?)
-                .map_err(FxError::Arrow)?;
+            fw.write(group?)?;
         }
 
-        let _size = fw.end(None).map_err(FxError::Arrow)?;
+        let _size = fw.end(None)?;
 
         Ok(())
     }
 
     pub fn read_parquet<R: Read + Seek>(&mut self, reader: &mut R) -> FxResult<()> {
-        let metadata = parquet_read::read_metadata(reader).map_err(FxError::Arrow)?;
+        let metadata = parquet_read::read_metadata(reader)?;
 
-        let schema = parquet_read::infer_schema(&metadata).map_err(FxError::Arrow)?;
+        let schema = parquet_read::infer_schema(&metadata)?;
 
         for field in &schema.fields {
-            let _statistics = parquet_read::statistics::deserialize(field, &metadata.row_groups)
-                .map_err(FxError::Arrow)?;
+            let _statistics = parquet_read::statistics::deserialize(field, &metadata.row_groups)?;
         }
 
         let row_groups = metadata.row_groups;
@@ -153,7 +147,7 @@ impl Datagrid {
         );
 
         for maybe_chunk in chunks {
-            let chunk = maybe_chunk.map_err(FxError::Arrow)?;
+            let chunk = maybe_chunk?;
             self.0 = chunk;
         }
 

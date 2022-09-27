@@ -30,3 +30,27 @@ pub enum FxError {
     #[error("{0}")]
     ArrowAvro(arrow2::io::avro::avro_schema::error::Error),
 }
+
+impl From<std::io::Error> for FxError {
+    fn from(e: std::io::Error) -> Self {
+        FxError::StdIO(e)
+    }
+}
+
+impl From<sqlx::Error> for FxError {
+    fn from(e: sqlx::Error) -> Self {
+        FxError::Sqlx(e)
+    }
+}
+
+impl From<arrow2::error::Error> for FxError {
+    fn from(e: arrow2::error::Error) -> Self {
+        FxError::Arrow(e)
+    }
+}
+
+impl From<arrow2::io::avro::avro_schema::error::Error> for FxError {
+    fn from(e: arrow2::io::avro::avro_schema::error::Error) -> Self {
+        FxError::ArrowAvro(e)
+    }
+}
