@@ -8,6 +8,9 @@ use syn::{
 
 type NamedFields = Punctuated<Field, Comma>;
 
+const UE: &str = "fx only supports Struct and is not implemented for Enum";
+const UU: &str = "fx only supports Struct and is not implemented for Union";
+
 /// turn ast into `Punctuated<Field, Comma>`, and filter out any type that is not a Rust struct
 fn named_fields(ast: &DeriveInput) -> NamedFields {
     match &ast.data {
@@ -18,17 +21,15 @@ fn named_fields(ast: &DeriveInput) -> NamedFields {
                 unimplemented!("derive(Builder) only supports named fields")
             }
         }
-        other => unimplemented!(
-            "fx only supports Struct and is not implemented for {:?}",
-            other
-        ),
+        Data::Enum(_) => unimplemented!("{}", UE),
+        Data::Union(_) => unimplemented!("{}", UU),
     }
 }
 
 pub(crate) fn impl_fx(input: &DeriveInput) -> proc_macro2::TokenStream {
     // name of the struct
     let name = input.ident.clone();
-    let named_fields = name_fields(input);
+    let named_fields = named_fields(input);
 
     let expanded = quote! {
         // TODO

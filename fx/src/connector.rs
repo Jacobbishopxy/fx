@@ -12,9 +12,9 @@ use sqlx::{Database, FromRow, Mssql, MySql, Pool, Postgres};
 use crate::{FxError, FxResult};
 
 pub enum DB {
-    MsSql,
-    MySql,
-    Postgres,
+    MsSql(Connector<MssqlPool>),
+    MySql(Connector<MySqlPool>),
+    Postgres(Connector<PgPool>),
 }
 
 impl FromStr for DB {
@@ -22,9 +22,9 @@ impl FromStr for DB {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "mssql" => Ok(DB::MsSql),
-            "mysql" => Ok(DB::MySql),
-            "postgres" => Ok(DB::Postgres),
+            "mssql" => Ok(DB::MsSql(Connector::<MssqlPool>::new(s))),
+            "mysql" => Ok(DB::MySql(Connector::<MySqlPool>::new(s))),
+            "postgres" => Ok(DB::Postgres(Connector::<PgPool>::new(s))),
             _ => Err(FxError::DatabaseTypeNotMatch),
         }
     }
@@ -364,12 +364,13 @@ mod test_connector {
             v4.push(role);
         }
 
-        let dg = Datagrid::from(vec![
+        let dg = Datagrid::try_from(vec![
             FxArray::from(v1),
             FxArray::from(v2),
             FxArray::from(v3),
             FxArray::from(v4),
-        ]);
+        ])
+        .unwrap();
 
         println!("{:?}", dg);
     }

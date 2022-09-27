@@ -4,14 +4,14 @@ use std::io::{Read, Seek, Write};
 
 use arrow2::array::*;
 use arrow2::chunk::Chunk;
-use arrow2::datatypes::{Field, Schema};
+use arrow2::datatypes::{DataType, Field, Schema};
 use arrow2::io::avro::avro_schema;
 use arrow2::io::avro::read as avro_read;
 use arrow2::io::avro::write as avro_write;
 use arrow2::io::parquet::read as parquet_read;
 use arrow2::io::parquet::write as parquet_write;
 
-use crate::{FxArray, FxError, FxResult};
+use crate::{FxArray, FxError, FxResult, RawArray};
 
 #[derive(Debug)]
 pub struct Datagrid(Chunk<Box<dyn Array>>);
@@ -156,12 +156,79 @@ impl Datagrid {
     }
 }
 
+#[derive(Debug)]
 pub struct DatagridBuilder<const S: usize> {
-    buffer: [FxArray; S],
+    buffer: [Option<FxArray>; S],
+}
+
+impl<const S: usize> Default for DatagridBuilder<S> {
+    fn default() -> Self {
+        Self {
+            buffer: [(); S].map(|_| None),
+        }
+    }
 }
 
 impl<const S: usize> DatagridBuilder<S> {
-    // pub fn new() ->
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn add<T: Into<FxArray>>(&mut self, arr: T) -> &mut Self {
+        for e in self.buffer.iter_mut() {
+            if e.is_none() {
+                *e = Some(arr.into());
+                break;
+            }
+        }
+
+        self
+    }
+
+    pub fn build(self) -> FxResult<Datagrid> {
+        let vec = self.buffer.into_iter().flatten().collect::<Vec<_>>();
+        Datagrid::try_from(vec)
+    }
+}
+
+pub struct DatagridRawBuilder<const S: usize> {
+    buffer: [Option<RawArray>; S],
+}
+
+impl<const S: usize> Default for DatagridRawBuilder<S> {
+    fn default() -> Self {
+        Self {
+            buffer: [(); S].map(|_| None),
+        }
+    }
+}
+
+impl<const S: usize> DatagridRawBuilder<S> {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn add(&mut self, dt: DataType) -> FxResult<&mut Self> {
+        todo!()
+    }
+
+    pub fn stack<T>(&mut self, i: usize, v: T) -> FxResult<()> {
+        todo!()
+    }
+
+    pub fn build(self) -> FxResult<Datagrid> {
+        let vec = self
+            .buffer
+            .into_iter()
+            .flatten()
+            .map(FxArray::from)
+            .collect::<Vec<_>>();
+        Datagrid::try_from(vec)
+    }
+}
+
+pub trait FxDatagrid<const S: usize> {
+    fn new_raw_builder() -> DatagridRawBuilder<S>;
 }
 
 #[cfg(test)]
@@ -240,5 +307,18 @@ mod test_datagrid {
             .map(|a| a.data_type())
             .collect::<Vec<_>>();
         println!("{:?}", data_types);
+    }
+
+    #[test]
+    fn datagrid_builder_success() {
+        let mut builder = DatagridBuilder::<3>::new();
+
+        builder.add(vec!["a", "b", "c"]);
+        builder.add(vec![1, 2, 3]);
+        builder.add(vec![Some(1.2), None, Some(2.1)]);
+
+        let d = builder.build().unwrap();
+
+        println!("{:?}", d);
     }
 }
