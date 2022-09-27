@@ -1,0 +1,28 @@
+[package]
+name = "fx"
+authors = ["JacobX <jacobbishopxy@gmail.com>"]
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+arrow2 = { version = "0", features = [
+  "io_csv",
+  "io_json",
+  "io_avro",
+  "io_parquet",
+  "io_parquet_compression",
+  "io_print",
+  "compute",
+] }
+futures = "0"
+sqlx = { version = "0", features = [
+  "runtime-tokio-rustls",
+  "postgres",
+  "mysql",
+  "mssql",
+  "chrono"
+] }
+thiserror = "1"
+tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0", features = ["compat"] }
