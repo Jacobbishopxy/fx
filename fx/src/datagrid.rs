@@ -11,8 +11,9 @@ use arrow2::io::avro::write as avro_write;
 use arrow2::io::parquet::read as parquet_read;
 use arrow2::io::parquet::write as parquet_write;
 
-use crate::{FxError, FxResult};
+use crate::{FxArray, FxError, FxResult};
 
+#[derive(Debug)]
 pub struct Datagrid(Chunk<Box<dyn Array>>);
 
 impl Datagrid {
@@ -153,6 +154,14 @@ impl Datagrid {
 
         Ok(())
     }
+}
+
+pub struct DatagridBuilder<const S: usize> {
+    buffer: [FxArray; S],
+}
+
+impl<const S: usize> DatagridBuilder<S> {
+    // pub fn new() ->
 }
 
 #[cfg(test)]

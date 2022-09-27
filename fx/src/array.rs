@@ -1,11 +1,80 @@
 //! Array
 
 use arrow2::array::*;
+use arrow2::datatypes::DataType;
 
-use crate::Datagrid;
+use crate::{Datagrid, FxError, FxResult};
 
 #[derive(Debug, Clone)]
 pub struct FxArray(Box<dyn Array>);
+
+impl FxArray {
+    pub fn array(&self) -> &dyn Array {
+        self.0.as_ref()
+    }
+
+    pub fn len(&self) -> usize {
+        self.array().len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.array().is_empty()
+    }
+
+    pub fn is_null(&self, i: usize) -> FxResult<bool> {
+        if i >= self.len() {
+            return Err(FxError::InvalidArgument(format!(
+                "n: {i} is greater than array length: {}",
+                self.len()
+            )));
+        }
+
+        Ok(self.array().is_null(i))
+    }
+
+    pub fn is_valid(&self, i: usize) -> FxResult<bool> {
+        if i >= self.len() {
+            return Err(FxError::InvalidArgument(format!(
+                "n: {i} is greater than array length: {}",
+                self.len()
+            )));
+        }
+
+        Ok(self.array().is_valid(i))
+    }
+
+    pub fn data_type(&self) -> &DataType {
+        self.array().data_type()
+    }
+
+    pub fn null_count(&self) -> usize {
+        self.array().null_count()
+    }
+
+    pub fn has_null(&self) -> bool {
+        self.null_count() > 0
+    }
+
+    pub fn push<A>(&mut self, v: A) -> &mut Self {
+        todo!()
+    }
+
+    pub fn pop(&mut self) -> &mut Self {
+        todo!()
+    }
+
+    pub fn append(&mut self, arr: &FxArray) -> &mut Self {
+        todo!()
+    }
+
+    pub fn extend(&mut self, arr: &FxArray) -> &mut Self {
+        todo!()
+    }
+}
+
+// ================================================================================================
+// Constructors
+// ================================================================================================
 
 pub trait FromSlice<T> {
     fn from_slice(slice: &[T]) -> FxArray;
@@ -72,6 +141,29 @@ macro_rules! impl_from_str {
 impl_from_str!(&str);
 impl_from_str!(String);
 
+impl From<Vec<bool>> for FxArray {
+    fn from(vec: Vec<bool>) -> Self {
+        let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
+        FxArray(BooleanArray::from(v).boxed())
+    }
+}
+
+impl From<Vec<Option<bool>>> for FxArray {
+    fn from(vec: Vec<Option<bool>>) -> Self {
+        FxArray(BooleanArray::from(vec).boxed())
+    }
+}
+
+impl FromSlice<bool> for FxArray {
+    fn from_slice(slice: &[bool]) -> Self {
+        FxArray(BooleanArray::from_slice(slice).boxed())
+    }
+}
+
+// ================================================================================================
+// Datagrid & FxArray
+// ================================================================================================
+
 impl From<Vec<FxArray>> for Datagrid {
     fn from(v: Vec<FxArray>) -> Self {
         Datagrid::new(v.into_iter().map(|e| e.0).collect())
@@ -93,10 +185,12 @@ fn test_from_v() {
 
     let d = FxArray::from_slice(&["a", "c"]);
     let e = FxArray::from(vec![Some("x"), Some("y")]);
+    let f = FxArray::from_slice(&[true, false]);
 
     println!("{:?}", a);
     println!("{:?}", b);
     println!("{:?}", c);
     println!("{:?}", d);
     println!("{:?}", e);
+    println!("{:?}", f);
 }

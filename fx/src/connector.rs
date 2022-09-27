@@ -266,6 +266,8 @@ impl_sql_meta!(Postgres, PgPoolOptions, PgPool);
 mod test_connector {
     use sqlx::{postgres::PgRow, Row};
 
+    use crate::{Datagrid, FxArray};
+
     use super::*;
 
     const URL: &str = "postgres://root:secret@localhost:5432/dev";
@@ -335,5 +337,40 @@ mod test_connector {
         println!("{:?}", res);
 
         assert!(res.is_ok());
+    }
+
+    #[tokio::test]
+    async fn query_datagrid() {
+        use futures::TryStreamExt;
+
+        let pg_pool = PgPoolOptions::new().connect(URL).await.unwrap();
+
+        let mut v1 = vec![];
+        let mut v2 = vec![];
+        let mut v3 = vec![];
+        let mut v4 = vec![];
+
+        let mut rows = sqlx::query("SELECT * FROM users").fetch(&pg_pool);
+
+        while let Some(row) = rows.try_next().await.unwrap() {
+            let email: String = row.get(0);
+            let nickname: String = row.get(1);
+            let hash: String = row.get(2);
+            let role: String = row.get(3);
+
+            v1.push(email);
+            v2.push(nickname);
+            v3.push(hash);
+            v4.push(role);
+        }
+
+        let dg = Datagrid::from(vec![
+            FxArray::from(v1),
+            FxArray::from(v2),
+            FxArray::from(v3),
+            FxArray::from(v4),
+        ]);
+
+        println!("{:?}", dg);
     }
 }
