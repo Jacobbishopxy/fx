@@ -256,6 +256,8 @@ impl<const S: usize> DatagridRowWiseBuilder<S> {
 
 pub trait FxDatagridTypedRowBuild<const S: usize> {
     fn build(builder: DatagridRowWiseBuilder<S>) -> FxResult<Datagrid>;
+
+    fn dev() -> String;
 }
 
 #[cfg(test)]
@@ -364,23 +366,25 @@ mod test_datagrid {
             fn build(builder: DatagridRowWiseBuilder<3>) -> FxResult<Datagrid> {
                 let iter = builder.buffer.into_iter();
 
-                let mut v1 = Vec::<i32>::new();
-                let mut v2 = Vec::<String>::new();
-                let mut v3 = Vec::<bool>::new();
+                let mut buck = (Vec::<i32>::new(), Vec::<String>::new(), Vec::<bool>::new());
 
                 for mut row in iter {
-                    v1.push(row.take_uncheck(0).take_i32().unwrap());
-                    v2.push(row.take_uncheck(1).take_string().unwrap());
-                    v3.push(row.take_uncheck(2).take_bool().unwrap());
+                    buck.0.push(row.take_uncheck(0).take_i32().unwrap());
+                    buck.1.push(row.take_uncheck(1).take_string().unwrap());
+                    buck.2.push(row.take_uncheck(2).take_bool().unwrap());
                 }
 
                 let mut vb = DatagridColWiseBuilder::<3>::new();
 
-                vb.stack(v1);
-                vb.stack(v2);
-                vb.stack(v3);
+                vb.stack(buck.0);
+                vb.stack(buck.1);
+                vb.stack(buck.2);
 
                 vb.build()
+            }
+
+            fn dev() -> String {
+                todo!()
             }
         }
 
@@ -411,5 +415,19 @@ mod test_datagrid {
         let d = build.build_by_type::<Users>();
 
         println!("{:?}", d);
+    }
+
+    #[test]
+    fn derive_succuss() {
+        use fx_macros::FX;
+
+        #[derive(FX)]
+        struct Users {
+            id: i32,
+            name: String,
+            check: bool,
+        }
+
+        println!("{:?}", Users::dev());
     }
 }
