@@ -17,6 +17,16 @@ impl<const S: usize> FxRow<S> {
     pub fn types(&self) -> Vec<FxValueType> {
         self.0.as_ref().iter().map(FxValueType::from).collect()
     }
+
+    pub fn into_vector(self) -> Vec<FxValue> {
+        Vec::from(self.0)
+    }
+
+    pub fn take_uncheck(&mut self, i: usize) -> FxValue {
+        let mut v = FxValue::Null;
+        std::mem::swap(&mut v, &mut self.0[i]);
+        v
+    }
 }
 
 impl<const S: usize> TryFrom<Vec<FxValue>> for FxRow<S> {

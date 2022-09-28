@@ -18,6 +18,9 @@ pub enum FxError {
     #[error("{0}")]
     InvalidArgument(String),
 
+    #[error("{0}")]
+    InvalidCasting(String),
+
     #[error(transparent)]
     StdIO(std::io::Error),
 

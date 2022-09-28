@@ -222,6 +222,10 @@ impl<const S: usize> DatagridRowWiseBuilder<S> {
         }
     }
 
+    pub fn len(&self) -> usize {
+        self.buffer.len()
+    }
+
     pub fn stack(&mut self, row: FxRow<S>) -> FxResult<&mut Self> {
         if !self.schema.check_schema(&row) {
             return Err(FxError::InvalidArgument(
@@ -241,8 +245,8 @@ impl<const S: usize> DatagridRowWiseBuilder<S> {
         todo!()
     }
 
-    pub fn build_by_type<T: FxDatagridTypedRowBuild<S>>(self, t: T) -> FxResult<Datagrid> {
-        t.build(self)
+    pub fn build_by_type<T: FxDatagridTypedRowBuild<S>>(self) -> FxResult<Datagrid> {
+        T::build(self)
     }
 }
 
@@ -251,11 +255,13 @@ impl<const S: usize> DatagridRowWiseBuilder<S> {
 // ================================================================================================
 
 pub trait FxDatagridTypedRowBuild<const S: usize> {
-    fn build(&self, builder: DatagridRowWiseBuilder<S>) -> FxResult<Datagrid>;
+    fn build(builder: DatagridRowWiseBuilder<S>) -> FxResult<Datagrid>;
 }
 
 #[cfg(test)]
 mod test_datagrid {
+
+    use crate::{FxValue, FxValueType};
 
     use super::*;
 
@@ -333,7 +339,7 @@ mod test_datagrid {
     }
 
     #[test]
-    fn datagrid_builder_success() {
+    fn datagrid_builder_col_wise_success() {
         let mut builder = DatagridColWiseBuilder::<3>::new();
 
         builder.stack(vec!["a", "b", "c"]);
@@ -341,6 +347,68 @@ mod test_datagrid {
         builder.stack(vec![Some(1.2), None, Some(2.1)]);
 
         let d = builder.build().unwrap();
+
+        println!("{:?}", d);
+    }
+
+    #[test]
+    fn datagrid_row_wise_builder_success() {
+        #[allow(dead_code)]
+        struct Users {
+            id: i32,
+            name: String,
+            check: bool,
+        }
+
+        impl FxDatagridTypedRowBuild<3> for Users {
+            fn build(builder: DatagridRowWiseBuilder<3>) -> FxResult<Datagrid> {
+                let iter = builder.buffer.into_iter();
+
+                let mut v1 = Vec::<i32>::new();
+                let mut v2 = Vec::<String>::new();
+                let mut v3 = Vec::<bool>::new();
+
+                for mut row in iter {
+                    v1.push(row.take_uncheck(0).take_i32().unwrap());
+                    v2.push(row.take_uncheck(1).take_string().unwrap());
+                    v3.push(row.take_uncheck(2).take_bool().unwrap());
+                }
+
+                let mut vb = DatagridColWiseBuilder::<3>::new();
+
+                vb.stack(v1);
+                vb.stack(v2);
+                vb.stack(v3);
+
+                vb.build()
+            }
+        }
+
+        let schema = FxSchema::<3>::try_from(vec![
+            FxValueType::I32,
+            FxValueType::String,
+            FxValueType::Bool,
+        ])
+        .unwrap();
+        let mut build = DatagridRowWiseBuilder::new(schema);
+
+        let row1 = FxRow::try_from(vec![
+            FxValue::I32(1),
+            FxValue::String("a".to_string()),
+            FxValue::Bool(false),
+        ])
+        .unwrap();
+        let row2 = FxRow::try_from(vec![
+            FxValue::I32(2),
+            FxValue::String("b".to_string()),
+            FxValue::Bool(true),
+        ])
+        .unwrap();
+
+        build.stack_uncheck(row1);
+        build.stack_uncheck(row2);
+
+        let d = build.build_by_type::<Users>();
 
         println!("{:?}", d);
     }
