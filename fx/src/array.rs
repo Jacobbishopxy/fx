@@ -5,7 +5,7 @@ use std::collections::HashSet;
 use arrow2::array::*;
 use arrow2::datatypes::DataType;
 
-use crate::{Datagrid, FxError, FxResult};
+use crate::{Datagrid, FxError, FxResult, FxValue};
 
 // ================================================================================================
 // FxArray
@@ -61,7 +61,7 @@ impl FxArray {
         self.null_count() > 0
     }
 
-    pub fn push<A>(&mut self, _v: A) -> &mut Self {
+    pub fn push<A>(&mut self, _v: FxValue) -> FxResult<&mut Self> {
         todo!()
     }
 

@@ -11,7 +11,7 @@ use arrow2::io::avro::write as avro_write;
 use arrow2::io::parquet::read as parquet_read;
 use arrow2::io::parquet::write as parquet_write;
 
-use crate::{FxArray, FxError, FxResult};
+use crate::{FxArray, FxError, FxResult, FxRow, FxSchema};
 
 // ================================================================================================
 // Datagrid
@@ -166,15 +166,15 @@ impl Datagrid {
 }
 
 // ================================================================================================
-// DatagridBuilder
+// DatagridColWiseBuilder
 // ================================================================================================
 
 #[derive(Debug)]
-pub struct DatagridBuilder<const S: usize> {
+pub struct DatagridColWiseBuilder<const S: usize> {
     buffer: [Option<FxArray>; S],
 }
 
-impl<const S: usize> Default for DatagridBuilder<S> {
+impl<const S: usize> Default for DatagridColWiseBuilder<S> {
     fn default() -> Self {
         Self {
             buffer: [(); S].map(|_| None),
@@ -182,12 +182,12 @@ impl<const S: usize> Default for DatagridBuilder<S> {
     }
 }
 
-impl<const S: usize> DatagridBuilder<S> {
+impl<const S: usize> DatagridColWiseBuilder<S> {
     pub fn new() -> Self {
         Self::default()
     }
 
-    pub fn add<T: Into<FxArray>>(&mut self, arr: T) -> &mut Self {
+    pub fn stack<T: Into<FxArray>>(&mut self, arr: T) -> &mut Self {
         for e in self.buffer.iter_mut() {
             if e.is_none() {
                 *e = Some(arr.into());
@@ -205,11 +205,53 @@ impl<const S: usize> DatagridBuilder<S> {
 }
 
 // ================================================================================================
-// Datagrid Schema
+// DatagridRowWiseBuilder
 // ================================================================================================
 
-pub trait FxDatagrid<const S: usize> {
-    // TODO
+#[derive(Debug)]
+pub struct DatagridRowWiseBuilder<const S: usize> {
+    schema: FxSchema<S>,
+    buffer: Vec<FxRow<S>>,
+}
+
+impl<const S: usize> DatagridRowWiseBuilder<S> {
+    pub fn new(schema: FxSchema<S>) -> Self {
+        Self {
+            schema,
+            buffer: Vec::new(),
+        }
+    }
+
+    pub fn stack(&mut self, row: FxRow<S>) -> FxResult<&mut Self> {
+        if !self.schema.check_schema(&row) {
+            return Err(FxError::InvalidArgument(
+                "row and schema mismatched".to_string(),
+            ));
+        }
+        self.buffer.push(row);
+        Ok(self)
+    }
+
+    pub fn stack_uncheck(&mut self, row: FxRow<S>) -> &mut Self {
+        self.buffer.push(row);
+        self
+    }
+
+    pub fn build(self) -> FxResult<Datagrid> {
+        todo!()
+    }
+
+    pub fn build_by_type<T: FxDatagridTypedRowBuild<S>>(self, t: T) -> FxResult<Datagrid> {
+        t.build(self)
+    }
+}
+
+// ================================================================================================
+// Datagrid typed row build
+// ================================================================================================
+
+pub trait FxDatagridTypedRowBuild<const S: usize> {
+    fn build(&self, builder: DatagridRowWiseBuilder<S>) -> FxResult<Datagrid>;
 }
 
 #[cfg(test)]
@@ -292,11 +334,11 @@ mod test_datagrid {
 
     #[test]
     fn datagrid_builder_success() {
-        let mut builder = DatagridBuilder::<3>::new();
+        let mut builder = DatagridColWiseBuilder::<3>::new();
 
-        builder.add(vec!["a", "b", "c"]);
-        builder.add(vec![1, 2, 3]);
-        builder.add(vec![Some(1.2), None, Some(2.1)]);
+        builder.stack(vec!["a", "b", "c"]);
+        builder.stack(vec![1, 2, 3]);
+        builder.stack(vec![Some(1.2), None, Some(2.1)]);
 
         let d = builder.build().unwrap();
 

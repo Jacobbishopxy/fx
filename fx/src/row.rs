@@ -1,41 +1,63 @@
 //! Row
 
-use crate::{Datagrid, FxResult, Value};
+use crate::{FxError, FxResult, FxValue, FxValueType};
 
 // ================================================================================================
 // Row
 // ================================================================================================
 
-pub struct Row<const S: usize>([Value; S]);
+#[derive(Debug)]
+pub struct FxRow<const S: usize>([FxValue; S]);
 
-// ================================================================================================
-// DatagridRowBuilder
-// ================================================================================================
+impl<const S: usize> FxRow<S> {
+    pub fn values(&self) -> &[FxValue] {
+        &self.0
+    }
 
-pub struct DatagridRawBuilder<const S: usize> {
-    buffer: Vec<Row<S>>,
-}
-
-impl<const S: usize> Default for DatagridRawBuilder<S> {
-    fn default() -> Self {
-        Self { buffer: Vec::new() }
+    pub fn types(&self) -> Vec<FxValueType> {
+        self.0.as_ref().iter().map(FxValueType::from).collect()
     }
 }
 
-impl<const S: usize> DatagridRawBuilder<S> {
-    pub fn new() -> Self {
-        Self::default()
+impl<const S: usize> TryFrom<Vec<FxValue>> for FxRow<S> {
+    type Error = FxError;
+
+    fn try_from(value: Vec<FxValue>) -> Result<Self, Self::Error> {
+        let len = value.len();
+        let arr: FxResult<[FxValue; S]> = value
+            .try_into()
+            .map_err(|_| FxError::InvalidArgument(format!("invalid length {len}")));
+
+        Ok(Self(arr?))
+    }
+}
+
+// ================================================================================================
+// Schema
+// ================================================================================================
+
+#[derive(Debug)]
+pub struct FxSchema<const S: usize>([FxValueType; S]);
+
+impl<const S: usize> FxSchema<S> {
+    pub fn types(&self) -> &[FxValueType] {
+        &self.0
     }
 
-    pub fn add(&mut self) -> FxResult<&mut Self> {
-        todo!()
+    pub fn check_schema(&self, row: &FxRow<S>) -> bool {
+        row.types().as_slice() == self.types()
     }
+}
 
-    pub fn stack(&mut self) -> FxResult<()> {
-        todo!()
-    }
+impl<const S: usize> TryFrom<Vec<FxValueType>> for FxSchema<S> {
+    type Error = FxError;
 
-    pub fn build(self) -> FxResult<Datagrid> {
-        todo!()
+    fn try_from(value: Vec<FxValueType>) -> Result<Self, Self::Error> {
+        let len = value.len();
+        let arr: FxResult<[FxValueType; S]> = value
+            .try_into()
+            .map_err(|_| FxError::InvalidArgument(format!("invalid length {len}")));
+
+        Ok(Self(arr?))
     }
 }
