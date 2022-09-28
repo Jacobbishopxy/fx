@@ -1,0 +1,3 @@
+//! Value
+
+pub enum Value {}
