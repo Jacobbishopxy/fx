@@ -11,7 +11,7 @@ use arrow2::io::avro::write as avro_write;
 use arrow2::io::parquet::read as parquet_read;
 use arrow2::io::parquet::write as parquet_write;
 
-use crate::{FxArray, FxError, FxResult, FxRow, FxSchema, FxValueType};
+use crate::{FxArray, FxError, FxResult, FxRow, FxSchema};
 
 // ================================================================================================
 // Datagrid
@@ -254,6 +254,16 @@ impl<const S: usize> DatagridRowWiseBuilder<S> {
     }
 }
 
+impl<const S: usize> IntoIterator for DatagridRowWiseBuilder<S> {
+    type Item = FxRow<S>;
+
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.buffer.into_iter()
+    }
+}
+
 // ================================================================================================
 // Datagrid typed row build
 // ================================================================================================
@@ -368,21 +378,19 @@ mod test_datagrid {
 
         impl FxDatagridTypedRowBuild<3> for Users {
             fn build(builder: DatagridRowWiseBuilder<3>) -> FxResult<Datagrid> {
-                let iter = builder.buffer.into_iter();
+                let mut bucket = (Vec::<i32>::new(), Vec::<String>::new(), Vec::<bool>::new());
 
-                let mut buck = (Vec::<i32>::new(), Vec::<String>::new(), Vec::<bool>::new());
-
-                for mut row in iter {
-                    buck.0.push(row.take_uncheck(0).take_i32().unwrap());
-                    buck.1.push(row.take_uncheck(1).take_string().unwrap());
-                    buck.2.push(row.take_uncheck(2).take_bool().unwrap());
+                for mut row in builder.into_iter() {
+                    bucket.0.push(row.take_uncheck(0).take_i32().unwrap());
+                    bucket.1.push(row.take_uncheck(1).take_string().unwrap());
+                    bucket.2.push(row.take_uncheck(2).take_bool().unwrap());
                 }
 
                 let mut vb = DatagridColWiseBuilder::<3>::new();
 
-                vb.stack(buck.0);
-                vb.stack(buck.1);
-                vb.stack(buck.2);
+                vb.stack(bucket.0);
+                vb.stack(bucket.1);
+                vb.stack(bucket.2);
 
                 vb.build()
             }
@@ -425,6 +433,7 @@ mod test_datagrid {
     fn derive_succuss() {
         use fx_macros::FX;
 
+        #[allow(dead_code)]
         #[derive(FX)]
         struct Users {
             id: i32,

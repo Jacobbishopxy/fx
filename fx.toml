@@ -1,0 +1,9 @@
+
+[tasks.tree]
+script = '''
+tree \
+  --dirsfirst \
+  --noreport \
+  -I \
+  "target|cache|Catalog.md|*.json|*.lock|*.toml" | sed 's/^/    /' > Catalog.md
+'''

@@ -2,10 +2,7 @@
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{
-    punctuated::Punctuated, token::Comma, Attribute, Data, DeriveInput, Field, Fields, Ident, Lit,
-    Meta, NestedMeta, Type, TypeTuple,
-};
+use syn::{punctuated::Punctuated, token::Comma, Data, DeriveInput, Field, Fields, Type};
 
 type NamedFields = Punctuated<Field, Comma>;
 
@@ -31,7 +28,7 @@ fn schema_len(named_fields: &NamedFields) -> usize {
     named_fields.len()
 }
 
-fn schema_types(named_fields: &NamedFields) -> TokenStream {
+fn generated_bucket(named_fields: &NamedFields) -> TokenStream {
     let fields = named_fields
         .iter()
         .map(|f| {
@@ -43,6 +40,18 @@ fn schema_types(named_fields: &NamedFields) -> TokenStream {
     quote! {
         (#(#fields),*)
     }
+}
+
+fn generated_bucket_infuse(named_fields: &NamedFields) -> TokenStream {
+    // TODO
+
+    todo!()
+}
+
+fn generated_builder_stack(named_fields: &NamedFields) -> TokenStream {
+    // TODO
+
+    todo!()
 }
 
 fn generated_schema(named_fields: &NamedFields) -> Vec<TokenStream> {
@@ -90,13 +99,23 @@ pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
     let named_fields = named_fields(input);
 
     let schema_len = schema_len(&named_fields);
-    // let types_tuple = schema_types(&named_fields);
     let schema = generated_schema(&named_fields);
+    let bucket = generated_bucket(&named_fields);
+    // let bucket_infuse = generated_bucket_infuse(&named_fields);
+    // let builder_stack = generated_builder_stack(&named_fields);
 
     let expanded = quote! {
         impl FxDatagridTypedRowBuild<#schema_len> for #name {
             fn build(builder: DatagridRowWiseBuilder<#schema_len>) -> crate::FxResult<crate::Datagrid> {
-                // let mut buck = #types_tuple;
+                let mut bucket = #bucket;
+
+                // for mut row in builder.into_iter() {
+                //     #bucket_infuse
+                // }
+
+                // let mut vb = crate::DatagridColWiseBuilder::<#schema_len>::new();
+
+                // #builder_stack
 
                 todo!()
             }

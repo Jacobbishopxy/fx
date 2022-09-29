@@ -62,56 +62,6 @@ pub enum FxValueType {
     String,
 }
 
-impl FxValueType {
-    pub fn gen_u8_vec(&self) -> Vec<u8> {
-        vec![]
-    }
-
-    pub fn gen_u16_vec(&self) -> Vec<u16> {
-        vec![]
-    }
-
-    pub fn gen_u32_vec(&self) -> Vec<u32> {
-        vec![]
-    }
-
-    pub fn gen_u64_vec(&self) -> Vec<u64> {
-        vec![]
-    }
-
-    pub fn gen_i8_vec(&self) -> Vec<i8> {
-        vec![]
-    }
-
-    pub fn gen_i16_vec(&self) -> Vec<i16> {
-        vec![]
-    }
-
-    pub fn gen_i32_vec(&self) -> Vec<i32> {
-        vec![]
-    }
-
-    pub fn gen_i64_vec(&self) -> Vec<i64> {
-        vec![]
-    }
-
-    pub fn gen_f32_vec(&self) -> Vec<f32> {
-        vec![]
-    }
-
-    pub fn gen_f64_vec(&self) -> Vec<f64> {
-        vec![]
-    }
-
-    pub fn gen_bool_vec(&self) -> Vec<bool> {
-        vec![]
-    }
-
-    pub fn gen_string_vec(&self) -> Vec<String> {
-        vec![]
-    }
-}
-
 impl From<&FxValue> for FxValueType {
     fn from(v: &FxValue) -> Self {
         match v {
