@@ -31,39 +31,54 @@ fn schema_len(named_fields: &NamedFields) -> usize {
     named_fields.len()
 }
 
-fn schema_types(named_fields: &NamedFields) -> String {
-    let mut types_ts = String::new();
+fn schema_types(named_fields: &NamedFields) -> TokenStream {
+    let fields = named_fields
+        .iter()
+        .map(|f| {
+            let ty = &f.ty;
+            quote! { Vec::<#ty>::new() }
+        })
+        .collect::<Vec<_>>();
 
-    for f in named_fields.iter() {
-        // let t = f.ty;
-        let t = f.ident.as_ref().unwrap().to_string();
-        types_ts += &t;
+    quote! {
+        (#(#fields),*)
     }
-
-    // quote! {
-    //    #(#types_ts)*
-    // }
-
-    types_ts
 }
 
-pub(crate) fn impl_fx(input: &DeriveInput) -> proc_macro2::TokenStream {
+fn generated_schema(named_fields: &NamedFields) -> TokenStream {
+    let fields = named_fields
+        .iter()
+        .map(|f| {
+            let ty = &f.ty;
+
+            todo!()
+        })
+        .collect::<Vec<_>>();
+
+    todo!()
+}
+
+pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
     // name of the struct
     let name = input.ident.clone();
     let named_fields = named_fields(input);
 
     let schema_len = schema_len(&named_fields);
-    let names = schema_types(&named_fields);
+    let types_tuple = schema_types(&named_fields);
+    let schema = generated_schema(&named_fields);
 
     let expanded = quote! {
         impl FxDatagridTypedRowBuild<#schema_len> for #name {
             fn build(builder: DatagridRowWiseBuilder<#schema_len>) -> crate::FxResult<crate::Datagrid> {
-                // let mut buck =
+                let mut buck = #types_tuple;
+
                 todo!()
             }
 
-            fn dev() -> String {
-                #names.to_string()
+            fn schema() -> crate::FxSchema<#schema_len> {
+                let schema = #schema;
+
+                todo!()
             }
         }
     };

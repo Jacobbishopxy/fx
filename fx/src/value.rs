@@ -24,7 +24,7 @@ macro_rules! fx_value_match {
         pub fn $n($s) -> $crate::FxResult<$t> {
             match $s {
                 $crate::FxValue::$vr(v) => Ok(v),
-                o @ _ => Err(FxError::InvalidCasting(format!("error type: {:?}", o))),
+                o => Err(FxError::InvalidCasting(format!("error type: {:?}", o))),
             }
         }
     };

@@ -222,6 +222,10 @@ impl<const S: usize> DatagridRowWiseBuilder<S> {
         }
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.buffer.is_empty()
+    }
+
     pub fn len(&self) -> usize {
         self.buffer.len()
     }
@@ -257,7 +261,7 @@ impl<const S: usize> DatagridRowWiseBuilder<S> {
 pub trait FxDatagridTypedRowBuild<const S: usize> {
     fn build(builder: DatagridRowWiseBuilder<S>) -> FxResult<Datagrid>;
 
-    fn dev() -> String;
+    fn schema() -> FxSchema<S>;
 }
 
 #[cfg(test)]
@@ -383,7 +387,7 @@ mod test_datagrid {
                 vb.build()
             }
 
-            fn dev() -> String {
+            fn schema() -> FxSchema<3> {
                 todo!()
             }
         }
@@ -421,13 +425,11 @@ mod test_datagrid {
     fn derive_succuss() {
         use fx_macros::FX;
 
-        #[derive(FX)]
+        // #[derive(FX)]
         struct Users {
             id: i32,
             name: String,
             check: bool,
         }
-
-        println!("{:?}", Users::dev());
     }
 }
