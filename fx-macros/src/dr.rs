@@ -45,17 +45,43 @@ fn schema_types(named_fields: &NamedFields) -> TokenStream {
     }
 }
 
-fn generated_schema(named_fields: &NamedFields) -> TokenStream {
-    let fields = named_fields
+fn generated_schema(named_fields: &NamedFields) -> Vec<TokenStream> {
+    named_fields
         .iter()
-        .map(|f| {
-            let ty = &f.ty;
-
-            todo!()
+        .map(|f| match &f.ty {
+            Type::Path(tp) => {
+                let p = &tp.path;
+                if p.is_ident("u8") {
+                    quote!(crate::FxValueType::U8)
+                } else if p.is_ident("u16") {
+                    quote!(crate::FxValueType::U16)
+                } else if p.is_ident("u32") {
+                    quote!(crate::FxValueType::U32)
+                } else if p.is_ident("u64") {
+                    quote!(crate::FxValueType::U64)
+                } else if p.is_ident("i8") {
+                    quote!(crate::FxValueType::I8)
+                } else if p.is_ident("i16") {
+                    quote!(crate::FxValueType::I16)
+                } else if p.is_ident("i32") {
+                    quote!(crate::FxValueType::I32)
+                } else if p.is_ident("i64") {
+                    quote!(crate::FxValueType::I64)
+                } else if p.is_ident("f32") {
+                    quote!(crate::FxValueType::F32)
+                } else if p.is_ident("f64") {
+                    quote!(crate::FxValueType::F64)
+                } else if p.is_ident("bool") {
+                    quote!(crate::FxValueType::Bool)
+                } else if p.is_ident("String") {
+                    quote!(crate::FxValueType::String)
+                } else {
+                    quote!(crate::FxValueType::Null)
+                }
+            }
+            _ => panic!("Only accept `TypePath`"),
         })
-        .collect::<Vec<_>>();
-
-    todo!()
+        .collect::<Vec<_>>()
 }
 
 pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
@@ -64,21 +90,19 @@ pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
     let named_fields = named_fields(input);
 
     let schema_len = schema_len(&named_fields);
-    let types_tuple = schema_types(&named_fields);
+    // let types_tuple = schema_types(&named_fields);
     let schema = generated_schema(&named_fields);
 
     let expanded = quote! {
         impl FxDatagridTypedRowBuild<#schema_len> for #name {
             fn build(builder: DatagridRowWiseBuilder<#schema_len>) -> crate::FxResult<crate::Datagrid> {
-                let mut buck = #types_tuple;
+                // let mut buck = #types_tuple;
 
                 todo!()
             }
 
-            fn schema() -> crate::FxSchema<#schema_len> {
-                let schema = #schema;
-
-                todo!()
+            fn schema() -> crate::FxResult<crate::FxSchema<#schema_len>> {
+                crate::FxSchema::<#schema_len>::try_from(vec![#(#schema),*])
             }
         }
     };

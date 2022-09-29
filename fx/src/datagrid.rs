@@ -11,7 +11,7 @@ use arrow2::io::avro::write as avro_write;
 use arrow2::io::parquet::read as parquet_read;
 use arrow2::io::parquet::write as parquet_write;
 
-use crate::{FxArray, FxError, FxResult, FxRow, FxSchema};
+use crate::{FxArray, FxError, FxResult, FxRow, FxSchema, FxValueType};
 
 // ================================================================================================
 // Datagrid
@@ -261,7 +261,7 @@ impl<const S: usize> DatagridRowWiseBuilder<S> {
 pub trait FxDatagridTypedRowBuild<const S: usize> {
     fn build(builder: DatagridRowWiseBuilder<S>) -> FxResult<Datagrid>;
 
-    fn schema() -> FxSchema<S>;
+    fn schema() -> FxResult<FxSchema<S>>;
 }
 
 #[cfg(test)]
@@ -387,7 +387,7 @@ mod test_datagrid {
                 vb.build()
             }
 
-            fn schema() -> FxSchema<3> {
+            fn schema() -> FxResult<FxSchema<3>> {
                 todo!()
             }
         }
@@ -425,11 +425,13 @@ mod test_datagrid {
     fn derive_succuss() {
         use fx_macros::FX;
 
-        // #[derive(FX)]
+        #[derive(FX)]
         struct Users {
             id: i32,
             name: String,
             check: bool,
         }
+
+        println!("{:?}", Users::schema());
     }
 }
