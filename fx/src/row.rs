@@ -46,7 +46,7 @@ impl<const S: usize> TryFrom<Vec<FxValue>> for FxRow<S> {
 // Schema
 // ================================================================================================
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FxSchema<const S: usize>([FxValueType; S]);
 
 impl<const S: usize> FxSchema<S> {

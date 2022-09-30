@@ -62,6 +62,12 @@ pub enum FxValueType {
     String,
 }
 
+impl ToString for FxValueType {
+    fn to_string(&self) -> String {
+        format!("{:?}", &self)
+    }
+}
+
 impl From<&FxValue> for FxValueType {
     fn from(v: &FxValue) -> Self {
         match v {
