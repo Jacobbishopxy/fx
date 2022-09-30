@@ -42,16 +42,82 @@ fn generated_bucket(named_fields: &NamedFields) -> TokenStream {
     }
 }
 
-fn generated_bucket_infuse(named_fields: &NamedFields) -> TokenStream {
-    // TODO
-
-    todo!()
+fn generated_bucket_infuse(named_fields: &NamedFields) -> Vec<TokenStream> {
+    named_fields
+        .iter()
+        .enumerate()
+        .map(|(i, f)| {
+            let idx = syn::Index::from(i);
+            match &f.ty {
+                Type::Path(tp) => {
+                    let p = &tp.path;
+                    if p.is_ident("u8") {
+                        quote! {
+                            bucket.#idx.push(row.take_uncheck(#idx).take_u8().unwrap());
+                        }
+                    } else if p.is_ident("u16") {
+                        quote! {
+                            bucket.#idx.push(row.take_uncheck(#idx).take_u16().unwrap());
+                        }
+                    } else if p.is_ident("u32") {
+                        quote! {
+                            bucket.#idx.push(row.take_uncheck(#idx).take_u32().unwrap());
+                        }
+                    } else if p.is_ident("u64") {
+                        quote! {
+                            bucket.#idx.push(row.take_uncheck(#idx).take_u64().unwrap());
+                        }
+                    } else if p.is_ident("i8") {
+                        quote! {
+                            bucket.#idx.push(row.take_uncheck(#idx).take_i8().unwrap());
+                        }
+                    } else if p.is_ident("i16") {
+                        quote! {
+                            bucket.#idx.push(row.take_uncheck(#idx).take_i16().unwrap());
+                        }
+                    } else if p.is_ident("i32") {
+                        quote! {
+                            bucket.#idx.push(row.take_uncheck(#idx).take_i32().unwrap());
+                        }
+                    } else if p.is_ident("i64") {
+                        quote! {
+                            bucket.#idx.push(row.take_uncheck(#idx).take_i64().unwrap());
+                        }
+                    } else if p.is_ident("f32") {
+                        quote! {
+                            bucket.#idx.push(row.take_uncheck(#idx).take_f32().unwrap());
+                        }
+                    } else if p.is_ident("f64") {
+                        quote! {
+                            bucket.#idx.push(row.take_uncheck(#idx).take_f64().unwrap());
+                        }
+                    } else if p.is_ident("bool") {
+                        quote! {
+                            bucket.#idx.push(row.take_uncheck(#idx).take_bool().unwrap());
+                        }
+                    } else if p.is_ident("String") {
+                        quote! {
+                            bucket.#idx.push(row.take_uncheck(#idx).take_string().unwrap());
+                        }
+                    } else {
+                        panic!("Field type is unacceptable!")
+                    }
+                }
+                _ => panic!("Only accept `TypePath`"),
+            }
+        })
+        .collect::<Vec<_>>()
 }
 
-fn generated_builder_stack(named_fields: &NamedFields) -> TokenStream {
-    // TODO
-
-    todo!()
+fn generated_builder_stack(named_fields: &NamedFields) -> Vec<TokenStream> {
+    (0..named_fields.len())
+        .map(|i| {
+            let idx = syn::Index::from(i);
+            quote! {
+                builder.stack(bucket.#idx);
+            }
+        })
+        .collect::<Vec<_>>()
 }
 
 fn generated_schema(named_fields: &NamedFields) -> Vec<TokenStream> {
@@ -101,23 +167,23 @@ pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
     let schema_len = schema_len(&named_fields);
     let schema = generated_schema(&named_fields);
     let bucket = generated_bucket(&named_fields);
-    // let bucket_infuse = generated_bucket_infuse(&named_fields);
-    // let builder_stack = generated_builder_stack(&named_fields);
+    let bucket_infuse = generated_bucket_infuse(&named_fields);
+    let builder_stack = generated_builder_stack(&named_fields);
 
     let expanded = quote! {
         impl FxDatagridTypedRowBuild<#schema_len> for #name {
             fn build(builder: DatagridRowWiseBuilder<#schema_len>) -> crate::FxResult<crate::Datagrid> {
                 let mut bucket = #bucket;
 
-                // for mut row in builder.into_iter() {
-                //     #bucket_infuse
-                // }
+                for mut row in builder.into_iter() {
+                    #(#bucket_infuse)*
+                }
 
-                // let mut vb = crate::DatagridColWiseBuilder::<#schema_len>::new();
+                let mut builder = crate::DatagridColWiseBuilder::<#schema_len>::new();
 
-                // #builder_stack
+                #(#builder_stack)*
 
-                todo!()
+                builder.build()
             }
 
             fn schema() -> crate::FxResult<crate::FxSchema<#schema_len>> {
