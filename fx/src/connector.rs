@@ -333,6 +333,15 @@ impl<const S: usize> SqlxRowConversion<S, MssqlRow> for FxSchema<S> {
                 FxValueType::F64 => Ok(FxValue::F64(row.try_get(idx)?)),
                 FxValueType::Bool => Ok(FxValue::Bool(row.try_get(idx)?)),
                 FxValueType::String => Ok(FxValue::String(row.try_get(idx)?)),
+                FxValueType::OptU8 => Ok(FxValue::OptU8(row.try_get(idx)?)),
+                FxValueType::OptI8 => Ok(FxValue::OptI8(row.try_get(idx)?)),
+                FxValueType::OptI16 => Ok(FxValue::OptI16(row.try_get(idx)?)),
+                FxValueType::OptI32 => Ok(FxValue::OptI32(row.try_get(idx)?)),
+                FxValueType::OptI64 => Ok(FxValue::OptI64(row.try_get(idx)?)),
+                FxValueType::OptF32 => Ok(FxValue::OptF32(row.try_get(idx)?)),
+                FxValueType::OptF64 => Ok(FxValue::OptF64(row.try_get(idx)?)),
+                FxValueType::OptBool => Ok(FxValue::OptBool(row.try_get(idx)?)),
+                FxValueType::OptString => Ok(FxValue::OptString(row.try_get(idx)?)),
                 _ => Err(FxError::InvalidType(t.to_string())),
             })
             .collect::<FxResult<Vec<_>>>()?;
@@ -360,6 +369,18 @@ impl<const S: usize> SqlxRowConversion<S, MySqlRow> for FxSchema<S> {
                 FxValueType::F64 => Ok(FxValue::F64(row.try_get(idx)?)),
                 FxValueType::Bool => Ok(FxValue::Bool(row.try_get(idx)?)),
                 FxValueType::String => Ok(FxValue::String(row.try_get(idx)?)),
+                FxValueType::OptU8 => Ok(FxValue::OptU8(row.try_get(idx)?)),
+                FxValueType::OptU16 => Ok(FxValue::OptU16(row.try_get(idx)?)),
+                FxValueType::OptU32 => Ok(FxValue::OptU32(row.try_get(idx)?)),
+                FxValueType::OptU64 => Ok(FxValue::OptU64(row.try_get(idx)?)),
+                FxValueType::OptI8 => Ok(FxValue::OptI8(row.try_get(idx)?)),
+                FxValueType::OptI16 => Ok(FxValue::OptI16(row.try_get(idx)?)),
+                FxValueType::OptI32 => Ok(FxValue::OptI32(row.try_get(idx)?)),
+                FxValueType::OptI64 => Ok(FxValue::OptI64(row.try_get(idx)?)),
+                FxValueType::OptF32 => Ok(FxValue::OptF32(row.try_get(idx)?)),
+                FxValueType::OptF64 => Ok(FxValue::OptF64(row.try_get(idx)?)),
+                FxValueType::OptBool => Ok(FxValue::OptBool(row.try_get(idx)?)),
+                FxValueType::OptString => Ok(FxValue::OptString(row.try_get(idx)?)),
                 _ => Err(FxError::InvalidType(t.to_string())),
             })
             .collect::<FxResult<Vec<_>>>()?;
@@ -383,6 +404,14 @@ impl<const S: usize> SqlxRowConversion<S, PgRow> for FxSchema<S> {
                 FxValueType::F64 => Ok(FxValue::F64(row.try_get(idx)?)),
                 FxValueType::Bool => Ok(FxValue::Bool(row.try_get(idx)?)),
                 FxValueType::String => Ok(FxValue::String(row.try_get(idx)?)),
+                FxValueType::OptI8 => Ok(FxValue::OptI8(row.try_get(idx)?)),
+                FxValueType::OptI16 => Ok(FxValue::OptI16(row.try_get(idx)?)),
+                FxValueType::OptI32 => Ok(FxValue::OptI32(row.try_get(idx)?)),
+                FxValueType::OptI64 => Ok(FxValue::OptI64(row.try_get(idx)?)),
+                FxValueType::OptF32 => Ok(FxValue::OptF32(row.try_get(idx)?)),
+                FxValueType::OptF64 => Ok(FxValue::OptF64(row.try_get(idx)?)),
+                FxValueType::OptBool => Ok(FxValue::OptBool(row.try_get(idx)?)),
+                FxValueType::OptString => Ok(FxValue::OptString(row.try_get(idx)?)),
                 _ => Err(FxError::InvalidType(t.to_string())),
             })
             .collect::<FxResult<Vec<_>>>()?;
@@ -500,33 +529,32 @@ mod test_connector {
 
     #[tokio::test]
     async fn query_typed_datagrid() {
-        // use fx_macros::FX;
+        use fx_macros::FX;
 
-        // let pg_pool = PgPoolOptions::new().connect(URL).await.unwrap();
+        let pg_pool = PgPoolOptions::new().connect(URL).await.unwrap();
 
-        // #[allow(dead_code)]
-        // #[derive(FX)]
-        // struct Users {
-        //     email: String,
-        //     nickname: String,
-        //     hash: String,
-        //     role: String,
-        // }
+        #[allow(dead_code)]
+        #[derive(FX)]
+        struct Users {
+            id: i64,
+            name: String,
+            email: Option<String>,
+        }
 
-        // let schema = Users::schema().unwrap();
+        let schema = Users::schema().unwrap();
 
-        // let mut build = DatagridRowWiseBuilder::new(schema.clone());
+        let mut build = DatagridRowWiseBuilder::new(schema.clone());
 
-        // let mut rows = sqlx::query("SELECT * FROM users").fetch(&pg_pool);
+        let mut rows = sqlx::query("SELECT * FROM users").fetch(&pg_pool);
 
-        // while let Some(row) = rows.try_next().await.unwrap() {
-        //     let fx_row = schema.row_convert(row).unwrap();
+        while let Some(row) = rows.try_next().await.unwrap() {
+            let fx_row = schema.row_convert(row).unwrap();
 
-        //     build.stack_uncheck(fx_row);
-        // }
+            build.stack_uncheck(fx_row);
+        }
 
-        // let d = build.build_by_type::<Users>();
+        let d = build.build_by_type::<Users>();
 
-        // println!("{:?}", d);
+        println!("{:?}", d);
     }
 }
