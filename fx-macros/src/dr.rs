@@ -2,7 +2,9 @@
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{punctuated::Punctuated, token::Comma, Data, DeriveInput, Field, Fields, Type};
+use syn::punctuated::Punctuated;
+use syn::token::Comma;
+use syn::{Data, DeriveInput, Field, Fields, Ident, Type};
 
 type NamedFields = Punctuated<Field, Comma>;
 
@@ -28,6 +30,50 @@ fn schema_len(named_fields: &NamedFields) -> usize {
     named_fields.len()
 }
 
+#[allow(dead_code)]
+fn path_is_option(ty: &Type) -> bool {
+    match ty {
+        Type::Path(tp) => {
+            let path = &tp.path;
+            tp.qself.is_none()
+                && path.leading_colon.is_none()
+                && path.segments.len() == 1
+                && path.segments.iter().next().unwrap().ident == "Option"
+        }
+        _ => panic!("type mismatch"),
+    }
+}
+
+fn get_option_type(ty: &Type) -> (bool, Ident) {
+    match ty {
+        Type::Path(tp) => {
+            let path = &tp.path;
+            let is_option = tp.qself.is_none()
+                && path.leading_colon.is_none()
+                && path.segments.len() == 1
+                && path.segments.iter().next().unwrap().ident == "Option";
+
+            if is_option {
+                match &path.segments.first().unwrap().arguments {
+                    syn::PathArguments::AngleBracketed(ab) => {
+                        let ga = ab.args.first().unwrap();
+                        match ga {
+                            syn::GenericArgument::Type(Type::Path(t)) => {
+                                (true, t.path.segments.first().unwrap().ident.clone())
+                            }
+                            _ => panic!("type mismatch"),
+                        }
+                    }
+                    _ => panic!("type mismatch"),
+                }
+            } else {
+                (false, path.segments.first().unwrap().ident.clone())
+            }
+        }
+        _ => panic!("type mismatch"),
+    }
+}
+
 fn generated_bucket(named_fields: &NamedFields) -> TokenStream {
     let fields = named_fields
         .iter()
@@ -42,69 +88,152 @@ fn generated_bucket(named_fields: &NamedFields) -> TokenStream {
     }
 }
 
+fn path_gen_bucket_infuse(ty: &Ident, i: usize, is_option: bool) -> TokenStream {
+    let idx = syn::Index::from(i);
+    match &ty.to_string()[..] {
+        "u8" => {
+            if is_option {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_u8().unwrap());
+                }
+            } else {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_u8().unwrap());
+                }
+            }
+        }
+        "u16" => {
+            if is_option {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_u16().unwrap());
+                }
+            } else {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_u16().unwrap());
+                }
+            }
+        }
+        "u32" => {
+            if is_option {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_u32().unwrap());
+                }
+            } else {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_u32().unwrap());
+                }
+            }
+        }
+        "u64" => {
+            if is_option {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_u64().unwrap());
+                }
+            } else {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_u64().unwrap());
+                }
+            }
+        }
+        "i8" => {
+            if is_option {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_i8().unwrap());
+                }
+            } else {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_i8().unwrap());
+                }
+            }
+        }
+        "i16" => {
+            if is_option {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_i16().unwrap());
+                }
+            } else {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_i16().unwrap());
+                }
+            }
+        }
+        "i32" => {
+            if is_option {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_i32().unwrap());
+                }
+            } else {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_i32().unwrap());
+                }
+            }
+        }
+        "i64" => {
+            if is_option {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_i64().unwrap());
+                }
+            } else {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_i64().unwrap());
+                }
+            }
+        }
+        "f32" => {
+            if is_option {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_f32().unwrap());
+                }
+            } else {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_f32().unwrap());
+                }
+            }
+        }
+        "f64" => {
+            if is_option {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_f64().unwrap());
+                }
+            } else {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_f64().unwrap());
+                }
+            }
+        }
+        "bool" => {
+            if is_option {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_bool().unwrap());
+                }
+            } else {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_bool().unwrap());
+                }
+            }
+        }
+        "String" => {
+            if is_option {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_string().unwrap());
+                }
+            } else {
+                quote! {
+                    bucket.#idx.push(row.take_uncheck(#idx).take_string().unwrap());
+                }
+            }
+        }
+        _ => panic!("unsupported type"),
+    }
+}
+
 fn generated_bucket_infuse(named_fields: &NamedFields) -> Vec<TokenStream> {
     named_fields
         .iter()
         .enumerate()
         .map(|(i, f)| {
-            let idx = syn::Index::from(i);
-            match &f.ty {
-                Type::Path(tp) => {
-                    let p = &tp.path;
-                    if p.is_ident("u8") {
-                        quote! {
-                            bucket.#idx.push(row.take_uncheck(#idx).take_u8().unwrap());
-                        }
-                    } else if p.is_ident("u16") {
-                        quote! {
-                            bucket.#idx.push(row.take_uncheck(#idx).take_u16().unwrap());
-                        }
-                    } else if p.is_ident("u32") {
-                        quote! {
-                            bucket.#idx.push(row.take_uncheck(#idx).take_u32().unwrap());
-                        }
-                    } else if p.is_ident("u64") {
-                        quote! {
-                            bucket.#idx.push(row.take_uncheck(#idx).take_u64().unwrap());
-                        }
-                    } else if p.is_ident("i8") {
-                        quote! {
-                            bucket.#idx.push(row.take_uncheck(#idx).take_i8().unwrap());
-                        }
-                    } else if p.is_ident("i16") {
-                        quote! {
-                            bucket.#idx.push(row.take_uncheck(#idx).take_i16().unwrap());
-                        }
-                    } else if p.is_ident("i32") {
-                        quote! {
-                            bucket.#idx.push(row.take_uncheck(#idx).take_i32().unwrap());
-                        }
-                    } else if p.is_ident("i64") {
-                        quote! {
-                            bucket.#idx.push(row.take_uncheck(#idx).take_i64().unwrap());
-                        }
-                    } else if p.is_ident("f32") {
-                        quote! {
-                            bucket.#idx.push(row.take_uncheck(#idx).take_f32().unwrap());
-                        }
-                    } else if p.is_ident("f64") {
-                        quote! {
-                            bucket.#idx.push(row.take_uncheck(#idx).take_f64().unwrap());
-                        }
-                    } else if p.is_ident("bool") {
-                        quote! {
-                            bucket.#idx.push(row.take_uncheck(#idx).take_bool().unwrap());
-                        }
-                    } else if p.is_ident("String") {
-                        quote! {
-                            bucket.#idx.push(row.take_uncheck(#idx).take_string().unwrap());
-                        }
-                    } else {
-                        panic!("Field type is unacceptable!")
-                    }
-                }
-                _ => panic!("Only accept `TypePath`"),
-            }
+            let (is_option, ty) = get_option_type(&f.ty);
+            path_gen_bucket_infuse(&ty, i, is_option)
         })
         .collect::<Vec<_>>()
 }
@@ -120,41 +249,102 @@ fn generated_builder_stack(named_fields: &NamedFields) -> Vec<TokenStream> {
         .collect::<Vec<_>>()
 }
 
+fn path_gen_schema_type(ty: &Ident, is_option: bool) -> TokenStream {
+    match &ty.to_string()[..] {
+        "u8" => {
+            if is_option {
+                quote!(crate::FxValueType::OptU8)
+            } else {
+                quote!(crate::FxValueType::U8)
+            }
+        }
+        "u16" => {
+            if is_option {
+                quote!(crate::FxValueType::OptU16)
+            } else {
+                quote!(crate::FxValueType::U16)
+            }
+        }
+        "u32" => {
+            if is_option {
+                quote!(crate::FxValueType::OptU32)
+            } else {
+                quote!(crate::FxValueType::U32)
+            }
+        }
+        "u64" => {
+            if is_option {
+                quote!(crate::FxValueType::OptU64)
+            } else {
+                quote!(crate::FxValueType::U64)
+            }
+        }
+        "i8" => {
+            if is_option {
+                quote!(crate::FxValueType::OptI8)
+            } else {
+                quote!(crate::FxValueType::I8)
+            }
+        }
+        "i16" => {
+            if is_option {
+                quote!(crate::FxValueType::OptI16)
+            } else {
+                quote!(crate::FxValueType::I16)
+            }
+        }
+        "i32" => {
+            if is_option {
+                quote!(crate::FxValueType::OptI32)
+            } else {
+                quote!(crate::FxValueType::I32)
+            }
+        }
+        "i64" => {
+            if is_option {
+                quote!(crate::FxValueType::OptI64)
+            } else {
+                quote!(crate::FxValueType::I64)
+            }
+        }
+        "f32" => {
+            if is_option {
+                quote!(crate::FxValueType::OptF32)
+            } else {
+                quote!(crate::FxValueType::F32)
+            }
+        }
+        "f64" => {
+            if is_option {
+                quote!(crate::FxValueType::OptF64)
+            } else {
+                quote!(crate::FxValueType::F64)
+            }
+        }
+        "bool" => {
+            if is_option {
+                quote!(crate::FxValueType::OptBool)
+            } else {
+                quote!(crate::FxValueType::Bool)
+            }
+        }
+        "String" => {
+            if is_option {
+                quote!(crate::FxValueType::OptString)
+            } else {
+                quote!(crate::FxValueType::String)
+            }
+        }
+        _ => panic!("unsupported type"),
+    }
+}
+
 fn generated_schema(named_fields: &NamedFields) -> Vec<TokenStream> {
     named_fields
         .iter()
-        .map(|f| match &f.ty {
-            Type::Path(tp) => {
-                let p = &tp.path;
-                if p.is_ident("u8") {
-                    quote!(crate::FxValueType::U8)
-                } else if p.is_ident("u16") {
-                    quote!(crate::FxValueType::U16)
-                } else if p.is_ident("u32") {
-                    quote!(crate::FxValueType::U32)
-                } else if p.is_ident("u64") {
-                    quote!(crate::FxValueType::U64)
-                } else if p.is_ident("i8") {
-                    quote!(crate::FxValueType::I8)
-                } else if p.is_ident("i16") {
-                    quote!(crate::FxValueType::I16)
-                } else if p.is_ident("i32") {
-                    quote!(crate::FxValueType::I32)
-                } else if p.is_ident("i64") {
-                    quote!(crate::FxValueType::I64)
-                } else if p.is_ident("f32") {
-                    quote!(crate::FxValueType::F32)
-                } else if p.is_ident("f64") {
-                    quote!(crate::FxValueType::F64)
-                } else if p.is_ident("bool") {
-                    quote!(crate::FxValueType::Bool)
-                } else if p.is_ident("String") {
-                    quote!(crate::FxValueType::String)
-                } else {
-                    quote!(crate::FxValueType::Null)
-                }
-            }
-            _ => panic!("Only accept `TypePath`"),
+        .map(|f| {
+            let (is_option, ty) = get_option_type(&f.ty);
+            path_gen_schema_type(&ty, is_option)
         })
         .collect::<Vec<_>>()
 }

@@ -466,8 +466,6 @@ mod test_connector {
 
     #[tokio::test]
     async fn query_datagrid() {
-        use futures::TryStreamExt;
-
         let pg_pool = PgPoolOptions::new().connect(URL).await.unwrap();
 
         let mut v1 = vec![];
@@ -502,33 +500,33 @@ mod test_connector {
 
     #[tokio::test]
     async fn query_typed_datagrid() {
-        use fx_macros::FX;
+        // use fx_macros::FX;
 
-        let pg_pool = PgPoolOptions::new().connect(URL).await.unwrap();
+        // let pg_pool = PgPoolOptions::new().connect(URL).await.unwrap();
 
-        #[allow(dead_code)]
-        #[derive(FX)]
-        struct Users {
-            email: String,
-            nickname: String,
-            hash: String,
-            role: String,
-        }
+        // #[allow(dead_code)]
+        // #[derive(FX)]
+        // struct Users {
+        //     email: String,
+        //     nickname: String,
+        //     hash: String,
+        //     role: String,
+        // }
 
-        let schema = Users::schema().unwrap();
+        // let schema = Users::schema().unwrap();
 
-        let mut build = DatagridRowWiseBuilder::new(schema.clone());
+        // let mut build = DatagridRowWiseBuilder::new(schema.clone());
 
-        let mut rows = sqlx::query("SELECT * FROM users").fetch(&pg_pool);
+        // let mut rows = sqlx::query("SELECT * FROM users").fetch(&pg_pool);
 
-        while let Some(row) = rows.try_next().await.unwrap() {
-            let fx_row = schema.row_convert(row).unwrap();
+        // while let Some(row) = rows.try_next().await.unwrap() {
+        //     let fx_row = schema.row_convert(row).unwrap();
 
-            build.stack_uncheck(fx_row);
-        }
+        //     build.stack_uncheck(fx_row);
+        // }
 
-        let d = build.build_by_type::<Users>();
+        // let d = build.build_by_type::<Users>();
 
-        println!("{:?}", d);
+        // println!("{:?}", d);
     }
 }

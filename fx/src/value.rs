@@ -17,10 +17,30 @@ pub enum FxValue {
     F64(f64),
     Bool(bool),
     String(String),
+    OptU8(Option<u8>),
+    OptU16(Option<u16>),
+    OptU32(Option<u32>),
+    OptU64(Option<u64>),
+    OptI8(Option<i8>),
+    OptI16(Option<i16>),
+    OptI32(Option<i32>),
+    OptI64(Option<i64>),
+    OptF32(Option<f32>),
+    OptF64(Option<f64>),
+    OptBool(Option<bool>),
+    OptString(Option<String>),
 }
 
 macro_rules! fx_value_match {
-    ($n:ident, $s:ident, $t:ident, $vr:ident) => {
+    ($n:ident, $s:ident, Option<$t:ty>, $vr:ident) => {
+        pub fn $n($s) -> $crate::FxResult<Option<$t>> {
+            match $s {
+                $crate::FxValue::$vr(v) => Ok(v),
+                o => Err(FxError::InvalidCasting(format!("error type: {:?}", o))),
+            }
+        }
+    };
+    ($n:ident, $s:ident, $t:ty, $vr:ident) => {
         pub fn $n($s) -> $crate::FxResult<$t> {
             match $s {
                 $crate::FxValue::$vr(v) => Ok(v),
@@ -43,6 +63,18 @@ impl FxValue {
     fx_value_match!(take_f64, self, f64, F64);
     fx_value_match!(take_bool, self, bool, Bool);
     fx_value_match!(take_string, self, String, String);
+    fx_value_match!(take_opt_u8, self, Option<u8>, OptU8);
+    fx_value_match!(take_opt_u16, self, Option<u16>, OptU16);
+    fx_value_match!(take_opt_u32, self, Option<u32>, OptU32);
+    fx_value_match!(take_opt_u64, self, Option<u64>, OptU64);
+    fx_value_match!(take_opt_i8, self, Option<i8>, OptI8);
+    fx_value_match!(take_opt_i16, self, Option<i16>, OptI16);
+    fx_value_match!(take_opt_i32, self, Option<i32>, OptI32);
+    fx_value_match!(take_opt_i64, self, Option<i64>, OptI64);
+    fx_value_match!(take_opt_f32, self, Option<f32>, OptF32);
+    fx_value_match!(take_opt_f64, self, Option<f64>, OptF64);
+    fx_value_match!(take_opt_bool, self, Option<bool>, OptBool);
+    fx_value_match!(take_opt_string, self, Option<String>, OptString);
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -60,6 +92,18 @@ pub enum FxValueType {
     F64,
     Bool,
     String,
+    OptU8,
+    OptU16,
+    OptU32,
+    OptU64,
+    OptI8,
+    OptI16,
+    OptI32,
+    OptI64,
+    OptF32,
+    OptF64,
+    OptBool,
+    OptString,
 }
 
 impl ToString for FxValueType {
@@ -84,6 +128,18 @@ impl From<&FxValue> for FxValueType {
             FxValue::F64(_) => FxValueType::F64,
             FxValue::Bool(_) => FxValueType::Bool,
             FxValue::String(_) => FxValueType::String,
+            FxValue::OptU8(_) => FxValueType::OptU8,
+            FxValue::OptU16(_) => FxValueType::OptU16,
+            FxValue::OptU32(_) => FxValueType::OptU32,
+            FxValue::OptU64(_) => FxValueType::OptU64,
+            FxValue::OptI8(_) => FxValueType::OptI8,
+            FxValue::OptI16(_) => FxValueType::OptI16,
+            FxValue::OptI32(_) => FxValueType::OptI32,
+            FxValue::OptI64(_) => FxValueType::OptI64,
+            FxValue::OptF32(_) => FxValueType::OptF32,
+            FxValue::OptF64(_) => FxValueType::OptF64,
+            FxValue::OptBool(_) => FxValueType::OptBool,
+            FxValue::OptString(_) => FxValueType::OptString,
         }
     }
 }

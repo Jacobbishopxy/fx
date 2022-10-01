@@ -435,18 +435,18 @@ mod test_datagrid {
 
         #[allow(dead_code)]
         #[derive(FX)]
-        struct Users {
+        struct DevUsers {
             id: i32,
             name: String,
-            check: bool,
+            check: Option<bool>,
         }
 
-        println!("{:?}", Users::schema());
+        println!("{:?}", DevUsers::schema());
 
         let schema = FxSchema::<3>::try_from(vec![
             FxValueType::I32,
             FxValueType::String,
-            FxValueType::Bool,
+            FxValueType::OptBool,
         ])
         .unwrap();
         let mut build = DatagridRowWiseBuilder::new(schema);
@@ -454,20 +454,20 @@ mod test_datagrid {
         let row1 = FxRow::try_from(vec![
             FxValue::I32(1),
             FxValue::String("a".to_string()),
-            FxValue::Bool(false),
+            FxValue::OptBool(Some(false)),
         ])
         .unwrap();
         let row2 = FxRow::try_from(vec![
             FxValue::I32(2),
             FxValue::String("b".to_string()),
-            FxValue::Bool(true),
+            FxValue::OptBool(Some(true)),
         ])
         .unwrap();
 
         build.stack_uncheck(row1);
         build.stack_uncheck(row2);
 
-        let d = build.build_by_type::<Users>();
+        let d = build.build_by_type::<DevUsers>();
 
         println!("{:?}", d);
     }
