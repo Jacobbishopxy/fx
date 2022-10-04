@@ -6,15 +6,14 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 
 ```txt
     .
+    ├── examples
     ├── fx
     │   └── src
     │       ├── array.rs
     │       ├── connector.rs
     │       ├── datagrid.rs
     │       ├── error.rs
-    │       ├── lib.rs
-    │       ├── row.rs
-    │       └── value.rs
+    │       └── lib.rs
     ├── fx-macros
     │   └── src
     │       ├── dr.rs
