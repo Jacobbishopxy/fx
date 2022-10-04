@@ -11,7 +11,7 @@ use arrow2::io::avro::write as avro_write;
 use arrow2::io::parquet::read as parquet_read;
 use arrow2::io::parquet::write as parquet_write;
 
-use crate::{FxArray, FxError, FxResult, FxRow, FxSchema};
+use crate::{FxArray, FxError, FxResult};
 
 // ================================================================================================
 // Datagrid
@@ -205,76 +205,6 @@ impl<const S: usize> DatagridColWiseBuilder<S> {
 }
 
 // ================================================================================================
-// DatagridRowWiseBuilder
-// ================================================================================================
-
-#[derive(Debug)]
-pub struct DatagridRowWiseBuilder<const S: usize> {
-    schema: FxSchema<S>,
-    buffer: Vec<FxRow<S>>,
-}
-
-impl<const S: usize> DatagridRowWiseBuilder<S> {
-    pub fn new(schema: FxSchema<S>) -> Self {
-        Self {
-            schema,
-            buffer: Vec::new(),
-        }
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.buffer.is_empty()
-    }
-
-    pub fn len(&self) -> usize {
-        self.buffer.len()
-    }
-
-    pub fn stack(&mut self, row: FxRow<S>) -> FxResult<&mut Self> {
-        if !self.schema.check_schema(&row) {
-            return Err(FxError::InvalidArgument(
-                "row and schema mismatched".to_string(),
-            ));
-        }
-        self.buffer.push(row);
-        Ok(self)
-    }
-
-    pub fn stack_uncheck(&mut self, row: FxRow<S>) -> &mut Self {
-        self.buffer.push(row);
-        self
-    }
-
-    pub fn build(self) -> FxResult<Datagrid> {
-        todo!()
-    }
-
-    pub fn build_by_type<T: FxDatagridTypedRowBuild<S>>(self) -> FxResult<Datagrid> {
-        T::build(self)
-    }
-}
-
-impl<const S: usize> IntoIterator for DatagridRowWiseBuilder<S> {
-    type Item = FxRow<S>;
-
-    type IntoIter = std::vec::IntoIter<Self::Item>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.buffer.into_iter()
-    }
-}
-
-// ================================================================================================
-// Datagrid typed row build
-// ================================================================================================
-
-pub trait FxDatagridTypedRowBuild<const S: usize> {
-    fn build(builder: DatagridRowWiseBuilder<S>) -> FxResult<Datagrid>;
-
-    fn schema() -> FxResult<FxSchema<S>>;
-}
-
-// ================================================================================================
 // FxDatagridRowBuild
 // ================================================================================================
 
@@ -288,8 +218,6 @@ pub trait FxDatagridRowBuild<T> {
 
 #[cfg(test)]
 mod test_datagrid {
-
-    use crate::{FxValue, FxValueType};
 
     use super::*;
 
@@ -380,69 +308,7 @@ mod test_datagrid {
     }
 
     #[test]
-    fn datagrid_row_wise_builder_success() {
-        #[allow(dead_code)]
-        struct Users {
-            id: i32,
-            name: String,
-            check: bool,
-        }
-
-        impl FxDatagridTypedRowBuild<3> for Users {
-            fn build(builder: DatagridRowWiseBuilder<3>) -> FxResult<Datagrid> {
-                let mut bucket = (Vec::<i32>::new(), Vec::<String>::new(), Vec::<bool>::new());
-
-                for mut row in builder.into_iter() {
-                    bucket.0.push(row.take_uncheck(0).take_i32().unwrap());
-                    bucket.1.push(row.take_uncheck(1).take_string().unwrap());
-                    bucket.2.push(row.take_uncheck(2).take_bool().unwrap());
-                }
-
-                let mut vb = DatagridColWiseBuilder::<3>::new();
-
-                vb.stack(bucket.0);
-                vb.stack(bucket.1);
-                vb.stack(bucket.2);
-
-                vb.build()
-            }
-
-            fn schema() -> FxResult<FxSchema<3>> {
-                todo!()
-            }
-        }
-
-        let schema = FxSchema::<3>::try_from(vec![
-            FxValueType::I32,
-            FxValueType::String,
-            FxValueType::Bool,
-        ])
-        .unwrap();
-        let mut build = DatagridRowWiseBuilder::new(schema);
-
-        let row1 = FxRow::try_from(vec![
-            FxValue::I32(1),
-            FxValue::String("a".to_string()),
-            FxValue::Bool(false),
-        ])
-        .unwrap();
-        let row2 = FxRow::try_from(vec![
-            FxValue::I32(2),
-            FxValue::String("b".to_string()),
-            FxValue::Bool(true),
-        ])
-        .unwrap();
-
-        build.stack_uncheck(row1);
-        build.stack_uncheck(row2);
-
-        let d = build.build_by_type::<Users>();
-
-        println!("{:?}", d);
-    }
-
-    #[test]
-    fn datagrid_dev_builder_success() {
+    fn datagrid_builder_row_wise_success() {
         #[allow(dead_code)]
         struct Users {
             id: i32,
@@ -506,44 +372,34 @@ mod test_datagrid {
     }
 
     #[test]
-    fn datagrid_row_wise_derive_builder_success() {
-        use fx_macros::FX;
+    fn datagrid_proc_macro_builder_success() {
+        use crate::FX;
 
         #[allow(dead_code)]
         #[derive(FX)]
-        struct DevUsers {
+        struct Users {
             id: i32,
             name: String,
             check: Option<bool>,
         }
 
-        println!("{:?}", DevUsers::schema());
+        let r1 = Users {
+            id: 1,
+            name: "Jacob".to_string(),
+            check: Some(true),
+        };
 
-        let schema = FxSchema::<3>::try_from(vec![
-            FxValueType::I32,
-            FxValueType::String,
-            FxValueType::OptBool,
-        ])
-        .unwrap();
-        let mut build = DatagridRowWiseBuilder::new(schema);
+        let r2 = Users {
+            id: 2,
+            name: "Mia".to_string(),
+            check: None,
+        };
 
-        let row1 = FxRow::try_from(vec![
-            FxValue::I32(1),
-            FxValue::String("a".to_string()),
-            FxValue::OptBool(Some(false)),
-        ])
-        .unwrap();
-        let row2 = FxRow::try_from(vec![
-            FxValue::I32(2),
-            FxValue::String("b".to_string()),
-            FxValue::OptBool(Some(true)),
-        ])
-        .unwrap();
+        let mut bd = UsersRowBuild::new();
 
-        build.stack_uncheck(row1);
-        build.stack_uncheck(row2);
+        bd.stack(r1).stack(r2);
 
-        let d = build.build_by_type::<DevUsers>();
+        let d = bd.build();
 
         println!("{:?}", d);
     }

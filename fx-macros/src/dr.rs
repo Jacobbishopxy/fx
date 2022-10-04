@@ -1,7 +1,7 @@
 //! Derive
 
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{format_ident, quote};
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
 use syn::{Data, DeriveInput, Field, Fields, Ident, Type};
@@ -26,6 +26,7 @@ fn named_fields(ast: &DeriveInput) -> NamedFields {
     }
 }
 
+#[allow(dead_code)]
 fn schema_len(named_fields: &NamedFields) -> usize {
     named_fields.len()
 }
@@ -44,6 +45,7 @@ fn path_is_option(ty: &Type) -> bool {
     }
 }
 
+#[allow(dead_code)]
 fn get_option_type(ty: &Type) -> (bool, Ident) {
     match ty {
         Type::Path(tp) => {
@@ -74,312 +76,132 @@ fn get_option_type(ty: &Type) -> (bool, Ident) {
     }
 }
 
-fn generated_bucket(named_fields: &NamedFields) -> TokenStream {
-    let fields = named_fields
+fn generated_build_name(struct_name: &Ident) -> Ident {
+    format_ident!("{}RowBuild", struct_name)
+}
+
+fn generated_impl_from_sql_row(struct_name: &Ident, named_fields: &NamedFields) -> TokenStream {
+    let ctt = named_fields
         .iter()
-        .map(|f| {
-            let ty = &f.ty;
-            quote! { Vec::<#ty>::new() }
+        .enumerate()
+        .map(|(i, f)| {
+            let idx = syn::Index::from(i);
+            let fd = f.ident.as_ref().unwrap();
+            quote! {
+                #fd: v.get(#idx)
+            }
         })
         .collect::<Vec<_>>();
 
     quote! {
-        (#(#fields),*)
+        use ::sqlx::Row;
+
+
+        impl From<::sqlx::mssql::MssqlRow> for #struct_name {
+            fn from(v: ::sqlx::mssql::MssqlRow) -> Self {
+                Self {
+                    #(#ctt),*
+                }
+            }
+        }
+
+        impl From<::sqlx::mysql::MySqlRow> for #struct_name {
+            fn from(v: ::sqlx::mysql::MySqlRow) -> Self {
+                Self {
+                    #(#ctt),*
+                }
+            }
+        }
+
+        impl From<::sqlx::postgres::PgRow> for #struct_name {
+            fn from(v: ::sqlx::postgres::PgRow) -> Self {
+                Self {
+                    #(#ctt),*
+                }
+            }
+        }
     }
 }
 
-fn path_gen_bucket_infuse(ty: &Ident, i: usize, is_option: bool) -> TokenStream {
-    let idx = syn::Index::from(i);
-    match &ty.to_string()[..] {
-        "u8" => {
-            if is_option {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_u8().unwrap());
-                }
-            } else {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_u8().unwrap());
-                }
-            }
-        }
-        "u16" => {
-            if is_option {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_u16().unwrap());
-                }
-            } else {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_u16().unwrap());
-                }
-            }
-        }
-        "u32" => {
-            if is_option {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_u32().unwrap());
-                }
-            } else {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_u32().unwrap());
-                }
-            }
-        }
-        "u64" => {
-            if is_option {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_u64().unwrap());
-                }
-            } else {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_u64().unwrap());
-                }
-            }
-        }
-        "i8" => {
-            if is_option {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_i8().unwrap());
-                }
-            } else {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_i8().unwrap());
-                }
-            }
-        }
-        "i16" => {
-            if is_option {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_i16().unwrap());
-                }
-            } else {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_i16().unwrap());
-                }
-            }
-        }
-        "i32" => {
-            if is_option {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_i32().unwrap());
-                }
-            } else {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_i32().unwrap());
-                }
-            }
-        }
-        "i64" => {
-            if is_option {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_i64().unwrap());
-                }
-            } else {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_i64().unwrap());
-                }
-            }
-        }
-        "f32" => {
-            if is_option {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_f32().unwrap());
-                }
-            } else {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_f32().unwrap());
-                }
-            }
-        }
-        "f64" => {
-            if is_option {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_f64().unwrap());
-                }
-            } else {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_f64().unwrap());
-                }
-            }
-        }
-        "bool" => {
-            if is_option {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_bool().unwrap());
-                }
-            } else {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_bool().unwrap());
-                }
-            }
-        }
-        "String" => {
-            if is_option {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_opt_string().unwrap());
-                }
-            } else {
-                quote! {
-                    bucket.#idx.push(row.take_uncheck(#idx).take_string().unwrap());
-                }
-            }
-        }
-        _ => panic!("unsupported type"),
-    }
-}
-
-fn generated_bucket_infuse(named_fields: &NamedFields) -> Vec<TokenStream> {
-    named_fields
-        .iter()
-        .enumerate()
-        .map(|(i, f)| {
-            let (is_option, ty) = get_option_type(&f.ty);
-            path_gen_bucket_infuse(&ty, i, is_option)
-        })
-        .collect::<Vec<_>>()
-}
-
-fn generated_builder_stack(named_fields: &NamedFields) -> Vec<TokenStream> {
-    (0..named_fields.len())
-        .map(|i| {
-            let idx = syn::Index::from(i);
-            quote! {
-                builder.stack(bucket.#idx);
-            }
-        })
-        .collect::<Vec<_>>()
-}
-
-fn path_gen_schema_type(ty: &Ident, is_option: bool) -> TokenStream {
-    match &ty.to_string()[..] {
-        "u8" => {
-            if is_option {
-                quote!(crate::FxValueType::OptU8)
-            } else {
-                quote!(crate::FxValueType::U8)
-            }
-        }
-        "u16" => {
-            if is_option {
-                quote!(crate::FxValueType::OptU16)
-            } else {
-                quote!(crate::FxValueType::U16)
-            }
-        }
-        "u32" => {
-            if is_option {
-                quote!(crate::FxValueType::OptU32)
-            } else {
-                quote!(crate::FxValueType::U32)
-            }
-        }
-        "u64" => {
-            if is_option {
-                quote!(crate::FxValueType::OptU64)
-            } else {
-                quote!(crate::FxValueType::U64)
-            }
-        }
-        "i8" => {
-            if is_option {
-                quote!(crate::FxValueType::OptI8)
-            } else {
-                quote!(crate::FxValueType::I8)
-            }
-        }
-        "i16" => {
-            if is_option {
-                quote!(crate::FxValueType::OptI16)
-            } else {
-                quote!(crate::FxValueType::I16)
-            }
-        }
-        "i32" => {
-            if is_option {
-                quote!(crate::FxValueType::OptI32)
-            } else {
-                quote!(crate::FxValueType::I32)
-            }
-        }
-        "i64" => {
-            if is_option {
-                quote!(crate::FxValueType::OptI64)
-            } else {
-                quote!(crate::FxValueType::I64)
-            }
-        }
-        "f32" => {
-            if is_option {
-                quote!(crate::FxValueType::OptF32)
-            } else {
-                quote!(crate::FxValueType::F32)
-            }
-        }
-        "f64" => {
-            if is_option {
-                quote!(crate::FxValueType::OptF64)
-            } else {
-                quote!(crate::FxValueType::F64)
-            }
-        }
-        "bool" => {
-            if is_option {
-                quote!(crate::FxValueType::OptBool)
-            } else {
-                quote!(crate::FxValueType::Bool)
-            }
-        }
-        "String" => {
-            if is_option {
-                quote!(crate::FxValueType::OptString)
-            } else {
-                quote!(crate::FxValueType::String)
-            }
-        }
-        _ => panic!("unsupported type"),
-    }
-}
-
-fn generated_schema(named_fields: &NamedFields) -> Vec<TokenStream> {
-    named_fields
+fn generated_new_builder_struct(build_name: &Ident, named_fields: &NamedFields) -> TokenStream {
+    let ctt = named_fields
         .iter()
         .map(|f| {
-            let (is_option, ty) = get_option_type(&f.ty);
-            path_gen_schema_type(&ty, is_option)
+            let fd = f.ident.as_ref().unwrap();
+            let ty = &f.ty;
+
+            quote! {
+                #fd: Vec<#ty>
+            }
         })
-        .collect::<Vec<_>>()
+        .collect::<Vec<_>>();
+
+    quote! {
+        #[derive(Default)]
+        struct #build_name { #(#ctt),* }
+    }
+}
+
+fn generated_impl_row_build(
+    struct_name: &Ident,
+    build_name: &Ident,
+    named_fields: &NamedFields,
+) -> TokenStream {
+    let (stack_ctt, build_ctt): (Vec<_>, Vec<_>) = named_fields
+        .iter()
+        .map(|f| {
+            let fd = f.ident.as_ref().unwrap();
+
+            let sc = quote! {
+                self.#fd.push(row.#fd)
+            };
+            let bc = quote! {
+                crate::FxArray::from(self.#fd)
+            };
+
+            (sc, bc)
+        })
+        .unzip();
+
+    quote! {
+        impl crate::datagrid::FxDatagridRowBuild<#struct_name> for #build_name {
+            fn new() -> Self {
+                Self::default()
+            }
+
+            fn stack(&mut self, row: #struct_name) -> &mut Self {
+                #(#stack_ctt);*;
+
+                self
+            }
+
+            fn build(self) -> crate::error::FxResult<crate::datagrid::Datagrid> {
+                crate::Datagrid::try_from(vec![
+                    #(#build_ctt),*
+                ])
+            }
+        }
+    }
 }
 
 pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
     // name of the struct
-    let name = input.ident.clone();
+    let struct_name = input.ident.clone();
+    let build_name = generated_build_name(&struct_name);
     let named_fields = named_fields(input);
 
-    let schema_len = schema_len(&named_fields);
-    let schema = generated_schema(&named_fields);
-    let bucket = generated_bucket(&named_fields);
-    let bucket_infuse = generated_bucket_infuse(&named_fields);
-    let builder_stack = generated_builder_stack(&named_fields);
+    // auto generated code
+    let impl_from_sql_row = generated_impl_from_sql_row(&struct_name, &named_fields);
+    let builder_struct = generated_new_builder_struct(&build_name, &named_fields);
+    let impl_row_build = generated_impl_row_build(&struct_name, &build_name, &named_fields);
 
     let expanded = quote! {
-        impl FxDatagridTypedRowBuild<#schema_len> for #name {
-            fn build(builder: DatagridRowWiseBuilder<#schema_len>) -> crate::FxResult<crate::Datagrid> {
-                let mut bucket = #bucket;
 
-                for mut row in builder.into_iter() {
-                    #(#bucket_infuse)*
-                }
+        #impl_from_sql_row
 
-                let mut builder = crate::DatagridColWiseBuilder::<#schema_len>::new();
+        #builder_struct
 
-                #(#builder_stack)*
-
-                builder.build()
-            }
-
-            fn schema() -> crate::FxResult<crate::FxSchema<#schema_len>> {
-                crate::FxSchema::<#schema_len>::try_from(vec![#(#schema),*])
-            }
-        }
+        #impl_row_build
     };
 
     expanded
