@@ -142,6 +142,8 @@ pub trait SqlMeta: Sized {
     // trait from `sqlx`, only accepts `Mssql`/`MySql`/`Postgres`
     type DB: Database;
 
+    type Row: Row;
+
     // constructor
     fn new(conn_str: &str) -> Self::FutSelf<'_>;
 
@@ -180,12 +182,10 @@ pub trait SqlMeta: Sized {
         D: Send + Unpin + for<'r> FromRow<'r, <Self::DB as Database>::Row>;
 
     // query with generic param `D` as schema, and return `Datagrid`
-    fn query_datagrid<'a, D, const S: usize>(
-        &'a self,
-        sql: &'a str,
-    ) -> BoxFuture<'a, FxResult<Datagrid>>
+    fn query_datagrid<'a, D, T>(&'a self, sql: &'a str) -> BoxFuture<'a, FxResult<Datagrid>>
     where
-        D: Send + Unpin + FxDatagridTypedRowBuild<S>;
+        D: Send + FxDatagridRowBuild<T>,
+        T: From<Self::Row>;
 
     // execute SQL statement without output
     fn execute<'a>(
@@ -195,11 +195,12 @@ pub trait SqlMeta: Sized {
 }
 
 macro_rules! impl_sql_meta {
-    ($db:ident, $db_pool_options:ident, $db_pool:ident) => {
+    ($db:ident, $row:ident, $db_pool_options:ident, $db_pool:ident) => {
         impl SqlMeta for Pool<$db> {
             type FutSelf<'a> = impl Future<Output = FxResult<Self>>;
             type FutNil<'a> = impl Future<Output = FxResult<()>>;
             type DB = $db;
+            type Row = $row;
 
             fn new(conn_str: &str) -> Self::FutSelf<'_> {
                 async move {
@@ -268,27 +269,21 @@ macro_rules! impl_sql_meta {
                 Box::pin(q)
             }
 
-            fn query_datagrid<'a, D, const S: usize>(
-                &'a self,
-                sql: &'a str,
-            ) -> BoxFuture<'a, FxResult<Datagrid>>
+            fn query_datagrid<'a, D, T>(&'a self, sql: &'a str) -> BoxFuture<'a, FxResult<Datagrid>>
             where
-                D: Send + Unpin + FxDatagridTypedRowBuild<S>,
+                D: Send + FxDatagridRowBuild<T>,
+                T: From<Self::Row>,
             {
                 let q = async move {
-                    let schema = D::schema()?;
-
-                    let mut build = DatagridRowWiseBuilder::new(schema.clone());
+                    let mut build = D::new();
 
                     let mut rows = sqlx::query(sql).fetch(self);
 
                     while let Some(row) = rows.try_next().await? {
-                        let fx_row = schema.row_convert(row)?;
-
-                        build.stack_uncheck(fx_row);
+                        build.stack(row.into());
                     }
 
-                    build.build_by_type::<D>()
+                    build.build()
                 };
 
                 Box::pin(q)
@@ -305,120 +300,9 @@ macro_rules! impl_sql_meta {
     };
 }
 
-impl_sql_meta!(Mssql, MssqlPoolOptions, MssqlPool);
-impl_sql_meta!(MySql, MySqlPoolOptions, MySqlPool);
-impl_sql_meta!(Postgres, PgPoolOptions, PgPool);
-
-// ================================================================================================
-// FxRow conversions ()
-// ================================================================================================
-
-pub trait SqlxRowConversion<const S: usize, T> {
-    fn row_convert(&self, row: T) -> FxResult<FxRow<S>>;
-}
-
-impl<const S: usize> SqlxRowConversion<S, MssqlRow> for FxSchema<S> {
-    fn row_convert(&self, row: MssqlRow) -> FxResult<FxRow<S>> {
-        let v = self
-            .types()
-            .iter()
-            .enumerate()
-            .map(|(idx, t)| match t {
-                FxValueType::U8 => Ok(FxValue::U8(row.try_get(idx)?)),
-                FxValueType::I8 => Ok(FxValue::I8(row.try_get(idx)?)),
-                FxValueType::I16 => Ok(FxValue::I16(row.try_get(idx)?)),
-                FxValueType::I32 => Ok(FxValue::I32(row.try_get(idx)?)),
-                FxValueType::I64 => Ok(FxValue::I64(row.try_get(idx)?)),
-                FxValueType::F32 => Ok(FxValue::F32(row.try_get(idx)?)),
-                FxValueType::F64 => Ok(FxValue::F64(row.try_get(idx)?)),
-                FxValueType::Bool => Ok(FxValue::Bool(row.try_get(idx)?)),
-                FxValueType::String => Ok(FxValue::String(row.try_get(idx)?)),
-                FxValueType::OptU8 => Ok(FxValue::OptU8(row.try_get(idx)?)),
-                FxValueType::OptI8 => Ok(FxValue::OptI8(row.try_get(idx)?)),
-                FxValueType::OptI16 => Ok(FxValue::OptI16(row.try_get(idx)?)),
-                FxValueType::OptI32 => Ok(FxValue::OptI32(row.try_get(idx)?)),
-                FxValueType::OptI64 => Ok(FxValue::OptI64(row.try_get(idx)?)),
-                FxValueType::OptF32 => Ok(FxValue::OptF32(row.try_get(idx)?)),
-                FxValueType::OptF64 => Ok(FxValue::OptF64(row.try_get(idx)?)),
-                FxValueType::OptBool => Ok(FxValue::OptBool(row.try_get(idx)?)),
-                FxValueType::OptString => Ok(FxValue::OptString(row.try_get(idx)?)),
-                _ => Err(FxError::InvalidType(t.to_string())),
-            })
-            .collect::<FxResult<Vec<_>>>()?;
-
-        FxRow::<S>::try_from(v)
-    }
-}
-
-impl<const S: usize> SqlxRowConversion<S, MySqlRow> for FxSchema<S> {
-    fn row_convert(&self, row: MySqlRow) -> FxResult<FxRow<S>> {
-        let v = self
-            .types()
-            .iter()
-            .enumerate()
-            .map(|(idx, t)| match t {
-                FxValueType::U8 => Ok(FxValue::U8(row.try_get(idx)?)),
-                FxValueType::U16 => Ok(FxValue::U16(row.try_get(idx)?)),
-                FxValueType::U32 => Ok(FxValue::U32(row.try_get(idx)?)),
-                FxValueType::U64 => Ok(FxValue::U64(row.try_get(idx)?)),
-                FxValueType::I8 => Ok(FxValue::I8(row.try_get(idx)?)),
-                FxValueType::I16 => Ok(FxValue::I16(row.try_get(idx)?)),
-                FxValueType::I32 => Ok(FxValue::I32(row.try_get(idx)?)),
-                FxValueType::I64 => Ok(FxValue::I64(row.try_get(idx)?)),
-                FxValueType::F32 => Ok(FxValue::F32(row.try_get(idx)?)),
-                FxValueType::F64 => Ok(FxValue::F64(row.try_get(idx)?)),
-                FxValueType::Bool => Ok(FxValue::Bool(row.try_get(idx)?)),
-                FxValueType::String => Ok(FxValue::String(row.try_get(idx)?)),
-                FxValueType::OptU8 => Ok(FxValue::OptU8(row.try_get(idx)?)),
-                FxValueType::OptU16 => Ok(FxValue::OptU16(row.try_get(idx)?)),
-                FxValueType::OptU32 => Ok(FxValue::OptU32(row.try_get(idx)?)),
-                FxValueType::OptU64 => Ok(FxValue::OptU64(row.try_get(idx)?)),
-                FxValueType::OptI8 => Ok(FxValue::OptI8(row.try_get(idx)?)),
-                FxValueType::OptI16 => Ok(FxValue::OptI16(row.try_get(idx)?)),
-                FxValueType::OptI32 => Ok(FxValue::OptI32(row.try_get(idx)?)),
-                FxValueType::OptI64 => Ok(FxValue::OptI64(row.try_get(idx)?)),
-                FxValueType::OptF32 => Ok(FxValue::OptF32(row.try_get(idx)?)),
-                FxValueType::OptF64 => Ok(FxValue::OptF64(row.try_get(idx)?)),
-                FxValueType::OptBool => Ok(FxValue::OptBool(row.try_get(idx)?)),
-                FxValueType::OptString => Ok(FxValue::OptString(row.try_get(idx)?)),
-                _ => Err(FxError::InvalidType(t.to_string())),
-            })
-            .collect::<FxResult<Vec<_>>>()?;
-
-        FxRow::<S>::try_from(v)
-    }
-}
-
-impl<const S: usize> SqlxRowConversion<S, PgRow> for FxSchema<S> {
-    fn row_convert(&self, row: PgRow) -> FxResult<FxRow<S>> {
-        let v = self
-            .types()
-            .iter()
-            .enumerate()
-            .map(|(idx, t)| match t {
-                FxValueType::I8 => Ok(FxValue::I8(row.try_get(idx)?)),
-                FxValueType::I16 => Ok(FxValue::I16(row.try_get(idx)?)),
-                FxValueType::I32 => Ok(FxValue::I32(row.try_get(idx)?)),
-                FxValueType::I64 => Ok(FxValue::I64(row.try_get(idx)?)),
-                FxValueType::F32 => Ok(FxValue::F32(row.try_get(idx)?)),
-                FxValueType::F64 => Ok(FxValue::F64(row.try_get(idx)?)),
-                FxValueType::Bool => Ok(FxValue::Bool(row.try_get(idx)?)),
-                FxValueType::String => Ok(FxValue::String(row.try_get(idx)?)),
-                FxValueType::OptI8 => Ok(FxValue::OptI8(row.try_get(idx)?)),
-                FxValueType::OptI16 => Ok(FxValue::OptI16(row.try_get(idx)?)),
-                FxValueType::OptI32 => Ok(FxValue::OptI32(row.try_get(idx)?)),
-                FxValueType::OptI64 => Ok(FxValue::OptI64(row.try_get(idx)?)),
-                FxValueType::OptF32 => Ok(FxValue::OptF32(row.try_get(idx)?)),
-                FxValueType::OptF64 => Ok(FxValue::OptF64(row.try_get(idx)?)),
-                FxValueType::OptBool => Ok(FxValue::OptBool(row.try_get(idx)?)),
-                FxValueType::OptString => Ok(FxValue::OptString(row.try_get(idx)?)),
-                _ => Err(FxError::InvalidType(t.to_string())),
-            })
-            .collect::<FxResult<Vec<_>>>()?;
-
-        FxRow::<S>::try_from(v)
-    }
-}
+impl_sql_meta!(Mssql, MssqlRow, MssqlPoolOptions, MssqlPool);
+impl_sql_meta!(MySql, MySqlRow, MySqlPoolOptions, MySqlPool);
+impl_sql_meta!(Postgres, PgRow, PgPoolOptions, PgPool);
 
 #[cfg(test)]
 mod test_connector {
@@ -528,33 +412,86 @@ mod test_connector {
     }
 
     #[tokio::test]
-    async fn query_typed_datagrid() {
-        use fx_macros::FX;
+    async fn query_typed_datagrid_success() {
+        #[allow(dead_code)]
+        struct Users {
+            id: i32,
+            name: String,
+            check: Option<bool>,
+        }
+
+        impl From<PgRow> for Users {
+            fn from(v: PgRow) -> Self {
+                Users {
+                    id: v.get(0),
+                    name: v.get(1),
+                    check: v.get(2),
+                }
+            }
+        }
+
+        #[derive(Default)]
+        struct UsersBuild {
+            id: Vec<i32>,
+            name: Vec<String>,
+            check: Vec<Option<bool>>,
+        }
+
+        impl FxDatagridRowBuild<Users> for UsersBuild {
+            fn new() -> Self {
+                Self::default()
+            }
+
+            fn stack(&mut self, row: Users) -> &mut Self {
+                self.id.push(row.id);
+                self.name.push(row.name);
+                self.check.push(row.check);
+
+                self
+            }
+
+            fn build(self) -> FxResult<Datagrid> {
+                let mut builder = DatagridColWiseBuilder::<3>::new();
+
+                builder.stack(self.id);
+                builder.stack(self.name);
+                builder.stack(self.check);
+
+                builder.build()
+            }
+        }
 
         let pg_pool = PgPoolOptions::new().connect(URL).await.unwrap();
+
+        let sql = "SELECT * FROM users";
+
+        let res = pg_pool.query_datagrid::<UsersBuild, Users>(sql).await;
+
+        println!("{:?}", res);
+
+        assert!(res.is_ok());
+    }
+
+    #[tokio::test]
+    async fn query_auto_derived_datagrid_success() {
+        use crate::FX;
 
         #[allow(dead_code)]
         #[derive(FX)]
         struct Users {
-            id: i64,
+            id: i32,
             name: String,
-            email: Option<String>,
+            check: Option<bool>,
         }
 
-        let schema = Users::schema().unwrap();
+        let pg_pool = PgPoolOptions::new().connect(URL).await.unwrap();
 
-        let mut build = DatagridRowWiseBuilder::new(schema.clone());
+        let sql = "SELECT * FROM users";
 
-        let mut rows = sqlx::query("SELECT * FROM users").fetch(&pg_pool);
+        let res = pg_pool.query_datagrid::<UsersRowBuild, Users>(sql).await;
 
-        while let Some(row) = rows.try_next().await.unwrap() {
-            let fx_row = schema.row_convert(row).unwrap();
+        println!("{:?}", res);
 
-            build.stack_uncheck(fx_row);
-        }
-
-        let d = build.build_by_type::<Users>();
-
-        println!("{:?}", d);
+        assert!(res.is_ok());
     }
 }
