@@ -274,6 +274,18 @@ pub trait FxDatagridTypedRowBuild<const S: usize> {
     fn schema() -> FxResult<FxSchema<S>>;
 }
 
+// ================================================================================================
+// FxDatagridRowBuild
+// ================================================================================================
+
+pub trait FxDatagridRowBuild<T> {
+    fn new() -> Self;
+
+    fn stack(&mut self, row: T) -> &mut Self;
+
+    fn build(self) -> FxResult<Datagrid>;
+}
+
 #[cfg(test)]
 mod test_datagrid {
 
@@ -425,6 +437,70 @@ mod test_datagrid {
         build.stack_uncheck(row2);
 
         let d = build.build_by_type::<Users>();
+
+        println!("{:?}", d);
+    }
+
+    #[test]
+    fn datagrid_dev_builder_success() {
+        #[allow(dead_code)]
+        struct Users {
+            id: i32,
+            name: String,
+            check: Option<bool>,
+        }
+
+        // 1. generate a new struct
+        #[derive(Default)]
+        struct UsersBuild {
+            id: Vec<i32>,
+            name: Vec<String>,
+            check: Vec<Option<bool>>,
+        }
+
+        // 2. impl `FxDatagrid`
+        impl FxDatagridRowBuild<Users> for UsersBuild {
+            fn new() -> Self {
+                Self::default()
+            }
+
+            fn stack(&mut self, row: Users) -> &mut Self {
+                self.id.push(row.id);
+                self.name.push(row.name);
+                self.check.push(row.check);
+
+                self
+            }
+
+            fn build(self) -> FxResult<Datagrid> {
+                let mut builder = DatagridColWiseBuilder::<3>::new();
+
+                builder.stack(self.id);
+                builder.stack(self.name);
+                builder.stack(self.check);
+
+                builder.build()
+            }
+        }
+
+        let r1 = Users {
+            id: 1,
+            name: "Jacob".to_string(),
+            check: Some(true),
+        };
+
+        let r2 = Users {
+            id: 2,
+            name: "Mia".to_string(),
+            check: None,
+        };
+
+        // 3. generate `Datagrid` from builder
+        let mut bd = UsersBuild::new();
+
+        bd.stack(r1).stack(r2);
+
+        let d = bd.build();
 
         println!("{:?}", d);
     }
