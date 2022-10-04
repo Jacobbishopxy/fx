@@ -471,4 +471,27 @@ mod test_connector {
 
         assert!(res.is_ok());
     }
+
+    #[tokio::test]
+    async fn query_auto_derived_datagrid_success() {
+        use crate::FX;
+
+        #[allow(dead_code)]
+        #[derive(FX)]
+        struct Users {
+            id: i32,
+            name: String,
+            check: Option<bool>,
+        }
+
+        let pg_pool = PgPoolOptions::new().connect(URL).await.unwrap();
+
+        let sql = "SELECT * FROM users";
+
+        let res = pg_pool.query_datagrid::<UsersRowBuild, Users>(sql).await;
+
+        println!("{:?}", res);
+
+        assert!(res.is_ok());
+    }
 }

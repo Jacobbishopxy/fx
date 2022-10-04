@@ -14,7 +14,7 @@ pub fn derive_fx(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let stream = impl_fx(&input);
 
     // Debug use:
-    println!("{}", &stream);
+    // println!("{}", &stream);
 
     proc_macro::TokenStream::from(stream)
 }
