@@ -205,15 +205,21 @@ impl<const S: usize> DatagridColWiseBuilder<S> {
 }
 
 // ================================================================================================
-// FxDatagridRowBuild
+// FxDatagrid & FxDatagridRowBuilderCst & FxDatagridRowBuilder
 // ================================================================================================
 
-pub trait FxDatagridRowBuild<T> {
+pub trait FxDatagrid {
+    fn gen_row_builder() -> Box<dyn FxDatagridRowBuilder<Self>>;
+}
+
+pub trait FxDatagridRowBuilderCst {
     fn new() -> Self;
+}
 
-    fn stack(&mut self, row: T) -> &mut Self;
+pub trait FxDatagridRowBuilder<T>: Send {
+    fn stack(&mut self, row: T);
 
-    fn build(self) -> FxResult<Datagrid>;
+    fn build(self: Box<Self>) -> FxResult<Datagrid>;
 }
 
 #[cfg(test)]
@@ -316,7 +322,6 @@ mod test_datagrid {
             check: Option<bool>,
         }
 
-        // 1. generate a new struct
         #[derive(Default)]
         struct UsersBuild {
             id: Vec<i32>,
@@ -324,28 +329,31 @@ mod test_datagrid {
             check: Vec<Option<bool>>,
         }
 
-        // 2. impl `FxDatagrid`
-        impl FxDatagridRowBuild<Users> for UsersBuild {
+        impl FxDatagridRowBuilderCst for UsersBuild {
             fn new() -> Self {
                 Self::default()
             }
+        }
 
-            fn stack(&mut self, row: Users) -> &mut Self {
+        impl FxDatagridRowBuilder<Users> for UsersBuild {
+            fn stack(&mut self, row: Users) {
                 self.id.push(row.id);
                 self.name.push(row.name);
                 self.check.push(row.check);
-
-                self
             }
 
-            fn build(self) -> FxResult<Datagrid> {
-                let mut builder = DatagridColWiseBuilder::<3>::new();
+            fn build(self: Box<Self>) -> FxResult<Datagrid> {
+                Datagrid::try_from(vec![
+                    FxArray::from(self.id),
+                    FxArray::from(self.name),
+                    FxArray::from(self.check),
+                ])
+            }
+        }
 
-                builder.stack(self.id);
-                builder.stack(self.name);
-                builder.stack(self.check);
-
-                builder.build()
+        impl FxDatagrid for Users {
+            fn gen_row_builder() -> Box<dyn FxDatagridRowBuilder<Self>> {
+                Box::new(UsersBuild::new())
             }
         }
 
@@ -362,9 +370,10 @@ mod test_datagrid {
         };
 
         // 3. generate `Datagrid` from builder
-        let mut bd = UsersBuild::new();
+        let mut bd = Users::gen_row_builder();
 
-        bd.stack(r1).stack(r2);
+        bd.stack(r1);
+        bd.stack(r2);
 
         let d = bd.build();
 
@@ -372,7 +381,7 @@ mod test_datagrid {
     }
 
     #[test]
-    fn datagrid_proc_macro_builder_success() {
+    fn datagrid_builder_row_wise_proc_macro_success() {
         use crate::FX;
 
         #[allow(dead_code)]
@@ -395,9 +404,11 @@ mod test_datagrid {
             check: None,
         };
 
-        let mut bd = UsersRowBuild::new();
+        // 3. generate `Datagrid` from builder
+        let mut bd = Users::gen_row_builder();
 
-        bd.stack(r1).stack(r2);
+        bd.stack(r1);
+        bd.stack(r2);
 
         let d = bd.build();
 

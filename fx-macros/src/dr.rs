@@ -131,6 +131,12 @@ fn generated_new_builder_struct(build_name: &Ident, named_fields: &NamedFields) 
     quote! {
         #[derive(Default)]
         struct #build_name { #(#ctt),* }
+
+        impl crate::datagrid::FxDatagridRowBuilderCst for #build_name {
+            fn new() -> Self {
+                Self::default()
+            }
+        }
     }
 }
 
@@ -156,21 +162,21 @@ fn generated_impl_row_build(
         .unzip();
 
     quote! {
-        impl crate::datagrid::FxDatagridRowBuild<#struct_name> for #build_name {
-            fn new() -> Self {
-                Self::default()
-            }
-
-            fn stack(&mut self, row: #struct_name) -> &mut Self {
+        impl crate::datagrid::FxDatagridRowBuilder<#struct_name> for #build_name {
+            fn stack(&mut self, row: #struct_name) {
                 #(#stack_ctt);*;
-
-                self
             }
 
-            fn build(self) -> crate::error::FxResult<crate::datagrid::Datagrid> {
-                crate::Datagrid::try_from(vec![
+            fn build(self: ::std::boxed::Box<Self>) -> crate::error::FxResult<crate::datagrid::Datagrid> {
+                crate::datagrid::Datagrid::try_from(vec![
                     #(#build_ctt),*
                 ])
+            }
+        }
+
+        impl crate::datagrid::FxDatagrid for #struct_name {
+            fn gen_row_builder() -> ::std::boxed::Box<dyn crate::datagrid::FxDatagridRowBuilder<Self>> {
+                ::std::boxed::Box::new(#build_name::new())
             }
         }
     }

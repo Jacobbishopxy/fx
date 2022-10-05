@@ -123,13 +123,13 @@ impl<T: SqlMeta> Connector<T> {
         }
     }
 
-    pub async fn query_datagrid<'a, B, D>(&'a self, sql: &'a str) -> FxResult<Datagrid>
+    pub async fn query_datagrid<'a, D>(&'a self, sql: &'a str) -> FxResult<Datagrid>
     where
-        B: Send + FxDatagridRowBuild<D>,
+        D: Send + FxDatagrid,
         D: From<T::Row>,
     {
         match self.pool_options.as_ref() {
-            Some(p) => p.query_datagrid::<B, D>(sql).await,
+            Some(p) => p.query_datagrid::<D>(sql).await,
             None => Err(FxError::DatabaseConnectionN),
         }
     }
@@ -193,10 +193,10 @@ pub trait SqlMeta: Sized {
         D: Send + Unpin + for<'r> FromRow<'r, <Self::DB as Database>::Row>;
 
     // query with generic param `D` as schema, and return `Datagrid`
-    fn query_datagrid<'a, D, T>(&'a self, sql: &'a str) -> BoxFuture<'a, FxResult<Datagrid>>
+    fn query_datagrid<'a, D>(&'a self, sql: &'a str) -> BoxFuture<'a, FxResult<Datagrid>>
     where
-        D: Send + FxDatagridRowBuild<T>,
-        T: From<Self::Row>;
+        D: From<Self::Row>,
+        D: Send + FxDatagrid;
 
     // execute SQL statement without output
     fn execute<'a>(
@@ -280,13 +280,13 @@ macro_rules! impl_sql_meta {
                 Box::pin(q)
             }
 
-            fn query_datagrid<'a, D, T>(&'a self, sql: &'a str) -> BoxFuture<'a, FxResult<Datagrid>>
+            fn query_datagrid<'a, D>(&'a self, sql: &'a str) -> BoxFuture<'a, FxResult<Datagrid>>
             where
-                D: Send + FxDatagridRowBuild<T>,
-                T: From<Self::Row>,
+                D: Send + FxDatagrid,
+                D: From<Self::Row>,
             {
                 let q = async move {
-                    let mut build = D::new();
+                    let mut build = D::gen_row_builder();
 
                     let mut rows = sqlx::query(sql).fetch(self);
 
@@ -448,20 +448,20 @@ mod test_connector {
             check: Vec<Option<bool>>,
         }
 
-        impl FxDatagridRowBuild<Users> for UsersBuild {
+        impl FxDatagridRowBuilderCst for UsersBuild {
             fn new() -> Self {
                 Self::default()
             }
+        }
 
-            fn stack(&mut self, row: Users) -> &mut Self {
+        impl FxDatagridRowBuilder<Users> for UsersBuild {
+            fn stack(&mut self, row: Users) {
                 self.id.push(row.id);
                 self.name.push(row.name);
                 self.check.push(row.check);
-
-                self
             }
 
-            fn build(self) -> FxResult<Datagrid> {
+            fn build(self: Box<Self>) -> FxResult<Datagrid> {
                 let mut builder = DatagridColWiseBuilder::<3>::new();
 
                 builder.stack(self.id);
@@ -472,11 +472,17 @@ mod test_connector {
             }
         }
 
+        impl FxDatagrid for Users {
+            fn gen_row_builder() -> Box<dyn FxDatagridRowBuilder<Self>> {
+                Box::new(UsersBuild::new())
+            }
+        }
+
         let pg_pool = PgPoolOptions::new().connect(URL).await.unwrap();
 
         let sql = "SELECT * FROM users";
 
-        let res = pg_pool.query_datagrid::<UsersBuild, Users>(sql).await;
+        let res = pg_pool.query_datagrid::<Users>(sql).await;
 
         println!("{:?}", res);
 
@@ -499,7 +505,7 @@ mod test_connector {
 
         let sql = "SELECT * FROM users";
 
-        let res = pg_pool.query_datagrid::<UsersRowBuild, Users>(sql).await;
+        let res = pg_pool.query_datagrid::<Users>(sql).await;
 
         println!("{:?}", res);
 
