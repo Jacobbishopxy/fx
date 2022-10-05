@@ -8,9 +8,6 @@ use syn::{Data, DeriveInput, Field, Fields, Ident, Type};
 
 type NamedFields = Punctuated<Field, Comma>;
 
-const UE: &str = "fx only supports Struct and is not implemented for Enum";
-const UU: &str = "fx only supports Struct and is not implemented for Union";
-
 /// turn ast into `Punctuated<Field, Comma>`, and filter out any type that is not a Rust struct
 fn named_fields(ast: &DeriveInput) -> NamedFields {
     match &ast.data {
@@ -21,8 +18,7 @@ fn named_fields(ast: &DeriveInput) -> NamedFields {
                 unimplemented!("derive(Builder) only supports named fields")
             }
         }
-        Data::Enum(_) => unimplemented!("{}", UE),
-        Data::Union(_) => unimplemented!("{}", UU),
+        _ => unimplemented!("fx only supports Struct and is not implemented for Enum/Union"),
     }
 }
 
@@ -87,9 +83,7 @@ fn generated_impl_from_sql_row(struct_name: &Ident, named_fields: &NamedFields) 
         .map(|(i, f)| {
             let idx = syn::Index::from(i);
             let fd = f.ident.as_ref().unwrap();
-            quote! {
-                #fd: v.get(#idx)
-            }
+            quote! { #fd: v.get(#idx) }
         })
         .collect::<Vec<_>>();
 
@@ -130,9 +124,7 @@ fn generated_new_builder_struct(build_name: &Ident, named_fields: &NamedFields) 
             let fd = f.ident.as_ref().unwrap();
             let ty = &f.ty;
 
-            quote! {
-                #fd: Vec<#ty>
-            }
+            quote! { #fd: Vec<#ty> }
         })
         .collect::<Vec<_>>();
 

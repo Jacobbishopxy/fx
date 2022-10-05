@@ -122,6 +122,17 @@ impl<T: SqlMeta> Connector<T> {
             None => Err(FxError::DatabaseConnectionN),
         }
     }
+
+    pub async fn query_datagrid<'a, B, D>(&'a self, sql: &'a str) -> FxResult<Datagrid>
+    where
+        B: Send + FxDatagridRowBuild<D>,
+        D: From<T::Row>,
+    {
+        match self.pool_options.as_ref() {
+            Some(p) => p.query_datagrid::<B, D>(sql).await,
+            None => Err(FxError::DatabaseConnectionN),
+        }
+    }
 }
 
 // ================================================================================================
