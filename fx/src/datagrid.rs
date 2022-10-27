@@ -260,7 +260,7 @@ mod test_datagrid {
             .iter()
             .map(|a| a.data_type())
             .collect::<Vec<_>>();
-        println!("{:?}", data_types);
+        println!("{data_types:?}");
     }
 
     #[test]
@@ -297,7 +297,7 @@ mod test_datagrid {
             .iter()
             .map(|a| a.data_type())
             .collect::<Vec<_>>();
-        println!("{:?}", data_types);
+        println!("{data_types:?}");
     }
 
     #[test]
@@ -310,7 +310,7 @@ mod test_datagrid {
 
         let d = builder.build().unwrap();
 
-        println!("{:?}", d);
+        println!("{d:?}");
     }
 
     #[test]
@@ -377,7 +377,7 @@ mod test_datagrid {
 
         let d = bd.build();
 
-        println!("{:?}", d);
+        println!("{d:?}");
     }
 
     #[test]
@@ -412,6 +412,6 @@ mod test_datagrid {
 
         let d = bd.build();
 
-        println!("{:?}", d);
+        println!("{d:?}");
     }
 }

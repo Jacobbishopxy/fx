@@ -207,11 +207,11 @@ mod test_array {
         let e = FxArray::from(vec![Some("x"), Some("y")]);
         let f = FxArray::from_slice(&[true, false]);
 
-        println!("{:?}", a);
-        println!("{:?}", b);
-        println!("{:?}", c);
-        println!("{:?}", d);
-        println!("{:?}", e);
-        println!("{:?}", f);
+        println!("{a:?}");
+        println!("{b:?}");
+        println!("{c:?}");
+        println!("{d:?}");
+        println!("{e:?}");
+        println!("{f:?}");
     }
 }

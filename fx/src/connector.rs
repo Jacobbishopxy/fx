@@ -208,8 +208,8 @@ pub trait SqlMeta: Sized {
 macro_rules! impl_sql_meta {
     ($db:ident, $row:ident, $db_pool_options:ident, $db_pool:ident) => {
         impl SqlMeta for Pool<$db> {
-            type FutSelf<'a> = impl Future<Output = FxResult<Self>>;
-            type FutNil<'a> = impl Future<Output = FxResult<()>>;
+            type FutSelf<'a> = impl Future<Output = FxResult<Self>> + 'a;
+            type FutNil<'a> = impl Future<Output = FxResult<()>> + 'a;
             type DB = $db;
             type Row = $row;
 
@@ -360,7 +360,7 @@ mod test_connector {
 
         let res = ct.query(sql, User::from_pg_row).await;
 
-        println!("{:?}", res);
+        println!("{res:?}");
 
         assert!(res.is_ok());
     }
@@ -383,7 +383,7 @@ mod test_connector {
 
         let res = ct.query_as::<Users>(sql).await;
 
-        println!("{:?}", res);
+        println!("{res:?}");
 
         assert!(res.is_ok());
     }
@@ -419,7 +419,7 @@ mod test_connector {
         ])
         .unwrap();
 
-        println!("{:?}", dg);
+        println!("{dg:?}");
     }
 
     #[tokio::test]
@@ -484,7 +484,7 @@ mod test_connector {
 
         let res = pg_pool.query_datagrid::<Users>(sql).await;
 
-        println!("{:?}", res);
+        println!("{res:?}");
 
         assert!(res.is_ok());
     }
@@ -507,7 +507,7 @@ mod test_connector {
 
         let res = pg_pool.query_datagrid::<Users>(sql).await;
 
-        println!("{:?}", res);
+        println!("{res:?}");
 
         assert!(res.is_ok());
     }
