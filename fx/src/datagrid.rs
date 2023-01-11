@@ -112,6 +112,7 @@ impl Datagrid {
             write_statistics: true,
             compression,
             version: parquet_write::Version::V2,
+            data_pagesize_limit: None,
         };
 
         let iter = vec![Ok(self.0.clone())];
