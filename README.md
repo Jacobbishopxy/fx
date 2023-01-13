@@ -6,14 +6,15 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 
 ```txt
     .
-    ├── examples
     ├── fx
     │   └── src
     │       ├── array.rs
     │       ├── connector.rs
     │       ├── datagrid.rs
     │       ├── error.rs
-    │       └── lib.rs
+    │       ├── lib.rs
+    │       ├── macros.rs
+    │       └── vector.rs
     ├── fx-macros
     │   └── src
     │       ├── dr.rs
@@ -37,3 +38,7 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
   - `proc-macro2`
   - `quote`
   - `syn`
+
+## Misc
+
+- To get a tree view of this project, run `cargo make --makefile fx.toml tree`

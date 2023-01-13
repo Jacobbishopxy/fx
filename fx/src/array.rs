@@ -3,6 +3,7 @@
 use arrow2::array::*;
 use arrow2::datatypes::DataType;
 
+use crate::{arr_impl_from_bool, arr_impl_from_native, arr_impl_from_str};
 use crate::{FromSlice, FxError, FxResult};
 
 // ================================================================================================
@@ -64,84 +65,21 @@ impl FxArray {
 // Constructors & Implements
 // ================================================================================================
 
-macro_rules! impl_from_native {
-    ($t:ty) => {
-        impl From<Vec<$t>> for $crate::FxArray {
-            fn from(vec: Vec<$t>) -> Self {
-                let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
-                FxArray(arrow2::array::PrimitiveArray::from(v).boxed())
-            }
-        }
+arr_impl_from_native!(u8);
+arr_impl_from_native!(u16);
+arr_impl_from_native!(u32);
+arr_impl_from_native!(u64);
+arr_impl_from_native!(i8);
+arr_impl_from_native!(i16);
+arr_impl_from_native!(i32);
+arr_impl_from_native!(i64);
+arr_impl_from_native!(f32);
+arr_impl_from_native!(f64);
 
-        impl From<Vec<Option<$t>>> for $crate::FxArray {
-            fn from(vec: Vec<Option<$t>>) -> Self {
-                FxArray(arrow2::array::PrimitiveArray::from(vec).boxed())
-            }
-        }
+arr_impl_from_str!(&str);
+arr_impl_from_str!(String);
 
-        impl $crate::FromSlice<$t, FxArray> for FxArray {
-            fn from_slice(slice: &[$t]) -> Self {
-                FxArray(arrow2::array::PrimitiveArray::from_slice(slice).boxed())
-            }
-        }
-    };
-}
-
-impl_from_native!(u8);
-impl_from_native!(u16);
-impl_from_native!(u32);
-impl_from_native!(u64);
-impl_from_native!(i8);
-impl_from_native!(i16);
-impl_from_native!(i32);
-impl_from_native!(i64);
-impl_from_native!(f32);
-impl_from_native!(f64);
-
-macro_rules! impl_from_str {
-    ($t:ty) => {
-        impl From<Vec<$t>> for $crate::FxArray {
-            fn from(vec: Vec<$t>) -> Self {
-                let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
-                FxArray(arrow2::array::Utf8Array::<i32>::from(v).boxed())
-            }
-        }
-
-        impl From<Vec<Option<$t>>> for $crate::FxArray {
-            fn from(vec: Vec<Option<$t>>) -> Self {
-                FxArray(arrow2::array::Utf8Array::<i32>::from(vec).boxed())
-            }
-        }
-
-        impl $crate::FromSlice<$t, FxArray> for FxArray {
-            fn from_slice(slice: &[$t]) -> Self {
-                FxArray(arrow2::array::Utf8Array::<i32>::from_slice(slice).boxed())
-            }
-        }
-    };
-}
-
-impl_from_str!(&str);
-impl_from_str!(String);
-
-impl From<Vec<bool>> for FxArray {
-    fn from(vec: Vec<bool>) -> Self {
-        let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
-        FxArray(arrow2::array::BooleanArray::from(v).boxed())
-    }
-}
-
-impl From<Vec<Option<bool>>> for FxArray {
-    fn from(vec: Vec<Option<bool>>) -> Self {
-        FxArray(arrow2::array::BooleanArray::from(vec).boxed())
-    }
-}
-
-impl FromSlice<bool, FxArray> for FxArray {
-    fn from_slice(slice: &[bool]) -> Self {
-        FxArray(arrow2::array::BooleanArray::from_slice(slice).boxed())
-    }
-}
+arr_impl_from_bool!();
 
 // ================================================================================================
 // Test

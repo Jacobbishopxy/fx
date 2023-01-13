@@ -8,6 +8,7 @@ use std::any::Any;
 use arrow2::array::*;
 use arrow2::datatypes::DataType;
 
+use crate::{vec_impl_from_bool, vec_impl_from_native, vec_impl_from_str};
 use crate::{FromSlice, FxError, FxResult};
 
 // ================================================================================================
@@ -94,59 +95,17 @@ impl FxVector {
 // Constructors & Implements
 // ================================================================================================
 
-macro_rules! impl_from_native {
-    ($t:ty) => {
-        impl From<Vec<$t>> for $crate::FxVector {
-            fn from(vec: Vec<$t>) -> Self {
-                let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
-                FxVector(Box::new(arrow2::array::MutablePrimitiveArray::from(v)))
-            }
-        }
-
-        impl From<Vec<Option<$t>>> for $crate::FxVector {
-            fn from(vec: Vec<Option<$t>>) -> Self {
-                FxVector(Box::new(arrow2::array::MutablePrimitiveArray::from(vec)))
-            }
-        }
-
-        impl $crate::FromSlice<$t, FxVector> for FxVector {
-            fn from_slice(slice: &[$t]) -> Self {
-                FxVector(Box::new(arrow2::array::MutablePrimitiveArray::from_slice(
-                    slice,
-                )))
-            }
-        }
-    };
-}
-
-impl_from_native!(u8);
-impl_from_native!(u16);
-impl_from_native!(u32);
-impl_from_native!(u64);
-impl_from_native!(i8);
-impl_from_native!(i16);
-impl_from_native!(i32);
-impl_from_native!(i64);
-impl_from_native!(i128);
-impl_from_native!(f32);
-impl_from_native!(f64);
-
-macro_rules! impl_from_str {
-    ($t:ty) => {
-        impl From<Vec<$t>> for $crate::FxVector {
-            fn from(vec: Vec<$t>) -> Self {
-                let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
-                FxVector(Box::new(arrow2::array::MutableUtf8Array::<i32>::from(v)))
-            }
-        }
-
-        impl From<Vec<Option<$t>>> for $crate::FxVector {
-            fn from(vec: Vec<Option<$t>>) -> Self {
-                FxVector(Box::new(arrow2::array::MutableUtf8Array::<i32>::from(vec)))
-            }
-        }
-    };
-}
+vec_impl_from_native!(u8);
+vec_impl_from_native!(u16);
+vec_impl_from_native!(u32);
+vec_impl_from_native!(u64);
+vec_impl_from_native!(i8);
+vec_impl_from_native!(i16);
+vec_impl_from_native!(i32);
+vec_impl_from_native!(i64);
+vec_impl_from_native!(i128);
+vec_impl_from_native!(f32);
+vec_impl_from_native!(f64);
 
 impl FromSlice<String, FxVector> for FxVector {
     fn from_slice(slice: &[String]) -> Self {
@@ -165,29 +124,10 @@ impl FromSlice<&str, FxVector> for FxVector {
     }
 }
 
-impl_from_str!(&str);
-impl_from_str!(String);
+vec_impl_from_str!(&str);
+vec_impl_from_str!(String);
 
-impl From<Vec<bool>> for FxVector {
-    fn from(vec: Vec<bool>) -> Self {
-        let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
-        FxVector(Box::new(arrow2::array::MutableBooleanArray::from(v)))
-    }
-}
-
-impl From<Vec<Option<bool>>> for FxVector {
-    fn from(vec: Vec<Option<bool>>) -> Self {
-        FxVector(Box::new(arrow2::array::MutableBooleanArray::from(vec)))
-    }
-}
-
-impl FromSlice<bool, FxVector> for FxVector {
-    fn from_slice(slice: &[bool]) -> Self {
-        FxVector(Box::new(arrow2::array::MutableBooleanArray::from_slice(
-            slice,
-        )))
-    }
-}
+vec_impl_from_bool!();
 
 // ================================================================================================
 // Test
