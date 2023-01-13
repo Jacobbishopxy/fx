@@ -4,19 +4,23 @@
 
 #![feature(type_alias_impl_trait)]
 
+mod macros;
+
 pub mod array;
 pub mod connector;
 pub mod datagrid;
 pub mod error;
-mod macros;
+pub mod value;
 pub mod vector;
+
+use macros::*;
 
 pub use array::*;
 pub use connector::*;
 pub use datagrid::*;
 pub use error::*;
 pub use fx_macros::FX;
-use macros::*;
+pub use value::*;
 pub use vector::*;
 
 // ================================================================================================

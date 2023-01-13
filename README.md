@@ -14,6 +14,7 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │       ├── error.rs
     │       ├── lib.rs
     │       ├── macros.rs
+    │       ├── value.rs
     │       └── vector.rs
     ├── fx-macros
     │   └── src

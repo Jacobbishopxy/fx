@@ -161,6 +161,50 @@ pub(crate) use arr_impl_from_bool;
 pub(crate) use vec_impl_from_bool;
 
 // ================================================================================================
+// FxVector
+// ================================================================================================
+
+macro_rules! vec_push_branch {
+    ($s:ident, $v:expr, $dwn_cst_t:ty, $dwn_cst_m:ident) => {{
+        let val = ($v as &dyn ::std::any::Any)
+            .downcast_ref::<$dwn_cst_t>()
+            .ok_or_else(|| $crate::FxError::InvalidCasting("Invalid type".to_string()))?
+            .to_owned();
+
+        $s.0.as_mut_any()
+            .downcast_mut::<$dwn_cst_m>()
+            .expect("expect downcast array success")
+            .try_push(Some(val))?;
+
+        Ok($s)
+    }};
+}
+
+macro_rules! vec_pop_branch {
+    ($s:ident, $dwn_cst_m:ident) => {{
+        $s.0.as_mut_any()
+            .downcast_mut::<$dwn_cst_m>()
+            .ok_or_else(|| $crate::FxError::InvalidCasting("Invalid type".to_string()))?
+            .pop();
+
+        Ok($s)
+    }};
+    ($s:ident, $dwn_cst_m:ident, $fx_v:ident) => {{
+        let res =
+            $s.0.as_mut_any()
+                .downcast_mut::<$dwn_cst_m>()
+                .ok_or_else(|| FxError::InvalidCasting("Invalid type".to_string()))?
+                .pop()
+                .ok_or_else(|| FxError::InvalidOperation("Empty vector".to_string()))?;
+
+        Ok(FxValue::$fx_v(res))
+    }};
+}
+
+pub(crate) use vec_pop_branch;
+pub(crate) use vec_push_branch;
+
+// ================================================================================================
 // Connector macros
 // ================================================================================================
 

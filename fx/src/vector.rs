@@ -8,8 +8,21 @@ use std::any::Any;
 use arrow2::array::*;
 use arrow2::datatypes::DataType;
 
-use crate::{vec_impl_from_bool, vec_impl_from_native, vec_impl_from_str};
-use crate::{FromSlice, FxError, FxResult};
+use crate::macros::*;
+use crate::{FromSlice, FxError, FxResult, FxValue};
+
+type MBA = MutableBooleanArray;
+type MPAi8 = MutablePrimitiveArray<i8>;
+type MPAi16 = MutablePrimitiveArray<i16>;
+type MPAi32 = MutablePrimitiveArray<i32>;
+type MPAi64 = MutablePrimitiveArray<i64>;
+type MPAu8 = MutablePrimitiveArray<u8>;
+type MPAu16 = MutablePrimitiveArray<u16>;
+type MPAu32 = MutablePrimitiveArray<u32>;
+type MPAu64 = MutablePrimitiveArray<u64>;
+type MPAf32 = MutablePrimitiveArray<f32>;
+type MPAf64 = MutablePrimitiveArray<f64>;
+type MS = MutableUtf8Array<i32>;
 
 // ================================================================================================
 // FxVector
@@ -48,38 +61,56 @@ impl FxVector {
 
     pub fn push<A: Any>(&mut self, val: &A) -> FxResult<&mut Self> {
         match self.data_type() {
-            DataType::Boolean => {
-                let val = (val as &dyn Any)
-                    .downcast_ref::<bool>()
-                    .ok_or_else(|| FxError::InvalidCasting("Invalid type".to_string()))?
-                    .to_owned();
-
-                self.0
-                    .as_mut_any()
-                    .downcast_mut::<MutableBooleanArray>()
-                    .expect("expect MutableBooleanArray")
-                    .try_push(Some(val))?;
-
-                Ok(self)
-            }
-            DataType::Int8 => todo!(),
-            DataType::Int16 => todo!(),
-            DataType::Int32 => todo!(),
-            DataType::Int64 => todo!(),
-            DataType::UInt8 => todo!(),
-            DataType::UInt16 => todo!(),
-            DataType::UInt32 => todo!(),
-            DataType::UInt64 => todo!(),
-            DataType::Float16 => todo!(),
-            DataType::Float32 => todo!(),
-            DataType::Float64 => todo!(),
-            DataType::Utf8 => todo!(),
+            DataType::Boolean => vec_push_branch!(self, val, bool, MBA),
+            DataType::Int8 => vec_push_branch!(self, val, i8, MPAi8),
+            DataType::Int16 => vec_push_branch!(self, val, i16, MPAi16),
+            DataType::Int32 => vec_push_branch!(self, val, i32, MPAi32),
+            DataType::Int64 => vec_push_branch!(self, val, i64, MPAi64),
+            DataType::UInt8 => vec_push_branch!(self, val, u8, MPAu8),
+            DataType::UInt16 => vec_push_branch!(self, val, u16, MPAu16),
+            DataType::UInt32 => vec_push_branch!(self, val, u32, MPAu32),
+            DataType::UInt64 => vec_push_branch!(self, val, u64, MPAu64),
+            DataType::Float32 => vec_push_branch!(self, val, f32, MPAf32),
+            DataType::Float64 => vec_push_branch!(self, val, f64, MPAf64),
+            DataType::Utf8 => vec_push_branch!(self, val, String, MS),
             _ => Err(FxError::InvalidType("Unsupported type".to_string())),
         }
     }
 
-    pub fn pop(&mut self) -> &mut Self {
-        todo!()
+    pub fn pop(&mut self) -> FxResult<&mut Self> {
+        match self.data_type() {
+            DataType::Boolean => vec_pop_branch!(self, MBA),
+            DataType::Int8 => vec_pop_branch!(self, MPAi8),
+            DataType::Int16 => vec_pop_branch!(self, MPAi16),
+            DataType::Int32 => vec_pop_branch!(self, MPAi32),
+            DataType::Int64 => vec_pop_branch!(self, MPAi64),
+            DataType::UInt8 => vec_pop_branch!(self, MPAu8),
+            DataType::UInt16 => vec_pop_branch!(self, MPAu16),
+            DataType::UInt32 => vec_pop_branch!(self, MPAu32),
+            DataType::UInt64 => vec_pop_branch!(self, MPAu64),
+            DataType::Float32 => vec_pop_branch!(self, MPAf32),
+            DataType::Float64 => vec_pop_branch!(self, MPAf64),
+            DataType::Utf8 => vec_pop_branch!(self, MS),
+            _ => Err(FxError::InvalidType("Unsupported type".to_string())),
+        }
+    }
+
+    pub fn pop_val(&mut self) -> FxResult<FxValue> {
+        match self.data_type() {
+            DataType::Boolean => vec_pop_branch!(self, MBA, Bool),
+            DataType::Int8 => vec_pop_branch!(self, MPAi8, I8),
+            DataType::Int16 => vec_pop_branch!(self, MPAi16, I16),
+            DataType::Int32 => vec_pop_branch!(self, MPAi32, I32),
+            DataType::Int64 => vec_pop_branch!(self, MPAi64, I64),
+            DataType::UInt8 => vec_pop_branch!(self, MPAu8, U8),
+            DataType::UInt16 => vec_pop_branch!(self, MPAu16, U16),
+            DataType::UInt32 => vec_pop_branch!(self, MPAu32, U32),
+            DataType::UInt64 => vec_pop_branch!(self, MPAu64, U64),
+            DataType::Float32 => vec_pop_branch!(self, MPAf32, F32),
+            DataType::Float64 => vec_pop_branch!(self, MPAf64, F64),
+            DataType::Utf8 => vec_pop_branch!(self, MS, Str),
+            _ => Err(FxError::InvalidType("Unsupported type".to_string())),
+        }
     }
 
     pub fn append(&mut self, _arr: &FxVector) -> &mut Self {
@@ -162,6 +193,18 @@ mod test_vector {
         let res = fx_vec.push(&true);
 
         assert!(res.is_ok());
+
+        println!("{fx_vec:?}");
+    }
+
+    #[test]
+    fn pop_value_should_be_success() {
+        let mut fx_vec = FxVector::from_slice(&[true, false, true, true]);
+        let res1 = fx_vec.pop();
+        assert!(res1.is_ok());
+
+        let res2 = fx_vec.pop_val();
+        assert_eq!(res2.unwrap(), FxValue::Bool(true));
 
         println!("{fx_vec:?}");
     }

@@ -3,7 +3,7 @@
 use arrow2::array::*;
 use arrow2::datatypes::DataType;
 
-use crate::{arr_impl_from_bool, arr_impl_from_native, arr_impl_from_str};
+use crate::macros::*;
 use crate::{FromSlice, FxError, FxResult};
 
 // ================================================================================================
