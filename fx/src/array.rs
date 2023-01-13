@@ -1,18 +1,16 @@
 //! Array
 
-use std::collections::HashSet;
-
 use arrow2::array::*;
 use arrow2::datatypes::DataType;
 
-use crate::{Datagrid, FxError, FxResult};
+use crate::{FromSlice, FxError, FxResult};
 
 // ================================================================================================
 // FxArray
 // ================================================================================================
 
 #[derive(Debug, Clone)]
-pub struct FxArray(Box<dyn Array>);
+pub struct FxArray(pub(crate) Box<dyn Array>);
 
 impl FxArray {
     pub fn array(&self) -> &dyn Array {
@@ -60,31 +58,11 @@ impl FxArray {
     pub fn has_null(&self) -> bool {
         self.null_count() > 0
     }
-
-    pub fn push<A>(&mut self, _v: A) -> FxResult<&mut Self> {
-        todo!()
-    }
-
-    pub fn pop(&mut self) -> &mut Self {
-        todo!()
-    }
-
-    pub fn append(&mut self, _arr: &FxArray) -> &mut Self {
-        todo!()
-    }
-
-    pub fn extend(&mut self, _arr: &FxArray) -> &mut Self {
-        todo!()
-    }
 }
 
 // ================================================================================================
 // Constructors & Implements
 // ================================================================================================
-
-pub trait FromSlice<T> {
-    fn from_slice(slice: &[T]) -> FxArray;
-}
 
 macro_rules! impl_from_native {
     ($t:ty) => {
@@ -101,7 +79,7 @@ macro_rules! impl_from_native {
             }
         }
 
-        impl $crate::FromSlice<$t> for FxArray {
+        impl $crate::FromSlice<$t, FxArray> for FxArray {
             fn from_slice(slice: &[$t]) -> Self {
                 FxArray(arrow2::array::PrimitiveArray::from_slice(slice).boxed())
             }
@@ -135,7 +113,7 @@ macro_rules! impl_from_str {
             }
         }
 
-        impl $crate::FromSlice<$t> for FxArray {
+        impl $crate::FromSlice<$t, FxArray> for FxArray {
             fn from_slice(slice: &[$t]) -> Self {
                 FxArray(arrow2::array::Utf8Array::<i32>::from_slice(slice).boxed())
             }
@@ -149,48 +127,25 @@ impl_from_str!(String);
 impl From<Vec<bool>> for FxArray {
     fn from(vec: Vec<bool>) -> Self {
         let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
-        FxArray(BooleanArray::from(v).boxed())
+        FxArray(arrow2::array::BooleanArray::from(v).boxed())
     }
 }
 
 impl From<Vec<Option<bool>>> for FxArray {
     fn from(vec: Vec<Option<bool>>) -> Self {
-        FxArray(BooleanArray::from(vec).boxed())
+        FxArray(arrow2::array::BooleanArray::from(vec).boxed())
     }
 }
 
-impl FromSlice<bool> for FxArray {
+impl FromSlice<bool, FxArray> for FxArray {
     fn from_slice(slice: &[bool]) -> Self {
-        FxArray(BooleanArray::from_slice(slice).boxed())
+        FxArray(arrow2::array::BooleanArray::from_slice(slice).boxed())
     }
 }
 
 // ================================================================================================
-// Datagrid & FxArray conversions
+// Test
 // ================================================================================================
-
-impl TryFrom<Vec<FxArray>> for Datagrid {
-    type Error = FxError;
-
-    fn try_from(value: Vec<FxArray>) -> Result<Self, Self::Error> {
-        let iter = value.iter().map(|a| a.len());
-        let lens = HashSet::<_>::from_iter(iter);
-        if lens.len() != 1 {
-            return Err(FxError::InvalidArgument(format!(
-                "Vector of FxArray have different length: {:?}",
-                lens
-            )));
-        }
-
-        Ok(Datagrid::new(value.into_iter().map(|e| e.0).collect()))
-    }
-}
-
-impl From<Datagrid> for Vec<FxArray> {
-    fn from(d: Datagrid) -> Self {
-        d.into_arrays().into_iter().map(FxArray).collect()
-    }
-}
 
 #[cfg(test)]
 mod test_array {

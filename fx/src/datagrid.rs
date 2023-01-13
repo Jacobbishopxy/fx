@@ -1,5 +1,6 @@
 //! Datagrid
 
+use std::collections::HashSet;
 use std::io::{Read, Seek, Write};
 
 use arrow2::array::*;
@@ -11,7 +12,7 @@ use arrow2::io::avro::write as avro_write;
 use arrow2::io::parquet::read as parquet_read;
 use arrow2::io::parquet::write as parquet_write;
 
-use crate::{FxArray, FxError, FxResult};
+use crate::{FxArray, FxError, FxResult, FxVector};
 
 // ================================================================================================
 // Datagrid
@@ -221,6 +222,63 @@ pub trait FxDatagridRowBuilder<T>: Send {
     fn stack(&mut self, row: T);
 
     fn build(self: Box<Self>) -> FxResult<Datagrid>;
+}
+
+// ================================================================================================
+// Datagrid & FxArray conversions
+// ================================================================================================
+
+impl TryFrom<Vec<FxArray>> for Datagrid {
+    type Error = FxError;
+
+    fn try_from(value: Vec<FxArray>) -> Result<Self, Self::Error> {
+        let iter = value.iter().map(|a| a.len());
+        let lens = HashSet::<_>::from_iter(iter);
+        if lens.len() != 1 {
+            return Err(FxError::InvalidArgument(format!(
+                "Vector of FxArray have different length: {:?}",
+                lens
+            )));
+        }
+
+        Ok(Datagrid::new(value.into_iter().map(|e| e.0).collect()))
+    }
+}
+
+impl From<Datagrid> for Vec<FxArray> {
+    fn from(d: Datagrid) -> Self {
+        d.into_arrays().into_iter().map(FxArray).collect()
+    }
+}
+
+// ================================================================================================
+// Datagrid & FxVector conversions
+// ================================================================================================
+
+impl TryFrom<Vec<FxVector>> for Datagrid {
+    type Error = FxError;
+
+    fn try_from(_value: Vec<FxVector>) -> Result<Self, Self::Error> {
+        // let iter = value.iter().map(|a| a.len());
+        // let lens = HashSet::<_>::from_iter(iter);
+        // if lens.len() != 1 {
+        //     return Err(FxError::InvalidArgument(format!(
+        //         "Vector of FxArray have different length: {:?}",
+        //         lens
+        //     )));
+        // }
+
+        // Ok(Datagrid::new(value.into_iter().map(|e| e.0).collect()))
+        todo!()
+    }
+}
+
+impl From<Datagrid> for Vec<FxVector> {
+    fn from(_d: Datagrid) -> Self {
+        // d.into_arrays().into_iter().map(FxVector).collect()
+
+        todo!()
+    }
 }
 
 #[cfg(test)]
