@@ -12,19 +12,19 @@ macro_rules! arr_impl_from_native {
         impl From<Vec<$t>> for $crate::FxArray {
             fn from(vec: Vec<$t>) -> Self {
                 let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
-                Self(::arrow2::array::PrimitiveArray::from(v).boxed())
+                Self(::arrow2::array::PrimitiveArray::from(v).arced())
             }
         }
 
         impl From<Vec<Option<$t>>> for $crate::FxArray {
             fn from(vec: Vec<Option<$t>>) -> Self {
-                Self(::arrow2::array::PrimitiveArray::from(vec).boxed())
+                Self(::arrow2::array::PrimitiveArray::from(vec).arced())
             }
         }
 
         impl $crate::FromSlice<$t, $crate::FxArray> for $crate::FxArray {
             fn from_slice(slice: &[$t]) -> Self {
-                Self(::arrow2::array::PrimitiveArray::from_slice(slice).boxed())
+                Self(::arrow2::array::PrimitiveArray::from_slice(slice).arced())
             }
         }
     };
@@ -71,19 +71,19 @@ macro_rules! arr_impl_from_str {
         impl From<Vec<$t>> for $crate::FxArray {
             fn from(vec: Vec<$t>) -> Self {
                 let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
-                Self(::arrow2::array::Utf8Array::<i32>::from(v).boxed())
+                Self(::arrow2::array::Utf8Array::<i32>::from(v).arced())
             }
         }
 
         impl From<Vec<Option<$t>>> for $crate::FxArray {
             fn from(vec: Vec<Option<$t>>) -> Self {
-                Self(::arrow2::array::Utf8Array::<i32>::from(vec).boxed())
+                Self(::arrow2::array::Utf8Array::<i32>::from(vec).arced())
             }
         }
 
         impl $crate::FromSlice<$t, $crate::FxArray> for $crate::FxArray {
             fn from_slice(slice: &[$t]) -> Self {
-                Self(::arrow2::array::Utf8Array::<i32>::from_slice(slice).boxed())
+                Self(::arrow2::array::Utf8Array::<i32>::from_slice(slice).arced())
             }
         }
     };
@@ -132,19 +132,19 @@ macro_rules! arr_impl_from_bool {
         impl From<Vec<bool>> for $crate::FxArray {
             fn from(vec: Vec<bool>) -> Self {
                 let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
-                Self(::arrow2::array::BooleanArray::from(v).boxed())
+                Self(::arrow2::array::BooleanArray::from(v).arced())
             }
         }
 
         impl From<Vec<Option<bool>>> for $crate::FxArray {
             fn from(vec: Vec<Option<bool>>) -> Self {
-                Self(::arrow2::array::BooleanArray::from(vec).boxed())
+                Self(::arrow2::array::BooleanArray::from(vec).arced())
             }
         }
 
         impl FromSlice<bool, $crate::FxArray> for $crate::FxArray {
             fn from_slice(slice: &[bool]) -> Self {
-                Self(::arrow2::array::BooleanArray::from_slice(slice).boxed())
+                Self(::arrow2::array::BooleanArray::from_slice(slice).arced())
             }
         }
     };

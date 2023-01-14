@@ -1,5 +1,7 @@
 //! Array
 
+use std::sync::Arc;
+
 use arrow2::array::*;
 use arrow2::datatypes::DataType;
 
@@ -11,7 +13,7 @@ use crate::{FromSlice, FxError, FxResult};
 // ================================================================================================
 
 #[derive(Debug, Clone)]
-pub struct FxArray(pub(crate) Box<dyn Array>);
+pub struct FxArray(pub(crate) Arc<dyn Array>);
 
 // TODO into_mut: FxArray -> FxVector
 

@@ -2,6 +2,7 @@
 
 use std::collections::HashSet;
 use std::io::{Read, Seek, Write};
+use std::sync::Arc;
 
 use arrow2::array::*;
 use arrow2::chunk::Chunk;
@@ -19,7 +20,7 @@ use crate::{FxArray, FxError, FxResult, FxVector};
 // ================================================================================================
 
 #[derive(Debug)]
-pub struct Datagrid(Chunk<Box<dyn Array>>);
+pub struct Datagrid(Chunk<Arc<dyn Array>>);
 
 impl Datagrid {
     pub fn empty() -> Self {
@@ -27,11 +28,11 @@ impl Datagrid {
     }
 
     // WARNING: arrays with different length will cause runtime panic!!!
-    pub fn new(arrays: Vec<Box<dyn Array>>) -> Self {
+    pub fn new(arrays: Vec<Arc<dyn Array>>) -> Self {
         Datagrid(Chunk::new(arrays))
     }
 
-    pub fn try_new(arrays: Vec<Box<dyn Array>>) -> FxResult<Self> {
+    pub fn try_new(arrays: Vec<Arc<dyn Array>>) -> FxResult<Self> {
         let chunk = Chunk::try_new(arrays)?;
         Ok(Datagrid(chunk))
     }
@@ -55,7 +56,7 @@ impl Datagrid {
         Ok(Schema::from(fld))
     }
 
-    pub fn into_arrays(self) -> Vec<Box<dyn Array>> {
+    pub fn into_arrays(self) -> Vec<Arc<dyn Array>> {
         self.0.into_arrays()
     }
 
@@ -97,7 +98,13 @@ impl Datagrid {
         let mut blocks = avro_read::Reader::new(reader, metadata, schema.fields, None);
 
         if let Some(Ok(c)) = blocks.next() {
-            self.0 = c;
+            let vec_arc_dyn_arr = c
+                .into_arrays()
+                .into_iter()
+                .map(|e| Arc::<dyn Array>::from(e))
+                .collect::<Vec<_>>();
+
+            self.0 = Chunk::new(vec_arc_dyn_arr);
         }
 
         Ok(())
@@ -159,8 +166,13 @@ impl Datagrid {
         );
 
         for maybe_chunk in chunks {
-            let chunk = maybe_chunk?;
-            self.0 = chunk;
+            let vec_arc_dyn_arr = maybe_chunk?
+                .into_arrays()
+                .into_iter()
+                .map(|e| Arc::<dyn Array>::from(e))
+                .collect::<Vec<_>>();
+
+            self.0 = Chunk::new(vec_arc_dyn_arr);
         }
 
         Ok(())
@@ -291,9 +303,9 @@ mod test_datagrid {
 
     #[test]
     fn avro_write_success() {
-        let a = Int32Array::from([Some(1), None, Some(3)]).boxed();
-        let b = Float32Array::from([Some(2.1), None, Some(6.2)]).boxed();
-        let c = Utf8Array::<i32>::from([Some("a"), Some("b"), Some("c")]).boxed();
+        let a = Int32Array::from([Some(1), None, Some(3)]).arced();
+        let b = Float32Array::from([Some(2.1), None, Some(6.2)]).arced();
+        let c = Utf8Array::<i32>::from([Some("a"), Some("b"), Some("c")]).arced();
 
         let datagrid = Datagrid::new(vec![a, b, c]);
         let schema = datagrid.gen_schema(&["c1", "c2", "c3"]).unwrap();
@@ -324,9 +336,9 @@ mod test_datagrid {
 
     #[test]
     fn parquet_write_success() {
-        let a = Int32Array::from([Some(1), None, Some(3)]).boxed();
-        let b = Float32Array::from([Some(2.1), None, Some(6.2)]).boxed();
-        let c = Utf8Array::<i32>::from([Some("a"), Some("b"), Some("c")]).boxed();
+        let a = Int32Array::from([Some(1), None, Some(3)]).arced();
+        let b = Float32Array::from([Some(2.1), None, Some(6.2)]).arced();
+        let c = Utf8Array::<i32>::from([Some("a"), Some("b"), Some("c")]).arced();
 
         let datagrid = Datagrid::new(vec![a, b, c]);
         let schema = datagrid.gen_schema(&["c1", "c2", "c3"]).unwrap();
