@@ -22,7 +22,7 @@ type MPAu32 = MutablePrimitiveArray<u32>;
 type MPAu64 = MutablePrimitiveArray<u64>;
 type MPAf32 = MutablePrimitiveArray<f32>;
 type MPAf64 = MutablePrimitiveArray<f64>;
-type MS = MutableUtf8Array<i32>;
+type MUA = MutableUtf8Array<i32>;
 
 // ================================================================================================
 // FxVector
@@ -72,7 +72,7 @@ impl FxVector {
             DataType::UInt64 => vec_push_branch!(self, val, u64, MPAu64),
             DataType::Float32 => vec_push_branch!(self, val, f32, MPAf32),
             DataType::Float64 => vec_push_branch!(self, val, f64, MPAf64),
-            DataType::Utf8 => vec_push_branch!(self, val, String, MS),
+            DataType::Utf8 => vec_push_branch!(self, val, String, MUA),
             _ => Err(FxError::InvalidType("Unsupported type".to_string())),
         }
     }
@@ -90,7 +90,7 @@ impl FxVector {
             DataType::UInt64 => vec_pop_branch!(self, MPAu64),
             DataType::Float32 => vec_pop_branch!(self, MPAf32),
             DataType::Float64 => vec_pop_branch!(self, MPAf64),
-            DataType::Utf8 => vec_pop_branch!(self, MS),
+            DataType::Utf8 => vec_pop_branch!(self, MUA),
             _ => Err(FxError::InvalidType("Unsupported type".to_string())),
         }
     }
@@ -108,7 +108,7 @@ impl FxVector {
             DataType::UInt64 => vec_pop_branch!(self, MPAu64, U64),
             DataType::Float32 => vec_pop_branch!(self, MPAf32, F32),
             DataType::Float64 => vec_pop_branch!(self, MPAf64, F64),
-            DataType::Utf8 => vec_pop_branch!(self, MS, Str),
+            DataType::Utf8 => vec_pop_branch!(self, MUA, Str),
             _ => Err(FxError::InvalidType("Unsupported type".to_string())),
         }
     }
@@ -137,23 +137,6 @@ vec_impl_from_native!(i64);
 vec_impl_from_native!(i128);
 vec_impl_from_native!(f32);
 vec_impl_from_native!(f64);
-
-impl FromSlice<String, FxVector> for FxVector {
-    fn from_slice(slice: &[String]) -> Self {
-        let iter = slice.into_iter().map(|e| e.as_str());
-        FxVector(Box::new(
-            arrow2::array::MutableUtf8Array::<i32>::from_iter_values(iter),
-        ))
-    }
-}
-
-impl FromSlice<&str, FxVector> for FxVector {
-    fn from_slice(slice: &[&str]) -> Self {
-        FxVector(Box::new(
-            arrow2::array::MutableUtf8Array::<i32>::from_iter_values(slice.into_iter()),
-        ))
-    }
-}
 
 vec_impl_from_str!(&str);
 vec_impl_from_str!(String);

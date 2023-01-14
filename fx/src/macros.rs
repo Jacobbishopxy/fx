@@ -12,19 +12,19 @@ macro_rules! arr_impl_from_native {
         impl From<Vec<$t>> for $crate::FxArray {
             fn from(vec: Vec<$t>) -> Self {
                 let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
-                FxArray(arrow2::array::PrimitiveArray::from(v).boxed())
+                Self(::arrow2::array::PrimitiveArray::from(v).boxed())
             }
         }
 
         impl From<Vec<Option<$t>>> for $crate::FxArray {
             fn from(vec: Vec<Option<$t>>) -> Self {
-                FxArray(arrow2::array::PrimitiveArray::from(vec).boxed())
+                Self(::arrow2::array::PrimitiveArray::from(vec).boxed())
             }
         }
 
-        impl $crate::FromSlice<$t, FxArray> for FxArray {
+        impl $crate::FromSlice<$t, $crate::FxArray> for $crate::FxArray {
             fn from_slice(slice: &[$t]) -> Self {
-                FxArray(arrow2::array::PrimitiveArray::from_slice(slice).boxed())
+                Self(::arrow2::array::PrimitiveArray::from_slice(slice).boxed())
             }
         }
     };
@@ -35,21 +35,21 @@ macro_rules! vec_impl_from_native {
         impl From<Vec<$t>> for $crate::FxVector {
             fn from(vec: Vec<$t>) -> Self {
                 let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
-                FxVector(Box::new(arrow2::array::MutablePrimitiveArray::from(v)))
+                Self(Box::new(::arrow2::array::MutablePrimitiveArray::from(v)))
             }
         }
 
         impl From<Vec<Option<$t>>> for $crate::FxVector {
             fn from(vec: Vec<Option<$t>>) -> Self {
-                FxVector(Box::new(arrow2::array::MutablePrimitiveArray::from(vec)))
+                Self(Box::new(::arrow2::array::MutablePrimitiveArray::from(vec)))
             }
         }
 
-        impl $crate::FromSlice<$t, FxVector> for FxVector {
+        impl $crate::FromSlice<$t, $crate::FxVector> for $crate::FxVector {
             fn from_slice(slice: &[$t]) -> Self {
-                FxVector(Box::new(arrow2::array::MutablePrimitiveArray::from_slice(
-                    slice,
-                )))
+                Self(Box::new(
+                    ::arrow2::array::MutablePrimitiveArray::from_slice(slice),
+                ))
             }
         }
     };
@@ -67,19 +67,19 @@ macro_rules! arr_impl_from_str {
         impl From<Vec<$t>> for $crate::FxArray {
             fn from(vec: Vec<$t>) -> Self {
                 let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
-                FxArray(arrow2::array::Utf8Array::<i32>::from(v).boxed())
+                Self(::arrow2::array::Utf8Array::<i32>::from(v).boxed())
             }
         }
 
         impl From<Vec<Option<$t>>> for $crate::FxArray {
             fn from(vec: Vec<Option<$t>>) -> Self {
-                FxArray(arrow2::array::Utf8Array::<i32>::from(vec).boxed())
+                Self(::arrow2::array::Utf8Array::<i32>::from(vec).boxed())
             }
         }
 
-        impl $crate::FromSlice<$t, FxArray> for FxArray {
+        impl $crate::FromSlice<$t, $crate::FxArray> for $crate::FxArray {
             fn from_slice(slice: &[$t]) -> Self {
-                FxArray(arrow2::array::Utf8Array::<i32>::from_slice(slice).boxed())
+                Self(::arrow2::array::Utf8Array::<i32>::from_slice(slice).boxed())
             }
         }
     };
@@ -90,13 +90,23 @@ macro_rules! vec_impl_from_str {
         impl From<Vec<$t>> for $crate::FxVector {
             fn from(vec: Vec<$t>) -> Self {
                 let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
-                FxVector(Box::new(arrow2::array::MutableUtf8Array::<i32>::from(v)))
+                Self(Box::new(::arrow2::array::MutableUtf8Array::<i32>::from(v)))
             }
         }
 
         impl From<Vec<Option<$t>>> for $crate::FxVector {
             fn from(vec: Vec<Option<$t>>) -> Self {
-                FxVector(Box::new(arrow2::array::MutableUtf8Array::<i32>::from(vec)))
+                Self(Box::new(::arrow2::array::MutableUtf8Array::<i32>::from(
+                    vec,
+                )))
+            }
+        }
+
+        impl $crate::FromSlice<$t, $crate::FxVector> for $crate::FxVector {
+            fn from_slice(slice: &[$t]) -> Self {
+                Self(Box::new(
+                    ::arrow2::array::MutableUtf8Array::<i32>::from_iter_values(slice.into_iter()),
+                ))
             }
         }
     };
@@ -111,22 +121,22 @@ pub(crate) use vec_impl_from_str;
 
 macro_rules! arr_impl_from_bool {
     () => {
-        impl From<Vec<bool>> for FxArray {
+        impl From<Vec<bool>> for $crate::FxArray {
             fn from(vec: Vec<bool>) -> Self {
                 let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
-                FxArray(arrow2::array::BooleanArray::from(v).boxed())
+                Self(::arrow2::array::BooleanArray::from(v).boxed())
             }
         }
 
-        impl From<Vec<Option<bool>>> for FxArray {
+        impl From<Vec<Option<bool>>> for $crate::FxArray {
             fn from(vec: Vec<Option<bool>>) -> Self {
-                FxArray(arrow2::array::BooleanArray::from(vec).boxed())
+                Self(::arrow2::array::BooleanArray::from(vec).boxed())
             }
         }
 
-        impl FromSlice<bool, FxArray> for FxArray {
+        impl FromSlice<bool, $crate::FxArray> for $crate::FxArray {
             fn from_slice(slice: &[bool]) -> Self {
-                FxArray(arrow2::array::BooleanArray::from_slice(slice).boxed())
+                Self(::arrow2::array::BooleanArray::from_slice(slice).boxed())
             }
         }
     };
@@ -134,22 +144,22 @@ macro_rules! arr_impl_from_bool {
 
 macro_rules! vec_impl_from_bool {
     () => {
-        impl From<Vec<bool>> for FxVector {
+        impl From<Vec<bool>> for $crate::FxVector {
             fn from(vec: Vec<bool>) -> Self {
                 let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
-                FxVector(Box::new(arrow2::array::MutableBooleanArray::from(v)))
+                Self(Box::new(::arrow2::array::MutableBooleanArray::from(v)))
             }
         }
 
-        impl From<Vec<Option<bool>>> for FxVector {
+        impl From<Vec<Option<bool>>> for $crate::FxVector {
             fn from(vec: Vec<Option<bool>>) -> Self {
-                FxVector(Box::new(arrow2::array::MutableBooleanArray::from(vec)))
+                Self(Box::new(::arrow2::array::MutableBooleanArray::from(vec)))
             }
         }
 
-        impl FromSlice<bool, FxVector> for FxVector {
+        impl FromSlice<bool, $crate::FxVector> for $crate::FxVector {
             fn from_slice(slice: &[bool]) -> Self {
-                FxVector(Box::new(arrow2::array::MutableBooleanArray::from_slice(
+                Self(Box::new(::arrow2::array::MutableBooleanArray::from_slice(
                     slice,
                 )))
             }
@@ -193,9 +203,9 @@ macro_rules! vec_pop_branch {
         let res =
             $s.0.as_mut_any()
                 .downcast_mut::<$dwn_cst_m>()
-                .ok_or_else(|| FxError::InvalidCasting("Invalid type".to_string()))?
+                .ok_or_else(|| $crate::FxError::InvalidCasting("Invalid type".to_string()))?
                 .pop()
-                .ok_or_else(|| FxError::InvalidOperation("Empty vector".to_string()))?;
+                .ok_or_else(|| $crate::FxError::InvalidOperation("Empty vector".to_string()))?;
 
         Ok(FxValue::$fx_v(res))
     }};
@@ -210,9 +220,9 @@ pub(crate) use vec_push_branch;
 
 macro_rules! impl_sql_meta {
     ($db:ident, $row:ident, $db_pool_options:ident, $db_pool:ident) => {
-        impl SqlMeta for Pool<$db> {
-            type FutSelf<'a> = impl Future<Output = FxResult<Self>> + 'a;
-            type FutNil<'a> = impl Future<Output = FxResult<()>> + 'a;
+        impl $crate::SqlMeta for ::sqlx::Pool<$db> {
+            type FutSelf<'a> = impl ::std::future::Future<Output = FxResult<Self>> + 'a;
+            type FutNil<'a> = impl ::std::future::Future<Output = FxResult<()>> + 'a;
             type DB = $db;
             type Row = $row;
 
@@ -237,14 +247,14 @@ macro_rules! impl_sql_meta {
             fn query<'a, T: Send + Unpin + 'a>(
                 &'a self,
                 sql: &'a str,
-                pipe: PipeFn<<Self::DB as Database>::Row, T>,
-            ) -> BoxFuture<'a, FxResult<Vec<T>>> {
+                pipe: $crate::PipeFn<<Self::DB as ::sqlx::Database>::Row, T>,
+            ) -> ::futures::future::BoxFuture<'a, $crate::FxResult<Vec<T>>> {
                 let q = async move {
-                    Ok(sqlx::query(sql)
+                    Ok(::sqlx::query(sql)
                         .try_map(|r| Ok(pipe(r)))
                         .fetch_all(self)
                         .await?)
-                    .and_then(|r| r.into_iter().collect::<FxResult<Vec<T>>>())
+                    .and_then(|r| r.into_iter().collect::<$crate::FxResult<Vec<T>>>())
                 };
                 Box::pin(q)
             }
@@ -252,10 +262,10 @@ macro_rules! impl_sql_meta {
             fn query_one<'a, T: Send + Unpin + 'a>(
                 &'a self,
                 sql: &'a str,
-                pipe: PipeFn<<Self::DB as Database>::Row, T>,
-            ) -> BoxFuture<'a, FxResult<T>> {
+                pipe: $crate::PipeFn<<Self::DB as ::sqlx::Database>::Row, T>,
+            ) -> ::futures::future::BoxFuture<'a, $crate::FxResult<T>> {
                 let q = async move {
-                    Ok(sqlx::query(sql)
+                    Ok(::sqlx::query(sql)
                         .try_map(|r| Ok(pipe(r)))
                         .fetch_one(self)
                         .await?)
@@ -264,34 +274,40 @@ macro_rules! impl_sql_meta {
                 Box::pin(q)
             }
 
-            fn query_as<'a, T: Send + Unpin + for<'r> FromRow<'r, <Self::DB as Database>::Row>>(
+            fn query_as<
+                'a,
+                T: Send + Unpin + for<'r> ::sqlx::FromRow<'r, <Self::DB as ::sqlx::Database>::Row>,
+            >(
                 &'a self,
                 sql: &'a str,
-            ) -> BoxFuture<'a, FxResult<Vec<T>>> {
-                let q = async move { Ok(sqlx::query_as::<_, T>(sql).fetch_all(self).await?) };
+            ) -> ::futures::future::BoxFuture<'a, $crate::FxResult<Vec<T>>> {
+                let q = async move { Ok(::sqlx::query_as::<_, T>(sql).fetch_all(self).await?) };
                 Box::pin(q)
             }
 
             fn query_one_as<
                 'a,
-                T: Send + Unpin + for<'r> FromRow<'r, <Self::DB as Database>::Row>,
+                T: Send + Unpin + for<'r> ::sqlx::FromRow<'r, <Self::DB as ::sqlx::Database>::Row>,
             >(
                 &'a self,
                 sql: &'a str,
-            ) -> BoxFuture<'a, FxResult<T>> {
-                let q = async move { Ok(sqlx::query_as::<_, T>(sql).fetch_one(self).await?) };
+            ) -> ::futures::future::BoxFuture<'a, FxResult<T>> {
+                let q = async move { Ok(::sqlx::query_as::<_, T>(sql).fetch_one(self).await?) };
                 Box::pin(q)
             }
 
-            fn query_datagrid<'a, D>(&'a self, sql: &'a str) -> BoxFuture<'a, FxResult<Datagrid>>
+            fn query_datagrid<'a, D>(
+                &'a self,
+                sql: &'a str,
+            ) -> ::futures::future::BoxFuture<'a, FxResult<Datagrid>>
             where
-                D: Send + FxDatagrid,
+                D: Send + $crate::FxDatagrid,
                 D: From<Self::Row>,
             {
                 let q = async move {
                     let mut build = D::gen_row_builder();
 
-                    let mut rows = sqlx::query(sql).fetch(self);
+                    let mut rows = ::sqlx::query(sql).fetch(self);
 
                     while let Some(row) = rows.try_next().await? {
                         build.stack(row.into());
@@ -306,8 +322,11 @@ macro_rules! impl_sql_meta {
             fn execute<'a>(
                 &'a self,
                 sql: &'a str,
-            ) -> BoxFuture<'a, FxResult<<Self::DB as Database>::QueryResult>> {
-                let q = async move { Ok(sqlx::query(sql).execute(self).await?) };
+            ) -> ::futures::future::BoxFuture<
+                'a,
+                $crate::FxResult<<Self::DB as ::sqlx::Database>::QueryResult>,
+            > {
+                let q = async move { Ok(::sqlx::query(sql).execute(self).await?) };
                 Box::pin(q)
             }
         }

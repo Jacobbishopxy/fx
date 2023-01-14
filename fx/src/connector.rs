@@ -8,9 +8,11 @@ use futures::TryStreamExt;
 use sqlx::mssql::{MssqlPool, MssqlPoolOptions, MssqlRow};
 use sqlx::mysql::{MySqlPool, MySqlPoolOptions, MySqlRow};
 use sqlx::postgres::{PgPool, PgPoolOptions, PgRow};
-use sqlx::{Database, FromRow, Mssql, MySql, Pool, Postgres, Row};
+use sqlx::{Database, FromRow, Mssql, MySql, Postgres, Row};
 
 use crate::*;
+
+pub type PipeFn<I, O> = fn(I) -> FxResult<O>;
 
 // ================================================================================================
 // DB
@@ -34,8 +36,6 @@ impl FromStr for DB {
         }
     }
 }
-
-pub type PipeFn<I, O> = fn(I) -> FxResult<O>;
 
 // ================================================================================================
 // Connector
