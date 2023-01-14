@@ -11,6 +11,7 @@ pub mod connector;
 pub mod cvt;
 pub mod datagrid;
 pub mod error;
+pub mod io;
 mod types;
 pub mod value;
 pub mod vector;
