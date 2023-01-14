@@ -4,6 +4,7 @@
 //! brief:	FxVector
 
 use std::any::Any;
+use std::sync::Arc;
 
 use arrow2::array::*;
 use arrow2::datatypes::DataType;
@@ -29,7 +30,7 @@ type MUA = MutableUtf8Array<i32>;
 // ================================================================================================
 
 #[derive(Debug)]
-pub struct FxVector(Box<dyn MutableArray>);
+pub struct FxVector(pub(crate) Arc<dyn MutableArray>);
 
 impl FxVector {
     pub fn array(&self) -> &dyn MutableArray {
@@ -95,7 +96,7 @@ impl FxVector {
         }
     }
 
-    pub fn pop_val(&mut self) -> FxResult<FxValue> {
+    pub fn pop_val(&mut self) -> Option<FxValue> {
         match self.data_type() {
             DataType::Boolean => vec_pop_branch!(self, MBA, Bool),
             DataType::Int8 => vec_pop_branch!(self, MPAi8, I8),
@@ -109,7 +110,7 @@ impl FxVector {
             DataType::Float32 => vec_pop_branch!(self, MPAf32, F32),
             DataType::Float64 => vec_pop_branch!(self, MPAf64, F64),
             DataType::Utf8 => vec_pop_branch!(self, MUA, Str),
-            _ => Err(FxError::InvalidType("Unsupported type".to_string())),
+            _ => None,
         }
     }
 
@@ -159,7 +160,7 @@ mod test_vector {
         let c = FxVector::from_slice(&[1, 2]);
 
         let d = FxVector::from_slice(&["a", "c"]);
-        let e = FxVector::from(vec![Some("x"), Some("y")]);
+        let e = FxVector::from(vec![Some("x"), Some("y"), None]);
         let f = FxVector::from_slice(&[true, false]);
 
         println!("{a:?}");

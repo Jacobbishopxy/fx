@@ -35,19 +35,23 @@ macro_rules! vec_impl_from_native {
         impl From<Vec<$t>> for $crate::FxVector {
             fn from(vec: Vec<$t>) -> Self {
                 let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
-                Self(Box::new(::arrow2::array::MutablePrimitiveArray::from(v)))
+                Self(::std::sync::Arc::new(
+                    ::arrow2::array::MutablePrimitiveArray::from(v),
+                ))
             }
         }
 
         impl From<Vec<Option<$t>>> for $crate::FxVector {
             fn from(vec: Vec<Option<$t>>) -> Self {
-                Self(Box::new(::arrow2::array::MutablePrimitiveArray::from(vec)))
+                Self(::std::sync::Arc::new(
+                    ::arrow2::array::MutablePrimitiveArray::from(vec),
+                ))
             }
         }
 
         impl $crate::FromSlice<$t, $crate::FxVector> for $crate::FxVector {
             fn from_slice(slice: &[$t]) -> Self {
-                Self(Box::new(
+                Self(::std::sync::Arc::new(
                     ::arrow2::array::MutablePrimitiveArray::from_slice(slice),
                 ))
             }
@@ -90,23 +94,27 @@ macro_rules! vec_impl_from_str {
         impl From<Vec<$t>> for $crate::FxVector {
             fn from(vec: Vec<$t>) -> Self {
                 let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
-                Self(Box::new(::arrow2::array::MutableUtf8Array::<i32>::from(v)))
+                Self(::std::sync::Arc::new(::arrow2::array::MutableUtf8Array::<
+                    i32,
+                >::from(v)))
             }
         }
 
         impl From<Vec<Option<$t>>> for $crate::FxVector {
             fn from(vec: Vec<Option<$t>>) -> Self {
-                Self(Box::new(::arrow2::array::MutableUtf8Array::<i32>::from(
-                    vec,
-                )))
+                Self(::std::sync::Arc::new(::arrow2::array::MutableUtf8Array::<
+                    i32,
+                >::from(vec)))
             }
         }
 
         impl $crate::FromSlice<$t, $crate::FxVector> for $crate::FxVector {
             fn from_slice(slice: &[$t]) -> Self {
-                Self(Box::new(
-                    ::arrow2::array::MutableUtf8Array::<i32>::from_iter_values(slice.into_iter()),
-                ))
+                Self(::std::sync::Arc::new(::arrow2::array::MutableUtf8Array::<
+                    i32,
+                >::from_iter_values(
+                    slice.into_iter()
+                )))
             }
         }
     };
@@ -147,21 +155,25 @@ macro_rules! vec_impl_from_bool {
         impl From<Vec<bool>> for $crate::FxVector {
             fn from(vec: Vec<bool>) -> Self {
                 let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
-                Self(Box::new(::arrow2::array::MutableBooleanArray::from(v)))
+                Self(::std::sync::Arc::new(
+                    ::arrow2::array::MutableBooleanArray::from(v),
+                ))
             }
         }
 
         impl From<Vec<Option<bool>>> for $crate::FxVector {
             fn from(vec: Vec<Option<bool>>) -> Self {
-                Self(Box::new(::arrow2::array::MutableBooleanArray::from(vec)))
+                Self(::std::sync::Arc::new(
+                    ::arrow2::array::MutableBooleanArray::from(vec),
+                ))
             }
         }
 
         impl FromSlice<bool, $crate::FxVector> for $crate::FxVector {
             fn from_slice(slice: &[bool]) -> Self {
-                Self(Box::new(::arrow2::array::MutableBooleanArray::from_slice(
-                    slice,
-                )))
+                Self(::std::sync::Arc::new(
+                    ::arrow2::array::MutableBooleanArray::from_slice(slice),
+                ))
             }
         }
     };
@@ -181,7 +193,9 @@ macro_rules! vec_push_branch {
             .ok_or_else(|| $crate::FxError::InvalidCasting("Invalid type".to_string()))?
             .to_owned();
 
-        $s.0.as_mut_any()
+        ::std::sync::Arc::get_mut(&mut $s.0)
+            .ok_or($crate::FxError::FailedToConvert)?
+            .as_mut_any()
             .downcast_mut::<$dwn_cst_m>()
             .expect("expect downcast array success")
             .try_push(Some(val))?;
@@ -192,7 +206,9 @@ macro_rules! vec_push_branch {
 
 macro_rules! vec_pop_branch {
     ($s:ident, $dwn_cst_m:ident) => {{
-        $s.0.as_mut_any()
+        ::std::sync::Arc::get_mut(&mut $s.0)
+            .ok_or($crate::FxError::FailedToConvert)?
+            .as_mut_any()
             .downcast_mut::<$dwn_cst_m>()
             .ok_or_else(|| $crate::FxError::InvalidCasting("Invalid type".to_string()))?
             .pop();
@@ -200,14 +216,11 @@ macro_rules! vec_pop_branch {
         Ok($s)
     }};
     ($s:ident, $dwn_cst_m:ident, $fx_v:ident) => {{
-        let res =
-            $s.0.as_mut_any()
-                .downcast_mut::<$dwn_cst_m>()
-                .ok_or_else(|| $crate::FxError::InvalidCasting("Invalid type".to_string()))?
-                .pop()
-                .ok_or_else(|| $crate::FxError::InvalidOperation("Empty vector".to_string()))?;
-
-        Ok(FxValue::$fx_v(res))
+        ::std::sync::Arc::get_mut(&mut $s.0)?
+            .as_mut_any()
+            .downcast_mut::<$dwn_cst_m>()?
+            .pop()
+            .map($crate::FxValue::$fx_v)
     }};
 }
 

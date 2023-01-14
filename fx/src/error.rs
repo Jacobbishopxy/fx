@@ -27,6 +27,9 @@ pub enum FxError {
     #[error("{0}")]
     InvalidOperation(String),
 
+    #[error("failed to convert")]
+    FailedToConvert,
+
     #[error(transparent)]
     StdIO(std::io::Error),
 

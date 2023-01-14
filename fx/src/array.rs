@@ -13,6 +13,8 @@ use crate::{FromSlice, FxError, FxResult};
 #[derive(Debug, Clone)]
 pub struct FxArray(pub(crate) Box<dyn Array>);
 
+// TODO into_mut: FxArray -> FxVector
+
 impl FxArray {
     pub fn array(&self) -> &dyn Array {
         self.0.as_ref()
