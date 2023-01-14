@@ -10,10 +10,12 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   └── src
     │       ├── array.rs
     │       ├── connector.rs
+    │       ├── cvt.rs
     │       ├── datagrid.rs
     │       ├── error.rs
     │       ├── lib.rs
     │       ├── macros.rs
+    │       ├── types.rs
     │       ├── value.rs
     │       └── vector.rs
     ├── fx-macros
@@ -33,6 +35,7 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
   - `sqlx`
   - `thiserror`
   - `tokio`
+  - `ref-cast`
 
 - fx-macros
 

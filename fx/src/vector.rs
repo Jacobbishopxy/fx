@@ -8,28 +8,18 @@ use std::sync::Arc;
 
 use arrow2::array::*;
 use arrow2::datatypes::DataType;
+use ref_cast::RefCast;
 
 use crate::macros::*;
+use crate::types::*;
 use crate::{FromSlice, FxError, FxResult, FxValue};
-
-type MBA = MutableBooleanArray;
-type MPAi8 = MutablePrimitiveArray<i8>;
-type MPAi16 = MutablePrimitiveArray<i16>;
-type MPAi32 = MutablePrimitiveArray<i32>;
-type MPAi64 = MutablePrimitiveArray<i64>;
-type MPAu8 = MutablePrimitiveArray<u8>;
-type MPAu16 = MutablePrimitiveArray<u16>;
-type MPAu32 = MutablePrimitiveArray<u32>;
-type MPAu64 = MutablePrimitiveArray<u64>;
-type MPAf32 = MutablePrimitiveArray<f32>;
-type MPAf64 = MutablePrimitiveArray<f64>;
-type MUA = MutableUtf8Array<i32>;
 
 // ================================================================================================
 // FxVector
 // ================================================================================================
 
-#[derive(Debug)]
+#[derive(Debug, Clone, RefCast)]
+#[repr(transparent)]
 pub struct FxVector(pub(crate) Arc<dyn MutableArray>);
 
 impl FxVector {

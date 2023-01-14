@@ -1,0 +1,74 @@
+//! file:	cvt.rs
+//! author:	Jacob Xie
+//! date:	2023/01/14 18:58:04 Saturday
+//! brief:	Convertion between FxArray and FxVector
+
+use arrow2::datatypes::DataType;
+
+use crate::types::*;
+use crate::{arr_to_vec_branch, arr_to_vec_p_branch, FxArray, FxError, FxVector};
+
+// ================================================================================================
+//  into_arc: FxVector -> FxArray
+// ================================================================================================
+
+impl TryFrom<FxVector> for FxArray {
+    type Error = FxError;
+
+    fn try_from(mut vector: FxVector) -> Result<Self, Self::Error> {
+        let arr = std::sync::Arc::get_mut(&mut vector.0)
+            .ok_or(FxError::FailedToConvert)?
+            .as_arc();
+
+        Ok(FxArray(arr))
+    }
+}
+
+impl TryFrom<FxArray> for FxVector {
+    type Error = FxError;
+
+    fn try_from(array: FxArray) -> Result<Self, Self::Error> {
+        match array.data_type() {
+            DataType::Boolean => arr_to_vec_branch!(array, BA, MBA),
+            DataType::Int8 => arr_to_vec_p_branch!(array, PAi8, MPAi8),
+            DataType::Int16 => arr_to_vec_p_branch!(array, PAi16, MPAi16),
+            DataType::Int32 => arr_to_vec_p_branch!(array, PAi32, MPAi32),
+            DataType::Int64 => arr_to_vec_p_branch!(array, PAi64, MPAi64),
+            DataType::UInt8 => arr_to_vec_p_branch!(array, PAu8, MPAu8),
+            DataType::UInt16 => arr_to_vec_p_branch!(array, PAu16, MPAu16),
+            DataType::UInt32 => arr_to_vec_p_branch!(array, PAu32, MPAu32),
+            DataType::UInt64 => arr_to_vec_p_branch!(array, PAu64, MPAu64),
+            DataType::Float32 => arr_to_vec_p_branch!(array, PAf32, MPAf32),
+            DataType::Float64 => arr_to_vec_p_branch!(array, PAf64, MPAf64),
+            DataType::Utf8 => arr_to_vec_branch!(array, UA, MUA),
+            _ => Err(FxError::FailedToConvert),
+        }
+    }
+}
+
+#[cfg(test)]
+mod test_cvt {
+    use crate::FromSlice;
+
+    use super::*;
+
+    #[test]
+    fn try_from_array_to_vector() {
+        let arr1 = FxArray::from_slice(&[true, false]);
+        let res1 = FxVector::try_from(arr1);
+
+        let arr2 = FxArray::from_slice(&[1i8, 2, 3]);
+        let res2 = FxVector::try_from(arr2);
+
+        let arr3 = FxArray::from_slice(&[1f32, 2.0, 3.0]);
+        let res3 = FxVector::try_from(arr3);
+
+        let arr4 = FxArray::from_slice(&["a", "b", "c"]);
+        let res4 = FxVector::try_from(arr4);
+
+        assert!(res1.is_ok());
+        assert!(res2.is_ok());
+        assert!(res3.is_ok());
+        assert!(res4.is_ok());
+    }
+}

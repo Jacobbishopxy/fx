@@ -8,8 +8,10 @@ mod macros;
 
 pub mod array;
 pub mod connector;
+pub mod cvt;
 pub mod datagrid;
 pub mod error;
+mod types;
 pub mod value;
 pub mod vector;
 

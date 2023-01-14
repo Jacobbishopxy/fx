@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use arrow2::array::*;
 use arrow2::datatypes::DataType;
+use ref_cast::RefCast;
 
 use crate::macros::*;
 use crate::{FromSlice, FxError, FxResult};
@@ -12,10 +13,9 @@ use crate::{FromSlice, FxError, FxResult};
 // FxArray
 // ================================================================================================
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, RefCast)]
+#[repr(transparent)]
 pub struct FxArray(pub(crate) Arc<dyn Array>);
-
-// TODO into_mut: FxArray -> FxVector
 
 impl FxArray {
     pub fn array(&self) -> &dyn Array {
