@@ -3,11 +3,13 @@
 use std::sync::Arc;
 
 use arrow2::array::*;
+use arrow2::bitmap::Bitmap;
+use arrow2::compute::concatenate::concatenate;
 use arrow2::datatypes::DataType;
 use ref_cast::RefCast;
 
 use crate::macros::*;
-use crate::{FromSlice, FxError, FxResult};
+use crate::{FromSlice, FxResult};
 
 // ================================================================================================
 // FxArray
@@ -31,23 +33,13 @@ impl FxArray {
     }
 
     pub fn is_null(&self, i: usize) -> FxResult<bool> {
-        if i >= self.len() {
-            return Err(FxError::InvalidArgument(format!(
-                "n: {i} is greater than array length: {}",
-                self.len()
-            )));
-        }
+        invalid_arg!(self, i);
 
         Ok(self.array().is_null(i))
     }
 
     pub fn is_valid(&self, i: usize) -> FxResult<bool> {
-        if i >= self.len() {
-            return Err(FxError::InvalidArgument(format!(
-                "n: {i} is greater than array length: {}",
-                self.len()
-            )));
-        }
+        invalid_arg!(self, i);
 
         Ok(self.array().is_valid(i))
     }
@@ -62,6 +54,48 @@ impl FxArray {
 
     pub fn has_null(&self) -> bool {
         self.null_count() > 0
+    }
+
+    pub fn iter() {
+        todo!()
+    }
+
+    pub fn slice() {
+        todo!()
+    }
+
+    pub fn validity(&self) -> Option<&Bitmap> {
+        self.0.validity()
+    }
+
+    pub fn set_validity() {
+        todo!()
+    }
+
+    pub fn value() {
+        todo!()
+    }
+
+    pub fn set_value() {
+        todo!()
+    }
+
+    pub fn values() {
+        todo!()
+    }
+
+    pub fn set_values() {
+        todo!()
+    }
+
+    pub fn values_iter() {
+        todo!()
+    }
+
+    pub fn extend(&mut self, array: &FxArray) -> FxResult<&mut Self> {
+        self.0 = Arc::from(concatenate(&[self.array(), array.array()])?);
+
+        Ok(self)
     }
 }
 
@@ -91,10 +125,6 @@ arr_impl_from_bool!();
 
 #[cfg(test)]
 mod test_array {
-
-    use arrow2::chunk::Chunk;
-    use arrow2::compute::concatenate::concatenate;
-
     use super::*;
 
     #[test]
@@ -117,30 +147,13 @@ mod test_array {
     }
 
     #[test]
-    fn concat_success() {
-        let a1 = FxArray::from(vec![1u8, 4]);
-        let b1 = FxArray::from(vec![true, false]);
-        let a2 = FxArray::from(vec![2u8, 5, 6]);
-        let b2 = FxArray::from(vec![false, false, true]);
+    fn extent_should_be_successful() {
+        let mut a = FxArray::from(vec![None, Some("x")]);
+        let b = FxArray::from(vec![None, Some("y"), None]);
 
-        let chunk1 = Chunk::new(vec![a1.0, b1.0]);
-        let chunk2 = Chunk::new(vec![a2.0, b2.0]);
+        let res = a.extend(&b);
+        assert!(res.is_ok());
 
-        let cct1 = concatenate(&[
-            chunk1.get(0).unwrap().as_ref(),
-            chunk2.get(0).unwrap().as_ref(),
-        ])
-        .unwrap();
-        let cct2 = concatenate(&[
-            chunk1.get(1).unwrap().as_ref(),
-            chunk2.get(1).unwrap().as_ref(),
-        ])
-        .unwrap();
-
-        println!("{:?}", cct1);
-        println!("{:?}", cct2);
-
-        let chunk = Chunk::new(vec![cct1, cct2]);
-        println!("{:?}", chunk);
+        println!("{:?}", a);
     }
 }

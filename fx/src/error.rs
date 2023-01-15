@@ -24,6 +24,9 @@ pub enum FxError {
     #[error("{0}")]
     InvalidType(String),
 
+    #[error("invalid type")]
+    InvalidTypeN,
+
     #[error("{0}")]
     InvalidOperation(String),
 

@@ -36,12 +36,7 @@ impl FxVector {
     }
 
     pub fn is_valid(&self, i: usize) -> FxResult<bool> {
-        if i >= self.len() {
-            return Err(FxError::InvalidArgument(format!(
-                "n: {i} is greater than array length: {}",
-                self.len()
-            )));
-        }
+        invalid_arg!(self, i);
 
         Ok(self.array().is_valid(i))
     }
@@ -50,11 +45,29 @@ impl FxVector {
         self.array().data_type()
     }
 
-    pub fn value() {}
+    pub fn iter() {
+        todo!()
+    }
 
-    pub fn values() {}
+    pub fn value() {
+        todo!()
+    }
 
-    pub fn values_iter() {}
+    pub fn set_value() {
+        todo!()
+    }
+
+    pub fn values() {
+        todo!()
+    }
+
+    pub fn set_values() {
+        todo!()
+    }
+
+    pub fn values_iter() {
+        todo!()
+    }
 
     pub fn push<A: Any>(&mut self, val: &A) -> FxResult<&mut Self> {
         match self.data_type() {
@@ -70,7 +83,7 @@ impl FxVector {
             DataType::Float32 => vec_push_branch!(self, val, f32, MPAf32),
             DataType::Float64 => vec_push_branch!(self, val, f64, MPAf64),
             DataType::Utf8 => vec_push_branch!(self, val, String, MUA),
-            _ => Err(FxError::InvalidType("Unsupported type".to_string())),
+            _ => Err(FxError::InvalidTypeN),
         }
     }
 
@@ -88,7 +101,7 @@ impl FxVector {
             DataType::Float32 => vec_pop_branch!(self, MPAf32),
             DataType::Float64 => vec_pop_branch!(self, MPAf64),
             DataType::Utf8 => vec_pop_branch!(self, MUA),
-            _ => Err(FxError::InvalidType("Unsupported type".to_string())),
+            _ => Err(FxError::InvalidTypeN),
         }
     }
 
@@ -124,7 +137,7 @@ impl FxVector {
             DataType::Float32 => vec_reserve_branch!(self, MPAf32, additional),
             DataType::Float64 => vec_reserve_branch!(self, MPAf64, additional),
             DataType::Utf8 => vec_reserve_branch!(self, MUA, additional, 0),
-            _ => Err(FxError::InvalidType("invalid type".to_string())),
+            _ => Err(FxError::InvalidTypeN),
         }
     }
 
@@ -142,7 +155,7 @@ impl FxVector {
             DataType::Float32 => vec_extend_branch!(self, vector, MPAf32),
             DataType::Float64 => vec_extend_branch!(self, vector, MPAf64),
             DataType::Utf8 => vec_extend_branch!(self, vector, MUA),
-            _ => Err(FxError::InvalidType("invalid type".to_string())),
+            _ => Err(FxError::InvalidTypeN),
         }
     }
 }
@@ -196,7 +209,7 @@ mod test_vector {
     }
 
     #[test]
-    fn push_value_should_be_success() {
+    fn push_value_should_be_successful() {
         let mut fx_vec = FxVector::from_slice(&[true, false, true, true]);
         let res = fx_vec.push(&true);
 
@@ -206,7 +219,7 @@ mod test_vector {
     }
 
     #[test]
-    fn pop_value_should_be_success() {
+    fn pop_value_should_be_successful() {
         let mut fx_vec = FxVector::from_slice(&[true, false, true, true]);
         let res1 = fx_vec.pop();
         assert!(res1.is_ok());
@@ -218,7 +231,7 @@ mod test_vector {
     }
 
     #[test]
-    fn extend_should_be_success() {
+    fn extend_should_be_successful() {
         let mut fx_vec = FxVector::from_slice(&[true, false, true, true]);
         let fx_vec_ext = FxVector::from(vec![Some(false), None]);
 

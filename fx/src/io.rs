@@ -32,7 +32,7 @@ impl Datagrid {
             .zip(record.fields.iter())
             .map(|(array, field)| avro_write::new_serializer(array.as_ref(), &field.schema))
             .collect::<Vec<_>>();
-        let mut block = avro_schema::file::Block::new(arrays[0].as_ref().len(), vec![]);
+        let mut block = avro_schema::file::Block::new(arrays[0].len(), vec![]);
 
         avro_write::serialize(&mut serializers, &mut block);
 

@@ -3,13 +3,17 @@
 //! date:	2023/01/14 18:58:04 Saturday
 //! brief:	Convertion between FxArray and FxVector
 
+use std::sync::Arc;
+
+use arrow2::array::{Array, MutableArray};
 use arrow2::datatypes::DataType;
+use ref_cast::RefCast;
 
 use crate::types::*;
 use crate::{arr_to_vec_branch, arr_to_vec_p_branch, FxArray, FxError, FxVector};
 
 // ================================================================================================
-//  into_arc: FxVector -> FxArray
+//  Conversion between FxVector & FxArray
 // ================================================================================================
 
 impl TryFrom<FxVector> for FxArray {
@@ -45,6 +49,38 @@ impl TryFrom<FxArray> for FxVector {
         }
     }
 }
+
+// ================================================================================================
+// AsRef & AsMut
+// ================================================================================================
+
+impl AsRef<FxArray> for Arc<dyn Array> {
+    fn as_ref(&self) -> &FxArray {
+        FxArray::ref_cast(self)
+    }
+}
+
+impl AsRef<FxVector> for Arc<dyn MutableArray> {
+    fn as_ref(&self) -> &FxVector {
+        FxVector::ref_cast(self)
+    }
+}
+
+impl AsMut<FxArray> for Arc<dyn Array> {
+    fn as_mut(&mut self) -> &mut FxArray {
+        FxArray::ref_cast_mut(self)
+    }
+}
+
+impl AsMut<FxVector> for Arc<dyn MutableArray> {
+    fn as_mut(&mut self) -> &mut FxVector {
+        FxVector::ref_cast_mut(self)
+    }
+}
+
+// ================================================================================================
+// test
+// ================================================================================================
 
 #[cfg(test)]
 mod test_cvt {
