@@ -19,7 +19,21 @@ macro_rules! invalid_arg {
     };
 }
 
+macro_rules! invalid_len {
+    ($v:expr) => {
+        let iter = $v.iter().map(|a| a.len());
+        let lens = ::std::collections::HashSet::<_>::from_iter(iter);
+        if lens.len() != 1 {
+            return Err($crate::FxError::InvalidArgument(format!(
+                "Vector of FxArray have different length: {:?}",
+                lens
+            )));
+        }
+    };
+}
+
 pub(crate) use invalid_arg;
+pub(crate) use invalid_len;
 
 // ================================================================================================
 // impl from native

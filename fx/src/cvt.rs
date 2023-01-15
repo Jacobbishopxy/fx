@@ -9,8 +9,9 @@ use arrow2::array::{Array, MutableArray};
 use arrow2::datatypes::DataType;
 use ref_cast::RefCast;
 
+use crate::macros::{arr_to_vec_branch, arr_to_vec_p_branch, invalid_len};
 use crate::types::*;
-use crate::{arr_to_vec_branch, arr_to_vec_p_branch, FxArray, FxError, FxVector};
+use crate::{Datagrid, FxArray, FxError, FxResult, FxVector};
 
 // ================================================================================================
 //  Conversion between FxVector & FxArray
@@ -75,6 +76,55 @@ impl AsMut<FxArray> for Arc<dyn Array> {
 impl AsMut<FxVector> for Arc<dyn MutableArray> {
     fn as_mut(&mut self) -> &mut FxVector {
         FxVector::ref_cast_mut(self)
+    }
+}
+
+// ================================================================================================
+// Datagrid & FxArray conversions
+// ================================================================================================
+
+impl TryFrom<Vec<FxArray>> for Datagrid {
+    type Error = FxError;
+
+    fn try_from(value: Vec<FxArray>) -> Result<Self, Self::Error> {
+        invalid_len!(value);
+
+        Ok(Datagrid::new(value.into_iter().map(|e| e.0).collect()))
+    }
+}
+
+impl From<Datagrid> for Vec<FxArray> {
+    fn from(d: Datagrid) -> Self {
+        d.into_arrays().into_iter().map(FxArray).collect()
+    }
+}
+
+// ================================================================================================
+// Datagrid & FxVector conversions
+// ================================================================================================
+
+impl TryFrom<Vec<FxVector>> for Datagrid {
+    type Error = FxError;
+
+    fn try_from(value: Vec<FxVector>) -> Result<Self, Self::Error> {
+        invalid_len!(value);
+
+        let mut vec_arr = vec![];
+        for e in value.into_iter() {
+            vec_arr.push(FxArray::try_from(e)?.0)
+        }
+
+        Ok(Datagrid::new(vec_arr))
+    }
+}
+
+impl From<Datagrid> for Vec<FxVector> {
+    fn from(d: Datagrid) -> Self {
+        d.into_arrays()
+            .into_iter()
+            .map(|e| FxVector::try_from(FxArray(e)))
+            .collect::<FxResult<Vec<_>>>()
+            .expect("From Datagrid to Vec<FxVector> should always success")
     }
 }
 

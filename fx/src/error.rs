@@ -36,6 +36,9 @@ pub enum FxError {
     #[error("failed to convert")]
     FailedToConvert,
 
+    #[error("schema mismatch")]
+    SchemaMismatch,
+
     #[error(transparent)]
     StdIO(std::io::Error),
 

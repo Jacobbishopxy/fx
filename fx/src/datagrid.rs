@@ -1,13 +1,14 @@
 //! Datagrid
 
-use std::collections::HashSet;
+use std::ops::Deref;
 use std::sync::Arc;
 
 use arrow2::array::*;
 use arrow2::chunk::Chunk;
-use arrow2::datatypes::{Field, Schema};
+use arrow2::compute::concatenate::concatenate;
+use arrow2::datatypes::{DataType, Field, Schema};
 
-use crate::{FxArray, FxError, FxResult, FxVector};
+use crate::{FxArray, FxError, FxResult};
 
 // ================================================================================================
 // Datagrid
@@ -31,8 +32,16 @@ impl Datagrid {
         Ok(Datagrid(chunk))
     }
 
+    pub fn data_types(&self) -> Vec<&DataType> {
+        self.0.iter().map(|e| e.data_type()).collect()
+    }
+
+    pub fn data_types_match(&self, d: &Datagrid) -> bool {
+        self.width() == d.width() && self.data_types() == d.data_types()
+    }
+
     pub fn gen_schema(&self, names: &[&str]) -> FxResult<Schema> {
-        let arrays = self.0.arrays();
+        let arrays = self.arrays();
         let al = arrays.len();
         let nl = names.len();
         if al != nl {
@@ -58,16 +67,65 @@ impl Datagrid {
         self.0.into_arrays()
     }
 
-    pub fn len(&self) -> usize {
+    pub fn length(&self) -> usize {
         self.0.len()
+    }
+
+    pub fn width(&self) -> usize {
+        self.0.iter().count()
+    }
+
+    // (length, width)
+    pub fn size(&self) -> (usize, usize) {
+        (self.length(), self.width())
     }
 
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
-    pub fn concat(&self) {
+    pub fn slice() {
         todo!()
+    }
+
+    pub fn extend(&mut self, d: &Datagrid) -> FxResult<&mut Self> {
+        self.concat(&[d.clone()])
+    }
+
+    pub fn concat(&mut self, d: &[Datagrid]) -> FxResult<&mut Self> {
+        // check schema integrity
+        let mut iter = d.iter();
+        while let Some(e) = iter.next() {
+            if !self.data_types_match(e) {
+                return Err(FxError::SchemaMismatch);
+            }
+        }
+
+        // original data as column, lift each column into a vector
+        // in order to store further column from the input data
+        let mut cols = self
+            .arrays()
+            .iter()
+            .map(|e| vec![e.deref()])
+            .collect::<Vec<_>>();
+
+        // iterate through input data
+        for chunk in d.iter() {
+            // mutate columns by appending chunk columns
+            cols.iter_mut()
+                .zip(chunk.arrays().iter())
+                .for_each(|(c, e)| c.push(e.deref()));
+        }
+
+        // concatenate each columns
+        let mut concated = Vec::<Arc<dyn Array>>::new();
+        for c in cols {
+            concated.push(Arc::from(concatenate(&c)?));
+        }
+
+        self.0 = Chunk::new(concated);
+
+        Ok(self)
     }
 }
 
@@ -126,70 +184,6 @@ pub trait FxDatagridRowBuilder<T>: Send {
     fn stack(&mut self, row: T);
 
     fn build(self: Box<Self>) -> FxResult<Datagrid>;
-}
-
-// ================================================================================================
-// Datagrid & FxArray conversions
-// ================================================================================================
-
-impl TryFrom<Vec<FxArray>> for Datagrid {
-    type Error = FxError;
-
-    fn try_from(value: Vec<FxArray>) -> Result<Self, Self::Error> {
-        let iter = value.iter().map(|a| a.len());
-        let lens = HashSet::<_>::from_iter(iter);
-        if lens.len() != 1 {
-            return Err(FxError::InvalidArgument(format!(
-                "Vector of FxArray have different length: {:?}",
-                lens
-            )));
-        }
-
-        Ok(Datagrid::new(value.into_iter().map(|e| e.0).collect()))
-    }
-}
-
-impl From<Datagrid> for Vec<FxArray> {
-    fn from(d: Datagrid) -> Self {
-        d.into_arrays().into_iter().map(FxArray).collect()
-    }
-}
-
-// ================================================================================================
-// Datagrid & FxVector conversions
-// ================================================================================================
-
-impl TryFrom<Vec<FxVector>> for Datagrid {
-    type Error = FxError;
-
-    fn try_from(value: Vec<FxVector>) -> Result<Self, Self::Error> {
-        let iter = value.iter().map(|a| a.len());
-        let lens = HashSet::<_>::from_iter(iter);
-        if lens.len() != 1 {
-            return Err(FxError::InvalidArgument(format!(
-                "Vector of FxArray have different length: {:?}",
-                lens
-            )));
-        }
-
-        // TODO: optimize
-        let vec_arr = value
-            .into_iter()
-            .map(FxArray::try_from)
-            .collect::<FxResult<Vec<_>>>()?;
-
-        Ok(Datagrid::new(vec_arr.into_iter().map(|e| e.0).collect()))
-    }
-}
-
-impl From<Datagrid> for Vec<FxVector> {
-    fn from(d: Datagrid) -> Self {
-        d.into_arrays()
-            .into_iter()
-            .map(|e| FxVector::try_from(FxArray(e)))
-            .collect::<FxResult<Vec<_>>>()
-            .expect("From Datagrid to Vec<FxVector> should always success")
-    }
 }
 
 // ================================================================================================
@@ -314,5 +308,41 @@ mod test_datagrid {
         let d = bd.build();
 
         println!("{d:?}");
+    }
+
+    #[test]
+    fn concat_should_be_successful() {
+        let mut builder = DatagridColWiseBuilder::<3>::new();
+
+        builder.stack(vec!["a", "b", "c"]);
+        builder.stack(vec![1, 2, 3]);
+        builder.stack(vec![Some(1.2), None, Some(2.1)]);
+
+        let mut d1 = builder.build().unwrap();
+        println!("{:?}", d1.data_types());
+
+        let mut builder = DatagridColWiseBuilder::<3>::new();
+
+        builder.stack(vec!["d", "e"]);
+        builder.stack(vec![4, 5]);
+        builder.stack(vec![Some(3.3), None]);
+
+        let d2 = builder.build().unwrap();
+        println!("{:?}", d2.data_types());
+
+        let mut builder = DatagridColWiseBuilder::<3>::new();
+
+        builder.stack(vec!["f"]);
+        builder.stack(vec![6]);
+        builder.stack(vec![Some(4.1)]);
+
+        let d3 = builder.build().unwrap();
+        println!("{:?}", d3.data_types());
+
+        let res = d1.concat(&[d2, d3]);
+
+        assert!(res.is_ok());
+
+        println!("{:?}", res);
     }
 }
