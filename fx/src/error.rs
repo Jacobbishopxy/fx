@@ -27,6 +27,9 @@ pub enum FxError {
     #[error("{0}")]
     InvalidOperation(String),
 
+    #[error("invalid downcast")]
+    InvalidDowncast,
+
     #[error("failed to convert")]
     FailedToConvert,
 

@@ -190,14 +190,14 @@ macro_rules! vec_push_branch {
     ($s:ident, $v:expr, $dwn_cst_t:ty, $dwn_cst_m:ident) => {{
         let val = ($v as &dyn ::std::any::Any)
             .downcast_ref::<$dwn_cst_t>()
-            .ok_or_else(|| $crate::FxError::InvalidCasting("Invalid type".to_string()))?
+            .ok_or($crate::FxError::InvalidDowncast)?
             .to_owned();
 
         ::std::sync::Arc::get_mut(&mut $s.0)
             .ok_or($crate::FxError::FailedToConvert)?
             .as_mut_any()
             .downcast_mut::<$dwn_cst_m>()
-            .expect("expect downcast array success")
+            .ok_or($crate::FxError::InvalidDowncast)?
             .try_push(Some(val))?;
 
         Ok($s)
@@ -210,7 +210,7 @@ macro_rules! vec_pop_branch {
             .ok_or($crate::FxError::FailedToConvert)?
             .as_mut_any()
             .downcast_mut::<$dwn_cst_m>()
-            .ok_or_else(|| $crate::FxError::InvalidCasting("Invalid type".to_string()))?
+            .ok_or($crate::FxError::InvalidDowncast)?
             .pop();
 
         Ok($s)
@@ -224,8 +224,52 @@ macro_rules! vec_pop_branch {
     }};
 }
 
+macro_rules! vec_reserve_branch {
+    ($s:ident, $dwn_cst_m:ident, $a:expr) => {{
+        ::std::sync::Arc::get_mut(&mut $s.0)
+            .ok_or($crate::FxError::FailedToConvert)?
+            .as_mut_any()
+            .downcast_mut::<$dwn_cst_m>()
+            .ok_or($crate::FxError::InvalidDowncast)?
+            .reserve($a);
+
+        Ok(())
+    }};
+    ($s:ident, $dwn_cst_m:ident, $a:expr, $av:expr) => {{
+        ::std::sync::Arc::get_mut(&mut $s.0)
+            .ok_or($crate::FxError::FailedToConvert)?
+            .as_mut_any()
+            .downcast_mut::<$dwn_cst_m>()
+            .ok_or($crate::FxError::InvalidDowncast)?
+            .reserve($a, $av);
+
+        Ok(())
+    }};
+}
+
+macro_rules! vec_extend_branch {
+    ($s:ident, $v:expr, $dwn_cst_m:ident) => {{
+        let iter =
+            $v.0.as_any()
+                .downcast_ref::<$dwn_cst_m>()
+                .ok_or($crate::FxError::InvalidDowncast)?
+                .iter();
+
+        ::std::sync::Arc::get_mut(&mut $s.0)
+            .ok_or($crate::FxError::FailedToConvert)?
+            .as_mut_any()
+            .downcast_mut::<$dwn_cst_m>()
+            .ok_or($crate::FxError::InvalidDowncast)?
+            .extend_trusted_len(iter);
+
+        Ok($s)
+    }};
+}
+
+pub(crate) use vec_extend_branch;
 pub(crate) use vec_pop_branch;
 pub(crate) use vec_push_branch;
+pub(crate) use vec_reserve_branch;
 
 // ================================================================================================
 // Convertion from FxArray to FxVector

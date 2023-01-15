@@ -91,6 +91,10 @@ arr_impl_from_bool!();
 
 #[cfg(test)]
 mod test_array {
+
+    use arrow2::chunk::Chunk;
+    use arrow2::compute::concatenate::concatenate;
+
     use super::*;
 
     #[test]
@@ -110,5 +114,33 @@ mod test_array {
         println!("{d:?}");
         println!("{e:?}");
         println!("{f:?}");
+    }
+
+    #[test]
+    fn concat_success() {
+        let a1 = FxArray::from(vec![1u8, 4]);
+        let b1 = FxArray::from(vec![true, false]);
+        let a2 = FxArray::from(vec![2u8, 5, 6]);
+        let b2 = FxArray::from(vec![false, false, true]);
+
+        let chunk1 = Chunk::new(vec![a1.0, b1.0]);
+        let chunk2 = Chunk::new(vec![a2.0, b2.0]);
+
+        let cct1 = concatenate(&[
+            chunk1.get(0).unwrap().as_ref(),
+            chunk2.get(0).unwrap().as_ref(),
+        ])
+        .unwrap();
+        let cct2 = concatenate(&[
+            chunk1.get(1).unwrap().as_ref(),
+            chunk2.get(1).unwrap().as_ref(),
+        ])
+        .unwrap();
+
+        println!("{:?}", cct1);
+        println!("{:?}", cct2);
+
+        let chunk = Chunk::new(vec![cct1, cct2]);
+        println!("{:?}", chunk);
     }
 }

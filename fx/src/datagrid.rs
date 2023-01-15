@@ -13,7 +13,7 @@ use crate::{FxArray, FxError, FxResult, FxVector};
 // Datagrid
 // ================================================================================================
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Datagrid(pub(crate) Chunk<Arc<dyn Array>>);
 
 impl Datagrid {
@@ -50,9 +50,25 @@ impl Datagrid {
         Ok(Schema::from(fld))
     }
 
+    pub fn arrays(&self) -> &[Arc<dyn Array>] {
+        self.0.arrays()
+    }
+
     pub fn into_arrays(self) -> Vec<Arc<dyn Array>> {
         self.0.into_arrays()
     }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    // pub fn concat(&self) {
+
+    // }
 }
 
 // ================================================================================================
