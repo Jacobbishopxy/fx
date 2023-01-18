@@ -7,6 +7,7 @@ use arrow2::array::*;
 use arrow2::chunk::Chunk;
 use arrow2::compute::concatenate::concatenate;
 use arrow2::datatypes::{DataType, Field, Schema};
+use ref_cast::RefCast;
 
 use crate::{FxArray, FxError, FxResult};
 
@@ -14,7 +15,8 @@ use crate::{FxArray, FxError, FxResult};
 // Datagrid
 // ================================================================================================
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, RefCast)]
+#[repr(transparent)]
 pub struct Datagrid(pub(crate) Chunk<Arc<dyn Array>>);
 
 impl Datagrid {
