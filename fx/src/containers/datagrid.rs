@@ -96,8 +96,7 @@ impl Datagrid {
 
     pub fn concat(&mut self, d: &[Datagrid]) -> FxResult<&mut Self> {
         // check schema integrity
-        let mut iter = d.iter();
-        while let Some(e) = iter.next() {
+        for e in d.iter() {
             if !self.data_types_match(e) {
                 return Err(FxError::SchemaMismatch);
             }
@@ -345,6 +344,6 @@ mod test_datagrid {
 
         assert!(res.is_ok());
 
-        println!("{:?}", res);
+        println!("{res:?}");
     }
 }

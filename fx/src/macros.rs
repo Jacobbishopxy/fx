@@ -1,7 +1,7 @@
-//! file:	macros.rs
-//! author:	Jacob Xie
-//! date:	2023/01/13 22:42:09 Friday
-//! brief:	Macros
+//! file: macros.rs
+//! author: Jacob Xie
+//! date: 2023/01/13 22:42:09 Friday
+//! brief: Macros
 
 // ================================================================================================
 // utils

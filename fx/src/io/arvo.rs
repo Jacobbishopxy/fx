@@ -1,7 +1,7 @@
-//! file:	arvo.rs
-//! author:	Jacob Xie
-//! date:	2023/01/18 20:03:41 Wednesday
-//! brief:	Arvo I/O
+//! file: arvo.rs
+//! author: Jacob Xie
+//! date: 2023/01/18 20:03:41 Wednesday
+//! brief: Arvo I/O
 
 use std::io::{Read, Write};
 use std::sync::Arc;
@@ -59,7 +59,7 @@ impl FxIO {
             let vec_arc_dyn_arr = c
                 .into_arrays()
                 .into_iter()
-                .map(|e| Arc::<dyn Array>::from(e))
+                .map(Arc::<dyn Array>::from)
                 .collect::<Vec<_>>();
 
             data.0 = Chunk::new(vec_arc_dyn_arr);

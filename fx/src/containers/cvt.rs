@@ -1,7 +1,7 @@
-//! file:	cvt.rs
-//! author:	Jacob Xie
-//! date:	2023/01/14 18:58:04 Saturday
-//! brief:	Convertion between FxArray and FxVector
+//! file: cvt.rs
+//! author: Jacob Xie
+//! date: 2023/01/14 18:58:04 Saturday
+//! brief: Convertion between FxArray and FxVector
 
 use std::sync::Arc;
 
@@ -34,7 +34,7 @@ impl TryFrom<FxArray> for FxVector {
 
     fn try_from(array: FxArray) -> Result<Self, Self::Error> {
         match array.data_type() {
-            DataType::Boolean => arr_to_vec_branch!(array, BA, MBA),
+            DataType::Boolean => arr_to_vec_branch!(array, BA, MB),
             DataType::Int8 => arr_to_vec_p_branch!(array, PAi8, MPAi8),
             DataType::Int16 => arr_to_vec_p_branch!(array, PAi16, MPAi16),
             DataType::Int32 => arr_to_vec_p_branch!(array, PAi32, MPAi32),
@@ -45,7 +45,7 @@ impl TryFrom<FxArray> for FxVector {
             DataType::UInt64 => arr_to_vec_p_branch!(array, PAu64, MPAu64),
             DataType::Float32 => arr_to_vec_p_branch!(array, PAf32, MPAf32),
             DataType::Float64 => arr_to_vec_p_branch!(array, PAf64, MPAf64),
-            DataType::Utf8 => arr_to_vec_branch!(array, UA, MUA),
+            DataType::Utf8 => arr_to_vec_branch!(array, UA, MU),
             _ => Err(FxError::FailedToConvert),
         }
     }

@@ -1,7 +1,7 @@
-//! file:	parquet.rs
-//! author:	Jacob Xie
-//! date:	2023/01/18 20:12:29 Wednesday
-//! brief:	Parquet I/O
+//! file: parquet.rs
+//! author: Jacob Xie
+//! date: 2023/01/18 20:12:29 Wednesday
+//! brief: Parquet I/O
 
 use std::io::{Read, Seek, Write};
 use std::sync::Arc;
@@ -76,7 +76,7 @@ impl FxIO {
             let vec_arc_dyn_arr = maybe_chunk?
                 .into_arrays()
                 .into_iter()
-                .map(|e| Arc::<dyn Array>::from(e))
+                .map(Arc::<dyn Array>::from)
                 .collect::<Vec<_>>();
 
             data.0 = Chunk::new(vec_arc_dyn_arr);

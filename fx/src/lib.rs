@@ -7,7 +7,6 @@
 mod macros;
 
 pub mod containers;
-pub mod cvt;
 pub mod error;
 pub mod io;
 mod types;

@@ -154,6 +154,6 @@ mod test_array {
         let res = a.extend(&b);
         assert!(res.is_ok());
 
-        println!("{:?}", a);
+        println!("{a:?}");
     }
 }

@@ -1,7 +1,7 @@
-//! file:	value.rs
-//! author:	Jacob Xie
-//! date:	2023/01/14 00:18:43 Saturday
-//! brief:	Value
+//! file: value.rs
+//! author: Jacob Xie
+//! date: 2023/01/14 00:18:43 Saturday
+//! brief: Value
 
 #[derive(Debug, PartialEq)]
 pub enum FxValue {
