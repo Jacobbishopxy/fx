@@ -4,17 +4,18 @@
 //! brief: Containers
 
 pub mod array;
-pub mod arrvec;
+pub mod batch;
+pub mod batches;
+pub mod chunking;
 pub mod cvt;
 pub mod datagrid;
-pub mod rbatch;
+pub(crate) mod private;
 pub mod table;
 pub mod vector;
 
 pub use array::*;
-pub use arrvec::*;
+pub use batch::*;
 pub use cvt::*;
 pub use datagrid::*;
-pub use rbatch::*;
 pub use table::*;
 pub use vector::*;

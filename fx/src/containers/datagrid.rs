@@ -1,15 +1,14 @@
 //! Datagrid
 
-use std::ops::Deref;
 use std::sync::Arc;
 
 use arrow2::array::*;
 use arrow2::chunk::Chunk;
-use arrow2::compute::concatenate::concatenate;
-use arrow2::datatypes::{DataType, Field, Schema};
+use arrow2::datatypes::{Field, Schema};
 use ref_cast::RefCast;
 
-use crate::{FxArray, FxError, FxResult};
+use crate::chunking::Chunking;
+use crate::{private, FxArray, FxError, FxResult};
 
 // ================================================================================================
 // Datagrid
@@ -19,29 +18,35 @@ use crate::{FxArray, FxError, FxResult};
 #[repr(transparent)]
 pub struct Datagrid(pub(crate) Chunk<Arc<dyn Array>>);
 
-impl Datagrid {
-    pub fn empty() -> Self {
+impl private::InnerChunking for Datagrid {
+    fn empty() -> Self {
         Datagrid(Chunk::new(vec![]))
     }
 
-    // WARNING: arrays with different length will cause runtime panic!!!
-    pub fn new(arrays: Vec<Arc<dyn Array>>) -> Self {
+    fn new(arrays: Vec<Arc<dyn Array>>) -> Self {
         Datagrid(Chunk::new(arrays))
     }
 
-    pub fn try_new(arrays: Vec<Arc<dyn Array>>) -> FxResult<Self> {
+    fn try_new(arrays: Vec<Arc<dyn Array>>) -> FxResult<Self> {
         let chunk = Chunk::try_new(arrays)?;
         Ok(Datagrid(chunk))
     }
 
-    pub fn data_types(&self) -> Vec<&DataType> {
-        self.0.iter().map(|e| e.data_type()).collect()
+    fn ref_chunk(&self) -> &Chunk<Arc<dyn Array>> {
+        &self.0
     }
 
-    pub fn data_types_match(&self, d: &Datagrid) -> bool {
-        self.width() == d.width() && self.data_types() == d.data_types()
+    fn set_chunk(&mut self, arrays: Vec<Arc<dyn Array>>) -> FxResult<()> {
+        self.0 = Chunk::new(arrays);
+        Ok(())
     }
 
+    fn take_chunk(self) -> Chunk<Arc<dyn Array>> {
+        self.0
+    }
+}
+
+impl Datagrid {
     pub fn gen_schema(&self, names: &[&str]) -> FxResult<Schema> {
         let arrays = self.arrays();
         let al = arrays.len();
@@ -59,74 +64,6 @@ impl Datagrid {
             .collect::<Vec<_>>();
 
         Ok(Schema::from(fld))
-    }
-
-    pub fn arrays(&self) -> &[Arc<dyn Array>] {
-        self.0.arrays()
-    }
-
-    pub fn into_arrays(self) -> Vec<Arc<dyn Array>> {
-        self.0.into_arrays()
-    }
-
-    pub fn length(&self) -> usize {
-        self.0.len()
-    }
-
-    pub fn width(&self) -> usize {
-        self.0.iter().count()
-    }
-
-    // (length, width)
-    pub fn size(&self) -> (usize, usize) {
-        (self.length(), self.width())
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    pub fn slice() {
-        todo!()
-    }
-
-    pub fn extend(&mut self, d: &Datagrid) -> FxResult<&mut Self> {
-        self.concat(&[d.clone()])
-    }
-
-    pub fn concat(&mut self, d: &[Datagrid]) -> FxResult<&mut Self> {
-        // check schema integrity
-        for e in d.iter() {
-            if !self.data_types_match(e) {
-                return Err(FxError::SchemaMismatch);
-            }
-        }
-
-        // original data as column, lift each column into a vector
-        // in order to store further column from the input data
-        let mut cols = self
-            .arrays()
-            .iter()
-            .map(|e| vec![e.deref()])
-            .collect::<Vec<_>>();
-
-        // iterate through input data
-        for chunk in d.iter() {
-            // mutate columns by appending chunk columns
-            cols.iter_mut()
-                .zip(chunk.arrays().iter())
-                .for_each(|(c, e)| c.push(e.deref()));
-        }
-
-        // concatenate each columns
-        let mut concated = Vec::<Arc<dyn Array>>::new();
-        for c in cols {
-            concated.push(Arc::from(concatenate(&c)?));
-        }
-
-        self.0 = Chunk::new(concated);
-
-        Ok(self)
     }
 }
 

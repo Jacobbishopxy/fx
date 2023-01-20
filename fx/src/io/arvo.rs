@@ -13,6 +13,7 @@ use arrow2::io::avro::avro_schema;
 use arrow2::io::avro::read as avro_read;
 use arrow2::io::avro::write as avro_write;
 
+use crate::chunking::Chunking;
 use crate::{Datagrid, FxIO, FxResult};
 
 // TODO generic Datagrid

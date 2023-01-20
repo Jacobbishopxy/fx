@@ -93,6 +93,8 @@ impl FxIO {
 #[cfg(test)]
 mod test_parquet {
 
+    use crate::chunking::Chunking;
+
     use super::*;
 
     const FILE_PARQUET: &str = "./cache/test.parquet";
