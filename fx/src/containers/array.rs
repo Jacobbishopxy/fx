@@ -24,6 +24,10 @@ impl FxArray {
         self.0.as_ref()
     }
 
+    pub fn into_array(self) -> Arc<dyn Array> {
+        self.0
+    }
+
     pub fn len(&self) -> usize {
         self.array().len()
     }

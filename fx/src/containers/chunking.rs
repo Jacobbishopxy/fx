@@ -16,15 +16,6 @@ pub trait Chunking: private::InnerChunking + Clone {
         private::InnerChunking::empty()
     }
 
-    // WARNING: arrays with different length will cause runtime panic!!!
-    fn new(arrays: Vec<Arc<dyn Array>>) -> Self {
-        private::InnerChunking::new(arrays)
-    }
-
-    fn try_new(arrays: Vec<Arc<dyn Array>>) -> FxResult<Self> {
-        private::InnerChunking::try_new(arrays)
-    }
-
     fn length(&self) -> usize {
         self.ref_chunk().len()
     }

@@ -9,8 +9,6 @@ use arrow2::array::*;
 use arrow2::chunk::Chunk;
 use arrow2::datatypes::Schema;
 
-use crate::Datagrid;
-
 pub struct FxBatches {
     pub(crate) schema: Schema,
     pub(crate) data: Vec<Chunk<Arc<dyn Array>>>,

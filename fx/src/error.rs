@@ -39,6 +39,9 @@ pub enum FxError {
     #[error("schema mismatch")]
     SchemaMismatch,
 
+    #[error("length does not match: ${0} & ${1}")]
+    LengthMismatch(usize, usize),
+
     #[error(transparent)]
     StdIO(std::io::Error),
 

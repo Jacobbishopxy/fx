@@ -12,15 +12,8 @@ use crate::FxResult;
 
 // pub(crate) in mod.rs, so that external access is prohibited
 #[doc(hidden)]
-pub trait InnerChunking
-where
-    Self: std::marker::Sized,
-{
+pub trait InnerChunking {
     fn empty() -> Self;
-
-    fn new(arrays: Vec<Arc<dyn Array>>) -> Self;
-
-    fn try_new(arrays: Vec<Arc<dyn Array>>) -> FxResult<Self>;
 
     fn ref_chunk(&self) -> &Chunk<Arc<dyn Array>>;
 

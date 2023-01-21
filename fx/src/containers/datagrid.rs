@@ -23,15 +23,6 @@ impl private::InnerChunking for Datagrid {
         Datagrid(Chunk::new(vec![]))
     }
 
-    fn new(arrays: Vec<Arc<dyn Array>>) -> Self {
-        Datagrid(Chunk::new(arrays))
-    }
-
-    fn try_new(arrays: Vec<Arc<dyn Array>>) -> FxResult<Self> {
-        let chunk = Chunk::try_new(arrays)?;
-        Ok(Datagrid(chunk))
-    }
-
     fn ref_chunk(&self) -> &Chunk<Arc<dyn Array>> {
         &self.0
     }
@@ -47,19 +38,25 @@ impl private::InnerChunking for Datagrid {
 }
 
 impl Datagrid {
+    // WARNING: arrays with different length will cause runtime panic!!!
+    pub fn new(arrays: Vec<Arc<dyn Array>>) -> Self {
+        Datagrid(Chunk::new(arrays))
+    }
+
+    pub fn try_new(arrays: Vec<Arc<dyn Array>>) -> FxResult<Self> {
+        let chunk = Chunk::try_new(arrays)?;
+        Ok(Datagrid(chunk))
+    }
+
     pub fn gen_schema(&self, names: &[&str]) -> FxResult<Schema> {
-        let arrays = self.arrays();
-        let al = arrays.len();
-        let nl = names.len();
+        let (al, nl) = (self.width(), names.len());
         if al != nl {
-            return Err(FxError::InvalidArgument(format!(
-                "length does not match: names.len ${nl} & arrays.len ${al}"
-            )));
+            return Err(FxError::LengthMismatch(al, nl));
         }
 
         let fld = names
             .iter()
-            .zip(arrays)
+            .zip(self.arrays())
             .map(|(n, a)| Field::new(*n, a.data_type().clone(), a.null_count() > 0))
             .collect::<Vec<_>>();
 

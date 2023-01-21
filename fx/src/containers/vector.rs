@@ -27,6 +27,10 @@ impl FxVector {
         self.0.as_ref()
     }
 
+    pub fn into_mutable_array(self) -> Arc<dyn MutableArray> {
+        self.0
+    }
+
     pub fn len(&self) -> usize {
         self.array().len()
     }
