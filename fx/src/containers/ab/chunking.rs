@@ -17,27 +17,35 @@ pub trait Chunking: private::InnerChunking + Clone {
     }
 
     fn length(&self) -> usize {
-        self.ref_chunk().len()
+        private::InnerChunking::length(self)
     }
 
     fn width(&self) -> usize {
-        self.ref_chunk().iter().count()
+        private::InnerChunking::width(self)
     }
 
     fn size(&self) -> (usize, usize) {
-        (self.length(), self.width())
+        private::InnerChunking::size(self)
     }
 
     fn is_empty(&self) -> bool {
-        self.ref_chunk().is_empty()
+        private::InnerChunking::is_empty(self)
     }
 
-    fn data_types(&self) -> Vec<&DataType> {
-        self.ref_chunk().iter().map(|e| e.data_type()).collect()
+    fn data_types(&self) -> Vec<DataType> {
+        private::InnerChunking::data_types(self)
     }
 
     fn data_types_match<T: Chunking>(&self, d: &T) -> bool {
-        self.width() == d.width() && self.data_types() == d.data_types()
+        private::InnerChunking::data_types_match(self, d)
+    }
+
+    fn validities(&self) -> Vec<bool> {
+        self.ref_chunk()
+            .arrays()
+            .iter()
+            .map(|a| a.validity().is_none())
+            .collect()
     }
 
     fn arrays(&self) -> &[Arc<dyn Array>] {
@@ -59,7 +67,7 @@ pub trait Chunking: private::InnerChunking + Clone {
     fn concat<T: Chunking>(&mut self, d: &[T]) -> FxResult<&mut Self> {
         // check schema integrity
         for e in d.iter() {
-            if !self.data_types_match(e) {
+            if !private::InnerChunking::data_types_match(self, e) {
                 return Err(FxError::SchemaMismatch);
             }
         }
@@ -93,10 +101,3 @@ pub trait Chunking: private::InnerChunking + Clone {
 }
 
 impl<T> Chunking for T where T: private::InnerChunking + Clone {}
-
-pub trait ChunkingContainer {
-    type UnitData: Chunking;
-    type Data: IntoIterator<Item = Self::UnitData>;
-}
-
-// TODO

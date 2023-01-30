@@ -47,3 +47,7 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 ## Misc
 
 - To get a tree view of this project, run `cargo make --makefile fx.toml tree`
+
+## Todo
+
+- ColWiseBuilder & RowWiseBuilder in a generic way, and make `fx-macros` follows it.

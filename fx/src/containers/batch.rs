@@ -9,7 +9,7 @@ use arrow2::chunk::Chunk;
 use arrow2::datatypes::Schema;
 use arrow2::{array::*, datatypes::Field};
 
-use crate::{private, FxArray, FxError, FxResult};
+use crate::{private, FxResult, NullableOptions};
 
 #[derive(Debug, Clone)]
 pub struct FxBatch {
@@ -40,27 +40,30 @@ impl private::InnerChunking for FxBatch {
 }
 
 impl FxBatch {
-    pub fn try_new<I, T>(fields_name: I, arrays: Vec<Arc<dyn Array>>) -> FxResult<Self>
+    pub fn try_new<I, T>(
+        fields_name: I,
+        arrays: Vec<Arc<dyn Array>>,
+        nullable_options: NullableOptions,
+    ) -> FxResult<Self>
     where
         I: IntoIterator<Item = T>,
         T: AsRef<str>,
     {
-        let iter = fields_name.into_iter();
-        let (fl, al) = (iter.size_hint().0, arrays.len());
-        if fl != al {
-            return Err(FxError::LengthMismatch(fl, al));
-        }
-
-        let fld = iter
-            .zip(arrays.iter())
-            .map(|(n, a)| Field::new(n.as_ref(), a.data_type().clone(), a.null_count() > 0))
+        let data_types = arrays
+            .iter()
+            .map(|a| a.data_type())
+            .cloned()
             .collect::<Vec<_>>();
-        let schema = Schema::from(fld);
+        let schema = nullable_options.gen_schema(fields_name, data_types)?;
 
         Ok(Self {
             schema,
             data: Chunk::try_new(arrays)?,
         })
+    }
+
+    pub fn schema(&self) -> &Schema {
+        &self.schema
     }
 }
 
@@ -71,22 +74,24 @@ impl FxBatch {
 #[cfg(test)]
 mod test_batch {
     use super::*;
-    use crate::FromSlice;
+    use crate::{Chunking, FromSlice, FxArray};
 
     #[test]
     fn new_fx_batch_should_be_successful() {
         let arrays = vec![
-            FxArray::from_slice(&["a", "c"]).into_array(),
-            FxArray::from(vec![Some("x"), Some("y")]).into_array(),
-            FxArray::from_slice(&[true, false]).into_array(),
+            FxArray::from_slice(&["a", "c", "x"]).into_array(),
+            FxArray::from(vec![Some("x"), None, Some("y")]).into_array(),
+            FxArray::from_slice(&[true, false, false]).into_array(),
         ];
 
         let names = &["col1", "col2", "col3"];
 
-        let batch = FxBatch::try_new(names, arrays);
+        let batch = FxBatch::try_new(names, arrays, NullableOptions::indexed_true([2]));
 
         assert!(batch.is_ok());
 
-        println!("{:?}", batch.unwrap());
+        let batch = batch.unwrap();
+        println!("{batch:?}");
+        println!("{:?}", batch.validities());
     }
 }
