@@ -123,13 +123,13 @@ impl<T: SqlMeta> Connector<T> {
         }
     }
 
-    pub async fn query_datagrid<'a, D>(&'a self, sql: &'a str) -> FxResult<Datagrid>
+    pub async fn query_grid<'a, D>(&'a self, sql: &'a str) -> FxResult<FxGrid>
     where
-        D: Send + FxDatagrid,
+        D: Send + FxGridT,
         D: From<T::Row>,
     {
         match self.pool_options.as_ref() {
-            Some(p) => p.query_datagrid::<D>(sql).await,
+            Some(p) => p.query_grid::<D>(sql).await,
             None => Err(FxError::DatabaseConnectionN),
         }
     }
@@ -192,11 +192,11 @@ pub trait SqlMeta: Sized {
     where
         D: Send + Unpin + for<'r> FromRow<'r, <Self::DB as Database>::Row>;
 
-    // query with generic param `D` as schema, and return `Datagrid`
-    fn query_datagrid<'a, D>(&'a self, sql: &'a str) -> BoxFuture<'a, FxResult<Datagrid>>
+    // query with generic param `D` as schema, and return `FxGrid`
+    fn query_grid<'a, D>(&'a self, sql: &'a str) -> BoxFuture<'a, FxResult<FxGrid>>
     where
         D: From<Self::Row>,
-        D: Send + FxDatagrid;
+        D: Send + FxGridT;
 
     // execute SQL statement without output
     fn execute<'a>(
@@ -283,7 +283,7 @@ mod test_connector {
     }
 
     #[tokio::test]
-    async fn query_datagrid() {
+    async fn query_grid() {
         let pg_pool = PgPoolOptions::new().connect(URL).await.unwrap();
 
         let mut v1 = vec![];
@@ -305,7 +305,7 @@ mod test_connector {
             v4.push(role);
         }
 
-        let dg = Datagrid::try_from(vec![
+        let dg = FxGrid::try_from(vec![
             FxArray::from(v1),
             FxArray::from(v2),
             FxArray::from(v3),
@@ -317,7 +317,7 @@ mod test_connector {
     }
 
     #[tokio::test]
-    async fn query_typed_datagrid_success() {
+    async fn query_typed_grid_success() {
         #[allow(dead_code)]
         struct Users {
             id: i32,
@@ -342,21 +342,21 @@ mod test_connector {
             check: Vec<Option<bool>>,
         }
 
-        impl FxDatagridRowBuilderCst for UsersBuild {
+        impl FxGridTRowBuilderCst for UsersBuild {
             fn new() -> Self {
                 Self::default()
             }
         }
 
-        impl FxDatagridRowBuilder<Users> for UsersBuild {
+        impl FxGridTRowBuilder<Users> for UsersBuild {
             fn stack(&mut self, row: Users) {
                 self.id.push(row.id);
                 self.name.push(row.name);
                 self.check.push(row.check);
             }
 
-            fn build(self: Box<Self>) -> FxResult<Datagrid> {
-                let mut builder = DatagridColWiseBuilder::<3>::new();
+            fn build(self: Box<Self>) -> FxResult<FxGrid> {
+                let mut builder = FxGridColWiseBuilder::<3>::new();
 
                 builder.stack(self.id);
                 builder.stack(self.name);
@@ -366,8 +366,8 @@ mod test_connector {
             }
         }
 
-        impl FxDatagrid for Users {
-            fn gen_row_builder() -> Box<dyn FxDatagridRowBuilder<Self>> {
+        impl FxGridT for Users {
+            fn gen_row_builder() -> Box<dyn FxGridTRowBuilder<Self>> {
                 Box::new(UsersBuild::new())
             }
         }
@@ -376,7 +376,7 @@ mod test_connector {
 
         let sql = "SELECT * FROM users";
 
-        let res = pg_pool.query_datagrid::<Users>(sql).await;
+        let res = pg_pool.query_grid::<Users>(sql).await;
 
         println!("{res:?}");
 
@@ -384,7 +384,7 @@ mod test_connector {
     }
 
     #[tokio::test]
-    async fn query_auto_derived_datagrid_success() {
+    async fn query_auto_derived_grid_success() {
         use crate::FX;
 
         #[allow(dead_code)]
@@ -399,7 +399,7 @@ mod test_connector {
 
         let sql = "SELECT * FROM users";
 
-        let res = pg_pool.query_datagrid::<Users>(sql).await;
+        let res = pg_pool.query_grid::<Users>(sql).await;
 
         println!("{res:?}");
 

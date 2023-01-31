@@ -8,7 +8,7 @@ pub mod array;
 pub mod batch;
 pub mod batches;
 pub mod cvt;
-pub mod datagrid;
+pub mod grid;
 pub mod table;
 pub mod vector;
 
@@ -16,6 +16,6 @@ pub use ab::*;
 pub use array::*;
 pub use batch::*;
 pub use cvt::*;
-pub use datagrid::*;
+pub use grid::*;
 pub use table::*;
 pub use vector::*;

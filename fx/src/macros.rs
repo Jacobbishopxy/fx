@@ -422,12 +422,12 @@ macro_rules! impl_sql_meta {
                 Box::pin(q)
             }
 
-            fn query_datagrid<'a, D>(
+            fn query_grid<'a, D>(
                 &'a self,
                 sql: &'a str,
-            ) -> ::futures::future::BoxFuture<'a, FxResult<Datagrid>>
+            ) -> ::futures::future::BoxFuture<'a, FxResult<FxGrid>>
             where
-                D: Send + $crate::FxDatagrid,
+                D: Send + $crate::FxGridT,
                 D: From<Self::Row>,
             {
                 let q = async move {

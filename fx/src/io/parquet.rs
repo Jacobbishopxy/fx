@@ -12,13 +12,13 @@ use arrow2::datatypes::Schema;
 use arrow2::io::parquet::read as parquet_read;
 use arrow2::io::parquet::write as parquet_write;
 
-use crate::{Datagrid, FxIO, FxResult};
+use crate::{FxGrid, FxIO, FxResult};
 
-// TODO generic Datagrid
+// TODO generic FxGrid
 
 impl FxIO {
     pub fn write_parquet<W: Write>(
-        data: &Datagrid,
+        data: &FxGrid,
         writer: &mut W,
         schema: &Schema,
         compression: parquet_write::CompressionOptions,
@@ -52,7 +52,7 @@ impl FxIO {
         Ok(())
     }
 
-    pub fn read_parquet<R: Read + Seek>(data: &mut Datagrid, reader: &mut R) -> FxResult<()> {
+    pub fn read_parquet<R: Read + Seek>(data: &mut FxGrid, reader: &mut R) -> FxResult<()> {
         let metadata = parquet_read::read_metadata(reader)?;
 
         let schema = parquet_read::infer_schema(&metadata)?;
@@ -105,13 +105,13 @@ mod test_parquet {
         let b = Float32Array::from([Some(2.1), None, Some(6.2)]).arced();
         let c = Utf8Array::<i32>::from([Some("a"), Some("b"), Some("c")]).arced();
 
-        let datagrid = Datagrid::new(vec![a, b, c]);
-        let schema = datagrid.gen_schema(&["c1", "c2", "c3"]).unwrap();
+        let grid = FxGrid::new(vec![a, b, c]);
+        let schema = grid.gen_schema(&["c1", "c2", "c3"]).unwrap();
 
         let mut file = std::fs::File::create(FILE_PARQUET).unwrap();
 
         FxIO::write_parquet(
-            &datagrid,
+            &grid,
             &mut file,
             &schema,
             parquet_write::CompressionOptions::Uncompressed,
@@ -121,13 +121,13 @@ mod test_parquet {
 
     #[test]
     fn parquet_read_success() {
-        let mut datagrid = Datagrid::empty();
+        let mut grid = FxGrid::empty();
 
         let mut file = std::fs::File::open(FILE_PARQUET).unwrap();
 
-        FxIO::read_parquet(&mut datagrid, &mut file).unwrap();
+        FxIO::read_parquet(&mut grid, &mut file).unwrap();
 
-        let data_types = datagrid
+        let data_types = grid
             .0
             .arrays()
             .iter()

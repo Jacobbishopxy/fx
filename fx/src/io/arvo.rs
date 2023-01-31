@@ -14,13 +14,13 @@ use arrow2::io::avro::read as avro_read;
 use arrow2::io::avro::write as avro_write;
 
 use crate::chunking::Chunking;
-use crate::{Datagrid, FxIO, FxResult};
+use crate::{FxGrid, FxIO, FxResult};
 
-// TODO generic Datagrid
+// TODO generic FxGrid
 
 impl FxIO {
     pub fn write_avro<W: Write>(
-        data: &Datagrid,
+        data: &FxGrid,
         writer: &mut W,
         schema: &Schema,
         compression: Option<avro_schema::file::Compression>,
@@ -49,7 +49,7 @@ impl FxIO {
         Ok(())
     }
 
-    pub fn read_avro<R: Read>(data: &mut Datagrid, reader: &mut R) -> FxResult<()> {
+    pub fn read_avro<R: Read>(data: &mut FxGrid, reader: &mut R) -> FxResult<()> {
         let metadata = avro_schema::read::read_metadata(reader)?;
 
         let schema = avro_read::infer_schema(&metadata.record)?;
@@ -83,23 +83,23 @@ mod test_arvo {
         let b = Float32Array::from([Some(2.1), None, Some(6.2)]).arced();
         let c = Utf8Array::<i32>::from([Some("a"), Some("b"), Some("c")]).arced();
 
-        let datagrid = Datagrid::new(vec![a, b, c]);
-        let schema = datagrid.gen_schema(&["c1", "c2", "c3"]).unwrap();
+        let grid = FxGrid::new(vec![a, b, c]);
+        let schema = grid.gen_schema(&["c1", "c2", "c3"]).unwrap();
 
         let mut file = std::fs::File::create(FILE_AVRO).unwrap();
 
-        FxIO::write_avro(&datagrid, &mut file, &schema, None).expect("write success")
+        FxIO::write_avro(&grid, &mut file, &schema, None).expect("write success")
     }
 
     #[test]
     fn avro_read_success() {
-        let mut datagrid = Datagrid::empty();
+        let mut grid = FxGrid::empty();
 
         let mut file = std::fs::File::open(FILE_AVRO).unwrap();
 
-        FxIO::read_avro(&mut datagrid, &mut file).unwrap();
+        FxIO::read_avro(&mut grid, &mut file).unwrap();
 
-        let data_types = datagrid
+        let data_types = grid
             .0
             .arrays()
             .iter()

@@ -7,15 +7,15 @@ use arrow2::datatypes::Field;
 use arrow2::datatypes::Schema;
 
 use crate::NullableOptions;
-use crate::{private, Chunking, Datagrid, FxError, FxResult};
+use crate::{private, Chunking, FxError, FxGrid, FxResult};
 
 #[derive(Debug, Clone)]
 pub struct FxBatches {
     pub(crate) schema: Schema,
-    pub(crate) data: Vec<Datagrid>,
+    pub(crate) data: Vec<FxGrid>,
 }
 
-impl private::InnerChunkingContainer<usize, Datagrid> for FxBatches {
+impl private::InnerChunkingContainer<usize, FxGrid> for FxBatches {
     fn empty() -> Self
     where
         Self: Sized,
@@ -26,24 +26,24 @@ impl private::InnerChunkingContainer<usize, Datagrid> for FxBatches {
         }
     }
 
-    fn ref_container(&self) -> Vec<&Datagrid> {
+    fn ref_container(&self) -> Vec<&FxGrid> {
         self.data.iter().collect()
     }
 
-    fn get_chunk(&self, key: usize) -> FxResult<&Datagrid> {
+    fn get_chunk(&self, key: usize) -> FxResult<&FxGrid> {
         self.data
             .get(key)
             .ok_or_else(|| FxError::LengthMismatch(key, self.data.len()))
     }
 
-    fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut Datagrid> {
+    fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut FxGrid> {
         let s_len = self.data.len();
         self.data
             .get_mut(key)
             .ok_or_else(|| FxError::LengthMismatch(key, s_len))
     }
 
-    fn insert_chunk_type_unchecked(&mut self, key: usize, data: Datagrid) -> FxResult<()> {
+    fn insert_chunk_type_unchecked(&mut self, key: usize, data: FxGrid) -> FxResult<()> {
         let s_len = self.data.len();
         if key > s_len {
             return Err(FxError::LengthMismatch(key, s_len));
@@ -61,7 +61,7 @@ impl private::InnerChunkingContainer<usize, Datagrid> for FxBatches {
         Ok(())
     }
 
-    fn push_chunk_type_unchecked(&mut self, data: Datagrid) -> FxResult<()> {
+    fn push_chunk_type_unchecked(&mut self, data: FxGrid) -> FxResult<()> {
         self.data.push(data);
         Ok(())
     }
@@ -71,7 +71,7 @@ impl private::InnerChunkingContainer<usize, Datagrid> for FxBatches {
         Ok(())
     }
 
-    fn take_container(self) -> Vec<Datagrid> {
+    fn take_container(self) -> Vec<FxGrid> {
         self.data
     }
 }
@@ -79,7 +79,7 @@ impl private::InnerChunkingContainer<usize, Datagrid> for FxBatches {
 impl FxBatches {
     pub fn try_new<I, T>(
         fields_name: I,
-        data: Datagrid,
+        data: FxGrid,
         nullable_options: NullableOptions,
     ) -> FxResult<Self>
     where
@@ -115,7 +115,7 @@ mod test_batches {
             FxArray::from(vec![Some("x"), None, Some("y")]).into_array(),
             FxArray::from_slice(&[true, false, false]).into_array(),
         ];
-        let data = Datagrid::new(arrays);
+        let data = FxGrid::new(arrays);
 
         let batches =
             FxBatches::try_new(["c1", "c2", "c3"], data, NullableOptions::indexed_true([2]));
