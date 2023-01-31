@@ -104,29 +104,13 @@ impl<const S: usize> FxGridColWiseBuilder<S> {
 }
 
 // ================================================================================================
-// FxGrid & FxGridRowBuilderCst & FxGridRowBuilder
-// ================================================================================================
-
-pub trait FxGridT {
-    fn gen_row_builder() -> Box<dyn FxGridTRowBuilder<Self>>;
-}
-
-pub trait FxGridTRowBuilderCst {
-    fn new() -> Self;
-}
-
-pub trait FxGridTRowBuilder<T>: Send {
-    fn stack(&mut self, row: T);
-
-    fn build(self: Box<Self>) -> FxResult<FxGrid>;
-}
-
-// ================================================================================================
 // Test
 // ================================================================================================
 
 #[cfg(test)]
 mod test_grid {
+
+    use crate::{FxGridT, FxGridTRowBuilder};
 
     use super::*;
 
@@ -139,73 +123,6 @@ mod test_grid {
         builder.stack(vec![Some(1.2), None, Some(2.1)]);
 
         let d = builder.build().unwrap();
-
-        println!("{d:?}");
-    }
-
-    #[test]
-    fn grid_builder_row_wise_success() {
-        #[allow(dead_code)]
-        struct Users {
-            id: i32,
-            name: String,
-            check: Option<bool>,
-        }
-
-        #[derive(Default)]
-        struct UsersBuild {
-            id: Vec<i32>,
-            name: Vec<String>,
-            check: Vec<Option<bool>>,
-        }
-
-        impl FxGridTRowBuilderCst for UsersBuild {
-            fn new() -> Self {
-                Self::default()
-            }
-        }
-
-        impl FxGridTRowBuilder<Users> for UsersBuild {
-            fn stack(&mut self, row: Users) {
-                self.id.push(row.id);
-                self.name.push(row.name);
-                self.check.push(row.check);
-            }
-
-            fn build(self: Box<Self>) -> FxResult<FxGrid> {
-                FxGrid::try_from(vec![
-                    FxArray::from(self.id),
-                    FxArray::from(self.name),
-                    FxArray::from(self.check),
-                ])
-            }
-        }
-
-        impl FxGridT for Users {
-            fn gen_row_builder() -> Box<dyn FxGridTRowBuilder<Self>> {
-                Box::new(UsersBuild::new())
-            }
-        }
-
-        let r1 = Users {
-            id: 1,
-            name: "Jacob".to_string(),
-            check: Some(true),
-        };
-
-        let r2 = Users {
-            id: 2,
-            name: "Mia".to_string(),
-            check: None,
-        };
-
-        // 3. generate `FxGrid` from builder
-        let mut bd = Users::gen_row_builder();
-
-        bd.stack(r1);
-        bd.stack(r2);
-
-        let d = bd.build();
 
         println!("{d:?}");
     }

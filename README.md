@@ -6,19 +6,39 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 
 ```txt
     .
+    ├── examples
     ├── fx
-    │   └── src
-    │       ├── array.rs
-    │       ├── connector.rs
-    │       ├── cvt.rs
-    │       ├── datagrid.rs
-    │       ├── error.rs
-    │       ├── io.rs
-    │       ├── lib.rs
-    │       ├── macros.rs
-    │       ├── types.rs
-    │       ├── value.rs
-    │       └── vector.rs
+    │   ├── src
+    │   │   ├── containers
+    │   │   │   ├── ab
+    │   │   │   │   ├── builder.rs
+    │   │   │   │   ├── chunking.rs
+    │   │   │   │   ├── container.rs
+    │   │   │   │   ├── mod.rs
+    │   │   │   │   ├── nullopt.rs
+    │   │   │   │   └── private.rs
+    │   │   │   ├── array.rs
+    │   │   │   ├── batch.rs
+    │   │   │   ├── batches.rs
+    │   │   │   ├── cvt.rs
+    │   │   │   ├── grid.rs
+    │   │   │   ├── mod.rs
+    │   │   │   ├── table.rs
+    │   │   │   └── vector.rs
+    │   │   ├── io
+    │   │   │   ├── arvo.rs
+    │   │   │   ├── csv.rs
+    │   │   │   ├── ipc.rs
+    │   │   │   ├── mod.rs
+    │   │   │   ├── parquet.rs
+    │   │   │   └── sql.rs
+    │   │   ├── error.rs
+    │   │   ├── lib.rs
+    │   │   ├── macros.rs
+    │   │   ├── types.rs
+    │   │   └── value.rs
+    │   └── tests
+    │       └── arrow_compute_test.rs
     ├── fx-macros
     │   └── src
     │       ├── dr.rs
@@ -26,6 +46,14 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     ├── LICENSE
     └── README.md
 ```
+
+- `Array`/`Vector`: immutable array and mutable vector
+
+- `Grid`/`Batch`: chunked data consists of `Array`, the letter one has a schema field
+
+- `Batches`: vector of `Grid`, with a schema field
+
+- `Table`: WIP
 
 ## Dependencies
 

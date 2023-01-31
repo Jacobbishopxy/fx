@@ -59,7 +59,7 @@ impl NullableOptions {
                 .collect(),
             opts => z
                 .map(|(n, t)| Field::new(n.as_ref(), t, !matches!(opts.clone(), Self::False)))
-                .collect::<Vec<_>>(),
+                .collect(),
         };
 
         Ok(Schema::from(fld))

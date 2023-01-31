@@ -342,13 +342,11 @@ mod test_connector {
             check: Vec<Option<bool>>,
         }
 
-        impl FxGridTRowBuilderCst for UsersBuild {
+        impl FxGridTRowBuilder<Users> for UsersBuild {
             fn new() -> Self {
                 Self::default()
             }
-        }
 
-        impl FxGridTRowBuilder<Users> for UsersBuild {
             fn stack(&mut self, row: Users) {
                 self.id.push(row.id);
                 self.name.push(row.name);
