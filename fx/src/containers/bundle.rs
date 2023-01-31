@@ -1,8 +1,9 @@
-//! file: batches.rs
+//! file: bundle.rs
 //! author: Jacob Xie
 //! date: 2023/01/20 22:34:35 Friday
-//! brief: Batches
+//! brief: Bundle
 
+use arrow2::datatypes::DataType;
 use arrow2::datatypes::Field;
 use arrow2::datatypes::Schema;
 
@@ -10,12 +11,12 @@ use crate::NullableOptions;
 use crate::{private, Chunking, FxError, FxGrid, FxResult};
 
 #[derive(Debug, Clone)]
-pub struct FxBatches {
+pub struct FxBundle {
     pub(crate) schema: Schema,
     pub(crate) data: Vec<FxGrid>,
 }
 
-impl private::InnerChunkingContainer<usize, FxGrid> for FxBatches {
+impl private::InnerChunkingContainer<usize, FxGrid> for FxBundle {
     fn empty() -> Self
     where
         Self: Sized,
@@ -76,7 +77,7 @@ impl private::InnerChunkingContainer<usize, FxGrid> for FxBatches {
     }
 }
 
-impl FxBatches {
+impl FxBundle {
     pub fn try_new<I, T>(
         fields_name: I,
         data: FxGrid,
@@ -91,6 +92,24 @@ impl FxBatches {
         Ok(Self {
             schema,
             data: vec![data],
+        })
+    }
+
+    pub fn new_empty<IN, N, IT>(
+        fields_name: IN,
+        data_types: IT,
+        nullable_options: NullableOptions,
+    ) -> FxResult<Self>
+    where
+        IN: IntoIterator<Item = N>,
+        N: AsRef<str>,
+        IT: IntoIterator<Item = DataType>,
+    {
+        let schema = nullable_options.gen_schema(fields_name, data_types)?;
+
+        Ok(Self {
+            schema,
+            data: vec![],
         })
     }
 
@@ -118,7 +137,7 @@ mod test_batches {
         let data = FxGrid::new(arrays);
 
         let batches =
-            FxBatches::try_new(["c1", "c2", "c3"], data, NullableOptions::indexed_true([2]));
+            FxBundle::try_new(["c1", "c2", "c3"], data, NullableOptions::indexed_true([2]));
 
         assert!(batches.is_ok());
 

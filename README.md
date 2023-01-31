@@ -19,7 +19,7 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   │   │   └── private.rs
     │   │   │   ├── array.rs
     │   │   │   ├── batch.rs
-    │   │   │   ├── batches.rs
+    │   │   │   ├── bundle.rs
     │   │   │   ├── cvt.rs
     │   │   │   ├── grid.rs
     │   │   │   ├── mod.rs
@@ -47,11 +47,11 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     └── README.md
 ```
 
-- `Array`/`Vector`: immutable array and mutable vector
+- `Array`/`Vector`: immutable array (wrapping arrow's `Array`) and mutable vector (wrapping arrow's `MutableArray`)
 
-- `Grid`/`Batch`: chunked data consists of `Array`, the letter one has a schema field
+- `Grid`/`Batch`: chunked data consists of arrow's `Array`, the letter one has a schema field
 
-- `Batches`: vector of `Grid`, with a schema field
+- `Bundle`: vector of `Grid`, with a schema field
 
 - `Table`: WIP
 
@@ -79,3 +79,5 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 ## Todo
 
 - ColWiseBuilder & RowWiseBuilder in a generic way, and make `fx-macros` follows it.
+
+- Let I/O satisfies all containers

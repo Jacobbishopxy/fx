@@ -12,7 +12,7 @@
     │   │   │   │   └── private.rs
     │   │   │   ├── array.rs
     │   │   │   ├── batch.rs
-    │   │   │   ├── batches.rs
+    │   │   │   ├── bundle.rs
     │   │   │   ├── cvt.rs
     │   │   │   ├── grid.rs
     │   │   │   ├── mod.rs
