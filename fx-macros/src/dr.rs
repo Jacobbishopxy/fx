@@ -4,9 +4,13 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
-use syn::{Data, DeriveInput, Field, Fields, Ident, Type};
+use syn::{Data, DeriveInput, Field, Fields, Ident};
 
 type NamedFields = Punctuated<Field, Comma>;
+
+// ================================================================================================
+// Helper Functions
+// ================================================================================================
 
 /// turn ast into `Punctuated<Field, Comma>`, and filter out any type that is not a Rust struct
 fn named_fields(ast: &DeriveInput) -> NamedFields {
@@ -22,59 +26,15 @@ fn named_fields(ast: &DeriveInput) -> NamedFields {
     }
 }
 
-#[allow(dead_code)]
-fn schema_len(named_fields: &NamedFields) -> usize {
-    named_fields.len()
-}
-
-#[allow(dead_code)]
-fn path_is_option(ty: &Type) -> bool {
-    match ty {
-        Type::Path(tp) => {
-            let path = &tp.path;
-            tp.qself.is_none()
-                && path.leading_colon.is_none()
-                && path.segments.len() == 1
-                && path.segments.iter().next().unwrap().ident == "Option"
-        }
-        _ => panic!("type mismatch"),
-    }
-}
-
-#[allow(dead_code)]
-fn get_option_type(ty: &Type) -> (bool, Ident) {
-    match ty {
-        Type::Path(tp) => {
-            let path = &tp.path;
-            let is_option = tp.qself.is_none()
-                && path.leading_colon.is_none()
-                && path.segments.len() == 1
-                && path.segments.iter().next().unwrap().ident == "Option";
-
-            if is_option {
-                match &path.segments.first().unwrap().arguments {
-                    syn::PathArguments::AngleBracketed(ab) => {
-                        let ga = ab.args.first().unwrap();
-                        match ga {
-                            syn::GenericArgument::Type(Type::Path(t)) => {
-                                (true, t.path.segments.first().unwrap().ident.clone())
-                            }
-                            _ => panic!("type mismatch"),
-                        }
-                    }
-                    _ => panic!("type mismatch"),
-                }
-            } else {
-                (false, path.segments.first().unwrap().ident.clone())
-            }
-        }
-        _ => panic!("type mismatch"),
-    }
-}
-
 fn generated_build_name(struct_name: &Ident) -> Ident {
-    format_ident!("{}RowBuild", struct_name)
+    format_ident!("__{}RowBuild", struct_name)
 }
+
+// ================================================================================================
+// Sql related Impl
+// ================================================================================================
+
+// TODO: generic container
 
 fn generated_impl_from_sql_row(struct_name: &Ident, named_fields: &NamedFields) -> TokenStream {
     let ctt = named_fields
@@ -117,7 +77,14 @@ fn generated_impl_from_sql_row(struct_name: &Ident, named_fields: &NamedFields) 
     }
 }
 
-fn generated_new_builder_struct(build_name: &Ident, named_fields: &NamedFields) -> TokenStream {
+// ================================================================================================
+// Chunking builder
+// ================================================================================================
+
+fn generated_chunking_builder_struct(
+    build_name: &Ident,
+    named_fields: &NamedFields,
+) -> TokenStream {
     let ctt = named_fields
         .iter()
         .map(|f| {
@@ -134,7 +101,7 @@ fn generated_new_builder_struct(build_name: &Ident, named_fields: &NamedFields) 
     }
 }
 
-fn generated_impl_row_build(
+fn generated_impl_chunking_build(
     struct_name: &Ident,
     build_name: &Ident,
     named_fields: &NamedFields,
@@ -184,6 +151,25 @@ fn generated_impl_row_build(
     }
 }
 
+// ================================================================================================
+// Container builder
+// ================================================================================================
+
+fn generated_container_builder_struct(
+    build_name: &Ident,
+    named_fields: &NamedFields,
+) -> TokenStream {
+    todo!()
+}
+
+fn generated_impl_container_build(
+    struct_name: &Ident,
+    build_name: &Ident,
+    named_fields: &NamedFields,
+) -> TokenStream {
+    todo!()
+}
+
 pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
     // name of the struct
     let struct_name = input.ident.clone();
@@ -192,16 +178,17 @@ pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
 
     // auto generated code
     let impl_from_sql_row = generated_impl_from_sql_row(&struct_name, &named_fields);
-    let builder_struct = generated_new_builder_struct(&build_name, &named_fields);
-    let impl_row_build = generated_impl_row_build(&struct_name, &build_name, &named_fields);
+    let chunking_builder_struct = generated_chunking_builder_struct(&build_name, &named_fields);
+    let impl_chunking_row_build =
+        generated_impl_chunking_build(&struct_name, &build_name, &named_fields);
 
     let expanded = quote! {
 
         #impl_from_sql_row
 
-        #builder_struct
+        #chunking_builder_struct
 
-        #impl_row_build
+        #impl_chunking_row_build
     };
 
     expanded
