@@ -1,24 +1,44 @@
 # FX
 
-Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Polars](https://github.com/pola-rs/polars)' `Series` and `DataFrame`. Based on `sqlx` and `arrow2`, `fx` only works for transferring a small amount of data.
+Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Polars](https://github.com/pola-rs/polars)' `Series` and `DataFrame`. `Fx` currently tries to explore different type of data containers by some general auto impl traits (see [chunking.rs](./fx/src/containers/ab/chunking.rs) and [container.rs](./fx/src/containers/ab/container.rs)).
 
 ## Structure
 
 ```txt
     .
+    ├── examples
     ├── fx
-    │   └── src
-    │       ├── array.rs
-    │       ├── connector.rs
-    │       ├── cvt.rs
-    │       ├── datagrid.rs
-    │       ├── error.rs
-    │       ├── io.rs
-    │       ├── lib.rs
-    │       ├── macros.rs
-    │       ├── types.rs
-    │       ├── value.rs
-    │       └── vector.rs
+    │   ├── src
+    │   │   ├── containers
+    │   │   │   ├── ab
+    │   │   │   │   ├── builder.rs
+    │   │   │   │   ├── chunking.rs
+    │   │   │   │   ├── container.rs
+    │   │   │   │   ├── mod.rs
+    │   │   │   │   ├── nullopt.rs
+    │   │   │   │   └── private.rs
+    │   │   │   ├── array.rs
+    │   │   │   ├── batch.rs
+    │   │   │   ├── bundle.rs
+    │   │   │   ├── cvt.rs
+    │   │   │   ├── grid.rs
+    │   │   │   ├── mod.rs
+    │   │   │   ├── table.rs
+    │   │   │   └── vector.rs
+    │   │   ├── io
+    │   │   │   ├── arvo.rs
+    │   │   │   ├── csv.rs
+    │   │   │   ├── ipc.rs
+    │   │   │   ├── mod.rs
+    │   │   │   ├── parquet.rs
+    │   │   │   └── sql.rs
+    │   │   ├── error.rs
+    │   │   ├── lib.rs
+    │   │   ├── macros.rs
+    │   │   ├── types.rs
+    │   │   └── value.rs
+    │   └── tests
+    │       └── arrow_compute_test.rs
     ├── fx-macros
     │   └── src
     │       ├── dr.rs
@@ -26,6 +46,14 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     ├── LICENSE
     └── README.md
 ```
+
+- `Array`/`Vector`: immutable array (wrapping arrow's `Array`) and mutable vector (wrapping arrow's `MutableArray`)
+
+- `Grid`/`Batch`: chunked data consists of arrow's `Array`, the letter one has a schema field
+
+- `Bundle`: vector of `Grid`, with a schema field
+
+- `Table`: WIP
 
 ## Dependencies
 
@@ -47,3 +75,9 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 ## Misc
 
 - To get a tree view of this project, run `cargo make --makefile fx.toml tree`
+
+## Todo
+
+- ColWiseBuilder & RowWiseBuilder in a generic way, and make `fx-macros` follows it.
+
+- Let I/O satisfies all containers

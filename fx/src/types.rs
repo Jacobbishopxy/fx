@@ -1,7 +1,7 @@
-//! file:	types.rs
-//! author:	Jacob Xie
-//! date:	2023/01/14 19:12:30 Saturday
-//! brief:	Types
+//! file: types.rs
+//! author: Jacob Xie
+//! date: 2023/01/14 19:12:30 Saturday
+//! brief: Types
 
 use arrow2::array::*;
 
@@ -18,7 +18,7 @@ pub(crate) type PAf32 = PrimitiveArray<f32>;
 pub(crate) type PAf64 = PrimitiveArray<f64>;
 pub(crate) type UA = Utf8Array<i32>;
 
-pub(crate) type MBA = MutableBooleanArray;
+pub(crate) type MB = MutableBooleanArray;
 pub(crate) type MPAi8 = MutablePrimitiveArray<i8>;
 pub(crate) type MPAi16 = MutablePrimitiveArray<i16>;
 pub(crate) type MPAi32 = MutablePrimitiveArray<i32>;
@@ -29,4 +29,4 @@ pub(crate) type MPAu32 = MutablePrimitiveArray<u32>;
 pub(crate) type MPAu64 = MutablePrimitiveArray<u64>;
 pub(crate) type MPAf32 = MutablePrimitiveArray<f32>;
 pub(crate) type MPAf64 = MutablePrimitiveArray<f64>;
-pub(crate) type MUA = MutableUtf8Array<i32>;
+pub(crate) type MU = MutableUtf8Array<i32>;

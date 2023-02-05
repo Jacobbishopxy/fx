@@ -24,6 +24,10 @@ impl FxArray {
         self.0.as_ref()
     }
 
+    pub fn into_array(self) -> Arc<dyn Array> {
+        self.0
+    }
+
     pub fn len(&self) -> usize {
         self.array().len()
     }
@@ -154,6 +158,6 @@ mod test_array {
         let res = a.extend(&b);
         assert!(res.is_ok());
 
-        println!("{:?}", a);
+        println!("{a:?}");
     }
 }

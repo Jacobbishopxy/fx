@@ -6,25 +6,19 @@
 
 mod macros;
 
-pub mod array;
-pub mod connector;
-pub mod cvt;
-pub mod datagrid;
+pub mod containers;
 pub mod error;
 pub mod io;
 mod types;
 pub mod value;
-pub mod vector;
 
 use macros::*;
 
-pub use array::*;
-pub use connector::*;
-pub use datagrid::*;
+pub use containers::*;
 pub use error::*;
 pub use fx_macros::FX;
+pub use io::*;
 pub use value::*;
-pub use vector::*;
 
 pub use arrow2::*;
 

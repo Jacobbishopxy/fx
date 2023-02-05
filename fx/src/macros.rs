@@ -1,7 +1,7 @@
-//! file:	macros.rs
-//! author:	Jacob Xie
-//! date:	2023/01/13 22:42:09 Friday
-//! brief:	Macros
+//! file: macros.rs
+//! author: Jacob Xie
+//! date: 2023/01/13 22:42:09 Friday
+//! brief: Macros
 
 // ================================================================================================
 // utils
@@ -422,12 +422,12 @@ macro_rules! impl_sql_meta {
                 Box::pin(q)
             }
 
-            fn query_datagrid<'a, D>(
+            fn query_grid<'a, D>(
                 &'a self,
                 sql: &'a str,
-            ) -> ::futures::future::BoxFuture<'a, FxResult<Datagrid>>
+            ) -> ::futures::future::BoxFuture<'a, FxResult<FxGrid>>
             where
-                D: Send + $crate::FxDatagrid,
+                D: Send + $crate::FxContainerRowBuilderGenerator,
                 D: From<Self::Row>,
             {
                 let q = async move {

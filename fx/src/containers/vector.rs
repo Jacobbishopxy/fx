@@ -1,7 +1,7 @@
-//! file:	vector.rs
+//! file: vector.rs
 //! author: Jacob Xie
-//! date:	2023/01/13 20:40:49 Friday
-//! brief:	FxVector
+//! date: 2023/01/13 20:40:49 Friday
+//! brief: FxVector
 
 use std::any::Any;
 use std::sync::Arc;
@@ -25,6 +25,10 @@ pub struct FxVector(pub(crate) Arc<dyn MutableArray>);
 impl FxVector {
     pub fn array(&self) -> &dyn MutableArray {
         self.0.as_ref()
+    }
+
+    pub fn into_mutable_array(self) -> Arc<dyn MutableArray> {
+        self.0
     }
 
     pub fn len(&self) -> usize {
@@ -71,7 +75,7 @@ impl FxVector {
 
     pub fn push<A: Any>(&mut self, val: &A) -> FxResult<&mut Self> {
         match self.data_type() {
-            DataType::Boolean => vec_push_branch!(self, val, bool, MBA),
+            DataType::Boolean => vec_push_branch!(self, val, bool, MB),
             DataType::Int8 => vec_push_branch!(self, val, i8, MPAi8),
             DataType::Int16 => vec_push_branch!(self, val, i16, MPAi16),
             DataType::Int32 => vec_push_branch!(self, val, i32, MPAi32),
@@ -82,14 +86,14 @@ impl FxVector {
             DataType::UInt64 => vec_push_branch!(self, val, u64, MPAu64),
             DataType::Float32 => vec_push_branch!(self, val, f32, MPAf32),
             DataType::Float64 => vec_push_branch!(self, val, f64, MPAf64),
-            DataType::Utf8 => vec_push_branch!(self, val, String, MUA),
+            DataType::Utf8 => vec_push_branch!(self, val, String, MU),
             _ => Err(FxError::InvalidTypeN),
         }
     }
 
     pub fn pop(&mut self) -> FxResult<&mut Self> {
         match self.data_type() {
-            DataType::Boolean => vec_pop_branch!(self, MBA),
+            DataType::Boolean => vec_pop_branch!(self, MB),
             DataType::Int8 => vec_pop_branch!(self, MPAi8),
             DataType::Int16 => vec_pop_branch!(self, MPAi16),
             DataType::Int32 => vec_pop_branch!(self, MPAi32),
@@ -100,14 +104,14 @@ impl FxVector {
             DataType::UInt64 => vec_pop_branch!(self, MPAu64),
             DataType::Float32 => vec_pop_branch!(self, MPAf32),
             DataType::Float64 => vec_pop_branch!(self, MPAf64),
-            DataType::Utf8 => vec_pop_branch!(self, MUA),
+            DataType::Utf8 => vec_pop_branch!(self, MU),
             _ => Err(FxError::InvalidTypeN),
         }
     }
 
     pub fn pop_val(&mut self) -> Option<FxValue> {
         match self.data_type() {
-            DataType::Boolean => vec_pop_branch!(self, MBA, Bool),
+            DataType::Boolean => vec_pop_branch!(self, MB, Bool),
             DataType::Int8 => vec_pop_branch!(self, MPAi8, I8),
             DataType::Int16 => vec_pop_branch!(self, MPAi16, I16),
             DataType::Int32 => vec_pop_branch!(self, MPAi32, I32),
@@ -118,14 +122,14 @@ impl FxVector {
             DataType::UInt64 => vec_pop_branch!(self, MPAu64, U64),
             DataType::Float32 => vec_pop_branch!(self, MPAf32, F32),
             DataType::Float64 => vec_pop_branch!(self, MPAf64, F64),
-            DataType::Utf8 => vec_pop_branch!(self, MUA, Str),
+            DataType::Utf8 => vec_pop_branch!(self, MU, Str),
             _ => None,
         }
     }
 
     pub fn reserve(&mut self, additional: usize) -> FxResult<()> {
         match self.data_type() {
-            DataType::Boolean => vec_reserve_branch!(self, MBA, additional),
+            DataType::Boolean => vec_reserve_branch!(self, MB, additional),
             DataType::Int8 => vec_reserve_branch!(self, MPAi8, additional),
             DataType::Int16 => vec_reserve_branch!(self, MPAi16, additional),
             DataType::Int32 => vec_reserve_branch!(self, MPAi32, additional),
@@ -136,14 +140,14 @@ impl FxVector {
             DataType::UInt64 => vec_reserve_branch!(self, MPAu64, additional),
             DataType::Float32 => vec_reserve_branch!(self, MPAf32, additional),
             DataType::Float64 => vec_reserve_branch!(self, MPAf64, additional),
-            DataType::Utf8 => vec_reserve_branch!(self, MUA, additional, 0),
+            DataType::Utf8 => vec_reserve_branch!(self, MU, additional, 0),
             _ => Err(FxError::InvalidTypeN),
         }
     }
 
     pub fn extend(&mut self, vector: &FxVector) -> FxResult<&mut Self> {
         match self.data_type() {
-            DataType::Boolean => vec_extend_branch!(self, vector, MBA),
+            DataType::Boolean => vec_extend_branch!(self, vector, MB),
             DataType::Int8 => vec_extend_branch!(self, vector, MPAi8),
             DataType::Int16 => vec_extend_branch!(self, vector, MPAi16),
             DataType::Int32 => vec_extend_branch!(self, vector, MPAi32),
@@ -154,7 +158,7 @@ impl FxVector {
             DataType::UInt64 => vec_extend_branch!(self, vector, MPAu64),
             DataType::Float32 => vec_extend_branch!(self, vector, MPAf32),
             DataType::Float64 => vec_extend_branch!(self, vector, MPAf64),
-            DataType::Utf8 => vec_extend_branch!(self, vector, MUA),
+            DataType::Utf8 => vec_extend_branch!(self, vector, MU),
             _ => Err(FxError::InvalidTypeN),
         }
     }
