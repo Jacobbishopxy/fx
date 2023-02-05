@@ -80,6 +80,8 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 
 ## Todo
 
+- general type into arrow's `DataType`
+
 - add `FxContainerRowBuilder` in `fx-macros`, [example](./fx/src/containers/ab/builder.rs)
 
 - Let I/O satisfies all containers

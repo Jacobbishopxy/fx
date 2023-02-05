@@ -26,8 +26,12 @@ fn named_fields(ast: &DeriveInput) -> NamedFields {
     }
 }
 
-fn generated_build_name(struct_name: &Ident) -> Ident {
-    format_ident!("__{}RowBuild", struct_name)
+fn gen_chunking_build_name(struct_name: &Ident) -> Ident {
+    format_ident!("__{}ChunkingBuild", struct_name)
+}
+
+fn gen_container_build_name(struct_name: &Ident) -> Ident {
+    format_ident!("__{}ContainerBuild", struct_name)
 }
 
 // ================================================================================================
@@ -36,7 +40,7 @@ fn generated_build_name(struct_name: &Ident) -> Ident {
 
 // TODO: generic container
 
-fn generated_impl_from_sql_row(struct_name: &Ident, named_fields: &NamedFields) -> TokenStream {
+fn gen_impl_from_sql_row(struct_name: &Ident, named_fields: &NamedFields) -> TokenStream {
     let ctt = named_fields
         .iter()
         .enumerate()
@@ -81,10 +85,7 @@ fn generated_impl_from_sql_row(struct_name: &Ident, named_fields: &NamedFields) 
 // Chunking builder
 // ================================================================================================
 
-fn generated_chunking_builder_struct(
-    build_name: &Ident,
-    named_fields: &NamedFields,
-) -> TokenStream {
+fn gen_chunking_builder_struct(build_name: &Ident, named_fields: &NamedFields) -> TokenStream {
     let ctt = named_fields
         .iter()
         .map(|f| {
@@ -101,7 +102,7 @@ fn generated_chunking_builder_struct(
     }
 }
 
-fn generated_impl_chunking_build(
+fn gen_impl_chunking(
     struct_name: &Ident,
     build_name: &Ident,
     named_fields: &NamedFields,
@@ -155,14 +156,11 @@ fn generated_impl_chunking_build(
 // Container builder
 // ================================================================================================
 
-fn generated_container_builder_struct(
-    build_name: &Ident,
-    named_fields: &NamedFields,
-) -> TokenStream {
+fn gen_container_builder_struct(build_name: &Ident, named_fields: &NamedFields) -> TokenStream {
     todo!()
 }
 
-fn generated_impl_container_build(
+fn gen_impl_container(
     struct_name: &Ident,
     build_name: &Ident,
     named_fields: &NamedFields,
@@ -173,14 +171,18 @@ fn generated_impl_container_build(
 pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
     // name of the struct
     let struct_name = input.ident.clone();
-    let build_name = generated_build_name(&struct_name);
     let named_fields = named_fields(input);
 
-    // auto generated code
-    let impl_from_sql_row = generated_impl_from_sql_row(&struct_name, &named_fields);
-    let chunking_builder_struct = generated_chunking_builder_struct(&build_name, &named_fields);
-    let impl_chunking_row_build =
-        generated_impl_chunking_build(&struct_name, &build_name, &named_fields);
+    // auto generated code (chunking)
+    let chunking_name = gen_chunking_build_name(&struct_name);
+    let impl_from_sql_row = gen_impl_from_sql_row(&struct_name, &named_fields);
+    let chunking_builder_struct = gen_chunking_builder_struct(&chunking_name, &named_fields);
+    let impl_chunking_row_build = gen_impl_chunking(&struct_name, &chunking_name, &named_fields);
+
+    // auto generated code (container)
+    // let container_name = gen_container_build_name(&struct_name);
+    // let container_builder_struct = gen_container_builder_struct(&container_name, &named_fields);
+    // let impl_container_row_build = gen_impl_container(&struct_name, &chunking_name, &named_fields);
 
     let expanded = quote! {
 
@@ -189,6 +191,12 @@ pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
         #chunking_builder_struct
 
         #impl_chunking_row_build
+
+        // #container_name
+
+        // #container_builder_struct
+
+        // #impl_container_row_build
     };
 
     expanded
