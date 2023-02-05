@@ -156,25 +156,29 @@ fn generated_impl_row_build(
         .unzip();
 
     quote! {
-        impl crate::FxContainerRowBuilder<#struct_name> for #build_name {
+        impl crate::FxChunkingRowBuilder<#struct_name,crate::FxGrid> for #build_name {
             fn new() -> Self {
                 Self::default()
             }
 
-            fn stack(&mut self, row: #struct_name) {
+            fn stack(&mut self, row: #struct_name)-> &mut Self {
                 #(#stack_ctt);*;
+
+                self
             }
 
-            fn build(self: ::std::boxed::Box<Self>) -> crate::error::FxResult<crate::FxGrid> {
+            fn build(self) -> crate::error::FxResult<crate::FxGrid> {
                 crate::FxGrid::try_from(vec![
                     #(#build_ctt),*
                 ])
             }
         }
 
-        impl crate::FxContainerRowBuilderGenerator for #struct_name {
-            fn gen_row_builder() -> ::std::boxed::Box<dyn crate::FxContainerRowBuilder<Self>> {
-                ::std::boxed::Box::new(#build_name::new())
+        impl crate::FxChunkingRowBuilderGenerator<crate::FxGrid> for #struct_name {
+            type Builder = #build_name;
+
+            fn gen_chunking_row_builder() -> Self::Builder {
+                #build_name::new()
             }
         }
     }

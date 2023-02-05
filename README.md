@@ -49,9 +49,11 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 
 - `Array`/`Vector`: immutable array (wrapping arrow's `Array`) and mutable vector (wrapping arrow's `MutableArray`)
 
-- `Grid`/`Batch`: chunked data consists of arrow's `Array`, the letter one has a schema field
+- `Grid`/`Batch`: chunked data consists of arrow's `Array`, the latter one has a schema field
 
 - `Bundle`: vector of `Grid`, with a schema field
+
+- `Parcel`: WIP
 
 - `Table`: WIP
 
@@ -78,6 +80,6 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 
 ## Todo
 
-- ColWiseBuilder & RowWiseBuilder in a generic way, and make `fx-macros` follows it.
+- add `FxContainerRowBuilder` in `fx-macros`, [example](./fx/src/containers/ab/builder.rs)
 
 - Let I/O satisfies all containers

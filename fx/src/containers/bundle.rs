@@ -95,7 +95,7 @@ impl FxBundle {
         })
     }
 
-    pub fn new_empty<IN, N, IT>(
+    pub fn new_empty<IN, N, IT, D>(
         fields_name: IN,
         data_types: IT,
         nullable_options: NullableOptions,
@@ -103,7 +103,8 @@ impl FxBundle {
     where
         IN: IntoIterator<Item = N>,
         N: AsRef<str>,
-        IT: IntoIterator<Item = DataType>,
+        IT: IntoIterator<Item = D>,
+        D: Into<DataType>,
     {
         let schema = nullable_options.gen_schema(fields_name, data_types)?;
 

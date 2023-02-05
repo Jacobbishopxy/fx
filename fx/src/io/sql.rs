@@ -125,7 +125,7 @@ impl<T: SqlMeta> Connector<T> {
 
     pub async fn query_grid<'a, D>(&'a self, sql: &'a str) -> FxResult<FxGrid>
     where
-        D: Send + FxContainerRowBuilderGenerator,
+        D: Send + FxChunkingRowBuilderGenerator<FxGrid>,
         D: From<T::Row>,
     {
         match self.pool_options.as_ref() {
@@ -196,7 +196,7 @@ pub trait SqlMeta: Sized {
     fn query_grid<'a, D>(&'a self, sql: &'a str) -> BoxFuture<'a, FxResult<FxGrid>>
     where
         D: From<Self::Row>,
-        D: Send + FxContainerRowBuilderGenerator;
+        D: Send + FxChunkingRowBuilderGenerator<FxGrid>;
 
     // execute SQL statement without output
     fn execute<'a>(
@@ -342,18 +342,20 @@ mod test_connector {
             check: Vec<Option<bool>>,
         }
 
-        impl FxContainerRowBuilder<Users> for UsersBuild {
+        impl FxChunkingRowBuilder<Users, FxGrid> for UsersBuild {
             fn new() -> Self {
                 Self::default()
             }
 
-            fn stack(&mut self, row: Users) {
+            fn stack(&mut self, row: Users) -> &mut Self {
                 self.id.push(row.id);
                 self.name.push(row.name);
                 self.check.push(row.check);
+
+                self
             }
 
-            fn build(self: Box<Self>) -> FxResult<FxGrid> {
+            fn build(self) -> FxResult<FxGrid> {
                 let mut builder = FxGridColWiseBuilder::<3>::new();
 
                 builder.stack(self.id);
@@ -364,9 +366,11 @@ mod test_connector {
             }
         }
 
-        impl FxContainerRowBuilderGenerator for Users {
-            fn gen_row_builder() -> Box<dyn FxContainerRowBuilder<Self>> {
-                Box::new(UsersBuild::new())
+        impl FxChunkingRowBuilderGenerator<FxGrid> for Users {
+            type Builder = UsersBuild;
+
+            fn gen_chunking_row_builder() -> Self::Builder {
+                UsersBuild::new()
             }
         }
 

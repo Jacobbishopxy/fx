@@ -3,7 +3,6 @@
 //! date: 2023/01/21 00:55:29 Saturday
 //! brief: Private
 
-use std::fmt::Debug;
 use std::hash::Hash;
 use std::sync::Arc;
 
@@ -71,7 +70,7 @@ pub trait InnerChunking {
 #[doc(hidden)]
 pub trait InnerChunkingContainer<I, C>
 where
-    I: Debug + Hash,
+    I: Hash,
     C: InnerChunking,
 {
     fn empty() -> Self
