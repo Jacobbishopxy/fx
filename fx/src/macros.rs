@@ -427,7 +427,7 @@ macro_rules! impl_sql_meta {
                 sql: &'a str,
             ) -> ::futures::future::BoxFuture<'a, FxResult<FxGrid>>
             where
-                D: Send + $crate::FxGridT,
+                D: Send + $crate::FxContainerRowBuilderGenerator,
                 D: From<Self::Row>,
             {
                 let q = async move {

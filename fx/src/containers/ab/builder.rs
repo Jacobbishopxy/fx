@@ -6,7 +6,7 @@
 use crate::{FxGrid, FxResult};
 
 // ================================================================================================
-// FxGridT & FxGridRowBuilder
+// FxContainerRowBuilderGenerator & FxGridRowBuilder
 //
 // Based on a named struct, generate a new struct with several vector fields, and each of them
 // denotes its original data type (`Option` is supported).
@@ -16,11 +16,11 @@ use crate::{FxGrid, FxResult};
 
 // TODO: all containers should have the same generic row-wise builder trait
 
-pub trait FxGridT {
-    fn gen_row_builder() -> Box<dyn FxGridTRowBuilder<Self>>;
+pub trait FxContainerRowBuilderGenerator {
+    fn gen_row_builder() -> Box<dyn FxContainerRowBuilder<Self>>;
 }
 
-pub trait FxGridTRowBuilder<T>: Send {
+pub trait FxContainerRowBuilder<T>: Send {
     fn new() -> Self
     where
         Self: Sized;
@@ -52,7 +52,7 @@ mod test_builder {
             check: Vec<Option<bool>>,
         }
 
-        impl FxGridTRowBuilder<Users> for UsersBuild {
+        impl FxContainerRowBuilder<Users> for UsersBuild {
             fn new() -> Self {
                 Self::default()
             }
@@ -72,8 +72,8 @@ mod test_builder {
             }
         }
 
-        impl FxGridT for Users {
-            fn gen_row_builder() -> Box<dyn FxGridTRowBuilder<Self>> {
+        impl FxContainerRowBuilderGenerator for Users {
+            fn gen_row_builder() -> Box<dyn FxContainerRowBuilder<Self>> {
                 Box::new(UsersBuild::new())
             }
         }

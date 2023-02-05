@@ -110,7 +110,7 @@ impl<const S: usize> FxGridColWiseBuilder<S> {
 #[cfg(test)]
 mod test_grid {
 
-    use crate::{FxGridT, FxGridTRowBuilder};
+    use crate::{FxContainerRowBuilder, FxContainerRowBuilderGenerator};
 
     use super::*;
 

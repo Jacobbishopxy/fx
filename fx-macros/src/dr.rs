@@ -156,7 +156,7 @@ fn generated_impl_row_build(
         .unzip();
 
     quote! {
-        impl crate::FxGridTRowBuilder<#struct_name> for #build_name {
+        impl crate::FxContainerRowBuilder<#struct_name> for #build_name {
             fn new() -> Self {
                 Self::default()
             }
@@ -172,8 +172,8 @@ fn generated_impl_row_build(
             }
         }
 
-        impl crate::FxGridT for #struct_name {
-            fn gen_row_builder() -> ::std::boxed::Box<dyn crate::FxGridTRowBuilder<Self>> {
+        impl crate::FxContainerRowBuilderGenerator for #struct_name {
+            fn gen_row_builder() -> ::std::boxed::Box<dyn crate::FxContainerRowBuilder<Self>> {
                 ::std::boxed::Box::new(#build_name::new())
             }
         }
