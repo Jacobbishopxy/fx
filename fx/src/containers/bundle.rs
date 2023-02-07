@@ -10,7 +10,7 @@ use arrow2::datatypes::Schema;
 use crate::NullableOptions;
 use crate::{private, Chunking, FxError, FxGrid, FxResult};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct FxBundle {
     pub(crate) schema: Schema,
     pub(crate) data: Vec<FxGrid>,
@@ -114,6 +114,19 @@ impl FxBundle {
         })
     }
 
+    pub fn new_empty_by_fields<I, F>(fields: I) -> FxResult<Self>
+    where
+        I: IntoIterator<Item = F>,
+        F: Into<Field>,
+    {
+        let schema = Schema::from(fields.into_iter().map(|f| f.into()).collect::<Vec<_>>());
+
+        Ok(Self {
+            schema,
+            data: vec![],
+        })
+    }
+
     pub fn schema(&self) -> &Schema {
         &self.schema
     }
@@ -127,6 +140,12 @@ impl FxBundle {
 mod test_batches {
     use super::*;
     use crate::{FromSlice, FxArray};
+
+    // TODO: lots of dependecy traits import (same in grid.rs)
+    use crate::{
+        ChunkingContainer, FxChunkingRowBuilder, FxChunkingRowBuilderGenerator,
+        FxContainerRowBuilder, FxContainerRowBuilderGenerator,
+    };
 
     #[test]
     fn new_fx_batches() {
@@ -143,5 +162,38 @@ mod test_batches {
         assert!(batches.is_ok());
 
         println!("{:?}", batches.unwrap());
+    }
+
+    #[test]
+    fn grid_builder_row_wise_proc_macro_success() {
+        use crate::FX;
+
+        #[allow(dead_code)]
+        #[derive(FX)]
+        struct Users {
+            id: i32,
+            name: String,
+            check: Option<bool>,
+        }
+
+        let r1 = Users {
+            id: 1,
+            name: "Jacob".to_string(),
+            check: Some(true),
+        };
+
+        let r2 = Users {
+            id: 2,
+            name: "Mia".to_string(),
+            check: None,
+        };
+
+        let mut bd = Users::gen_container_row_builder().unwrap();
+
+        bd.stack(r1).save().unwrap().stack(r2).save().unwrap();
+
+        let d = bd.build();
+
+        println!("{d:?}");
     }
 }

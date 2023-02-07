@@ -3,8 +3,6 @@
 //! date: 2023/01/14 00:18:43 Saturday
 //! brief: Value
 
-use arrow2::datatypes::DataType;
-
 use crate::macros::impl_from_x_for_value;
 
 #[derive(Debug, PartialEq)]
@@ -35,5 +33,3 @@ impl_from_x_for_value!(u64, U64);
 impl_from_x_for_value!(f32, F32);
 impl_from_x_for_value!(f64, F64);
 impl_from_x_for_value!(String, Str);
-
-// TODO: 1. Option; 2. DataType

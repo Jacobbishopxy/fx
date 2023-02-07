@@ -76,9 +76,9 @@ where
 
 #[cfg(test)]
 mod test_builder {
-    use arrow2::datatypes::DataType;
+    use arrow2::datatypes::{DataType, Field};
 
-    use crate::{private::InnerChunkingContainer, FxArray, FxBundle, FxGrid, NullableOptions};
+    use crate::{FxArray, FxBundle, FxGrid};
 
     use super::*;
 
@@ -162,13 +162,15 @@ mod test_builder {
         where
             Self: Sized,
         {
-            // for
-            let fields_name = vec!["id", "name", "check"];
-            let data_types = vec![DataType::Int32, DataType::Utf8, DataType::Boolean];
-            let nullable_options = NullableOptions::indexed_true([2]);
+            let fields = vec![
+                Field::new("id", DataType::Int32, false),
+                Field::new("name", DataType::Utf8, false),
+                Field::new("check", DataType::Boolean, true),
+            ];
 
-            let result = FxBundle::new_empty(fields_name, data_types, nullable_options)?;
+            let result = FxBundle::new_empty_by_fields(fields)?;
             let buffer = Some(Users::gen_chunking_row_builder());
+
             Ok(Self { result, buffer })
         }
 
@@ -189,7 +191,7 @@ mod test_builder {
 
         fn save(&mut self) -> FxResult<&mut Self> {
             let grid = self.buffer.take().unwrap().build()?;
-            self.result.push_chunk_type_unchecked(grid)?;
+            self.result.push(grid)?;
 
             Ok(self)
         }
