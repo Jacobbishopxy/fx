@@ -33,11 +33,12 @@ impl NullableOptions {
         Self::VecTrue(Vec::from_iter(d))
     }
 
-    pub fn gen_schema<IN, INT, IT>(&self, fields_name: IN, data_types: IT) -> FxResult<Schema>
+    pub fn gen_schema<IN, N, IT, D>(&self, fields_name: IN, data_types: IT) -> FxResult<Schema>
     where
-        IN: IntoIterator<Item = INT>,
-        INT: AsRef<str>,
-        IT: IntoIterator<Item = DataType>,
+        IN: IntoIterator<Item = N>,
+        N: AsRef<str>,
+        IT: IntoIterator<Item = D>,
+        D: Into<DataType>,
     {
         let fn_iter = fields_name.into_iter();
         let dt_iter = data_types.into_iter();
@@ -51,14 +52,18 @@ impl NullableOptions {
         let fld = match self {
             NullableOptions::IndexedTrue(hs) => z
                 .enumerate()
-                .map(|(idx, (n, t))| Field::new(n.as_ref(), t, hs.contains(&idx)))
+                .map(|(idx, (n, t))| Field::new(n.as_ref(), t.into(), hs.contains(&idx)))
                 .collect::<Vec<_>>(),
             NullableOptions::VecTrue(v) => z
                 .enumerate()
-                .map(|(idx, (n, t))| Field::new(n.as_ref(), t, v.get(idx).cloned().unwrap_or(true)))
+                .map(|(idx, (n, t))| {
+                    Field::new(n.as_ref(), t.into(), v.get(idx).cloned().unwrap_or(true))
+                })
                 .collect(),
             opts => z
-                .map(|(n, t)| Field::new(n.as_ref(), t, !matches!(opts.clone(), Self::False)))
+                .map(|(n, t)| {
+                    Field::new(n.as_ref(), t.into(), !matches!(opts.clone(), Self::False))
+                })
                 .collect(),
         };
 

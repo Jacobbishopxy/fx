@@ -110,7 +110,11 @@ impl<const S: usize> FxGridColWiseBuilder<S> {
 #[cfg(test)]
 mod test_grid {
 
-    use crate::{FxContainerRowBuilder, FxContainerRowBuilderGenerator};
+    // TODO: lots of dependecy traits import (same in bundle.rs)
+    use crate::{
+        Chunking, ChunkingContainer, FxChunkingRowBuilder, FxChunkingRowBuilderGenerator,
+        FxContainerRowBuilder,
+    };
 
     use super::*;
 
@@ -152,10 +156,9 @@ mod test_grid {
         };
 
         // 3. generate `FxGrid` from builder
-        let mut bd = Users::gen_row_builder();
+        let mut bd = Users::gen_chunking_row_builder();
 
-        bd.stack(r1);
-        bd.stack(r2);
+        bd.stack(r1).stack(r2);
 
         let d = bd.build();
 

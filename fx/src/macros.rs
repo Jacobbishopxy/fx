@@ -36,6 +36,22 @@ pub(crate) use invalid_arg;
 pub(crate) use invalid_len;
 
 // ================================================================================================
+// FxValue
+// ================================================================================================
+
+macro_rules! impl_from_x_for_value {
+    ($t:ty, $fxv:ident) => {
+        impl From<$t> for $crate::FxValue {
+            fn from(value: $t) -> Self {
+                FxValue::$fxv(value)
+            }
+        }
+    };
+}
+
+pub(crate) use impl_from_x_for_value;
+
+// ================================================================================================
 // impl from native
 // ================================================================================================
 
@@ -427,11 +443,11 @@ macro_rules! impl_sql_meta {
                 sql: &'a str,
             ) -> ::futures::future::BoxFuture<'a, FxResult<FxGrid>>
             where
-                D: Send + $crate::FxContainerRowBuilderGenerator,
+                D: Send + $crate::FxChunkingRowBuilderGenerator<FxGrid>,
                 D: From<Self::Row>,
             {
                 let q = async move {
-                    let mut build = D::gen_row_builder();
+                    let mut build = D::gen_chunking_row_builder();
 
                     let mut rows = ::sqlx::query(sql).fetch(self);
 

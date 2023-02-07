@@ -3,17 +3,16 @@
 //! date: 2023/01/30 10:56:05 Monday
 //! brief: ChunkingContainer
 
-use std::fmt::Debug;
 use std::hash::Hash;
 
 use arrow2::datatypes::DataType;
 
-use crate::{private, FxError, FxResult};
+use crate::{private, Chunking, FxError, FxResult};
 
 pub trait ChunkingContainer<I, C>: private::InnerChunkingContainer<I, C> + Clone
 where
-    I: Debug + Hash,
-    C: private::InnerChunking,
+    I: Hash,
+    C: Chunking,
 {
     fn empty() -> Self
     where
@@ -110,7 +109,7 @@ where
 impl<T, I, C> ChunkingContainer<I, C> for T
 where
     T: private::InnerChunkingContainer<I, C> + Clone,
-    I: Debug + Hash,
-    C: private::InnerChunking,
+    I: Hash,
+    C: Chunking,
 {
 }
