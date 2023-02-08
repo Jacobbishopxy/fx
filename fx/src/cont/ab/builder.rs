@@ -5,7 +5,8 @@
 
 use std::hash::Hash;
 
-use crate::{Chunking, ChunkingContainer, FxResult};
+use crate::cont::ab::{Chunking, ChunkingContainer};
+use crate::FxResult;
 
 // ================================================================================================
 // FxChunkingRowBuilder & FxChunkingRowBuilderGenerator

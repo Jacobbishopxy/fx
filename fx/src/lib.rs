@@ -6,7 +6,7 @@
 
 mod macros;
 
-pub mod containers;
+pub mod cont;
 pub mod error;
 pub mod io;
 mod types;
@@ -14,10 +14,24 @@ pub mod value;
 
 use macros::*;
 
-pub use containers::*;
+pub use cont::array::*;
+pub use cont::batch::*;
+pub use cont::bundle::*;
+pub use cont::cvt::*;
+pub use cont::grid::*;
+pub use cont::nullopt::*;
+pub use cont::parcel::*;
+pub use cont::table::*;
+pub use cont::vector::*;
+
 pub use error::*;
 pub use fx_macros::FX;
-pub use io::*;
+pub use io::arvo::*;
+pub use io::csv::*;
+pub use io::ipc::*;
+pub use io::parquet::*;
+pub use io::sql::*;
+pub use io::FxIO;
 pub use value::*;
 
 pub use arrow2::*;

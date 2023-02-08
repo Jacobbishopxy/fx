@@ -9,7 +9,7 @@ use arrow2::array::{Array, MutableArray};
 use arrow2::datatypes::DataType;
 use ref_cast::RefCast;
 
-use crate::chunking::Chunking;
+use crate::cont::ab::Chunking;
 use crate::macros::{arr_to_vec_branch, arr_to_vec_p_branch, invalid_len};
 use crate::types::*;
 use crate::{FxArray, FxError, FxGrid, FxResult, FxVector};

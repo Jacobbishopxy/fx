@@ -93,7 +93,7 @@ impl FxIO {
 #[cfg(test)]
 mod test_parquet {
 
-    use crate::chunking::Chunking;
+    use crate::cont::ab::Chunking;
 
     use super::*;
 

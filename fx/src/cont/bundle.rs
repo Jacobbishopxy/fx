@@ -7,8 +7,8 @@ use arrow2::datatypes::DataType;
 use arrow2::datatypes::Field;
 use arrow2::datatypes::Schema;
 
-use crate::NullableOptions;
-use crate::{private, Chunking, FxError, FxGrid, FxResult};
+use crate::cont::ab::{private, Chunking};
+use crate::{FxError, FxGrid, FxResult, NullableOptions};
 
 #[derive(Debug, Clone, Default)]
 pub struct FxBundle {
@@ -139,13 +139,9 @@ impl FxBundle {
 #[cfg(test)]
 mod test_batches {
     use super::*;
-    use crate::{FromSlice, FxArray};
 
-    // TODO: lots of dependecy traits import (same in grid.rs)
-    use crate::{
-        ChunkingContainer, FxChunkingRowBuilder, FxChunkingRowBuilderGenerator,
-        FxContainerRowBuilder, FxContainerRowBuilderGenerator,
-    };
+    use crate::cont::ab::*;
+    use crate::{FromSlice, FxArray};
 
     #[test]
     fn new_fx_batches() {

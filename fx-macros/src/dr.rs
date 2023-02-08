@@ -122,7 +122,7 @@ fn gen_impl_chunking(
         .unzip();
 
     quote! {
-        impl crate::FxChunkingRowBuilder<#struct_name,crate::FxGrid> for #build_name {
+        impl crate::cont::ab::FxChunkingRowBuilder<#struct_name,crate::FxGrid> for #build_name {
             fn new() -> Self {
                 Self::default()
             }
@@ -140,7 +140,7 @@ fn gen_impl_chunking(
             }
         }
 
-        impl crate::FxChunkingRowBuilderGenerator<crate::FxGrid> for #struct_name {
+        impl crate::cont::ab::FxChunkingRowBuilderGenerator<crate::FxGrid> for #struct_name {
             type Builder = #build_name;
 
             fn gen_chunking_row_builder() -> Self::Builder {
@@ -226,7 +226,7 @@ fn gen_impl_container(
         .collect::<Vec<_>>();
 
     quote! {
-        impl crate::FxContainerRowBuilder<#chunking_build_name, #struct_name, crate::FxBundle, usize, crate::FxGrid>
+        impl crate::cont::ab::FxContainerRowBuilder<#chunking_build_name, #struct_name, crate::FxBundle, usize, crate::FxGrid>
             for #container_build_name
         {
             fn new() -> crate::FxResult<Self>
@@ -269,7 +269,7 @@ fn gen_impl_container(
             }
         }
 
-        impl crate::FxContainerRowBuilderGenerator<#chunking_build_name, #struct_name, crate::FxBundle, usize, crate::FxGrid> for #struct_name {
+        impl crate::cont::ab::FxContainerRowBuilderGenerator<#chunking_build_name, #struct_name, crate::FxBundle, usize, crate::FxGrid> for #struct_name {
             type Builder = #container_build_name;
 
             fn gen_container_row_builder() -> crate::FxResult<Self::Builder> {

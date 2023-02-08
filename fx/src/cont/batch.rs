@@ -9,7 +9,8 @@ use arrow2::chunk::Chunk;
 use arrow2::datatypes::Schema;
 use arrow2::{array::*, datatypes::Field};
 
-use crate::{private, FxResult, NullableOptions};
+use crate::cont::ab::private;
+use crate::{FxResult, NullableOptions};
 
 #[derive(Debug, Clone)]
 pub struct FxBatch {
@@ -74,7 +75,7 @@ impl FxBatch {
 #[cfg(test)]
 mod test_batch {
     use super::*;
-    use crate::{Chunking, FromSlice, FxArray};
+    use crate::{cont::ab::Chunking, FromSlice, FxArray};
 
     #[test]
     fn new_fx_batch_should_be_successful() {

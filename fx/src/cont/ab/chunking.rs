@@ -9,7 +9,8 @@ use arrow2::array::Array;
 use arrow2::compute::concatenate::concatenate;
 use arrow2::datatypes::DataType;
 
-use crate::{private, FxError, FxResult};
+use crate::cont::ab::private;
+use crate::{FxError, FxResult};
 
 pub trait Chunking: private::InnerChunking + Clone {
     fn empty() -> Self {

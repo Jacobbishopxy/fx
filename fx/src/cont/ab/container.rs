@@ -7,7 +7,8 @@ use std::hash::Hash;
 
 use arrow2::datatypes::DataType;
 
-use crate::{private, Chunking, FxError, FxResult};
+use crate::cont::ab::{private, Chunking};
+use crate::{FxError, FxResult};
 
 pub trait ChunkingContainer<I, C>: private::InnerChunkingContainer<I, C> + Clone
 where

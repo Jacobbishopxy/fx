@@ -7,8 +7,8 @@ use arrow2::chunk::Chunk;
 use arrow2::datatypes::{Field, Schema};
 use ref_cast::RefCast;
 
-use crate::chunking::Chunking;
-use crate::{private, FxArray, FxError, FxResult};
+use crate::cont::ab::{private, Chunking};
+use crate::{FxArray, FxError, FxResult};
 
 // ================================================================================================
 // FxGrid
@@ -109,14 +109,7 @@ impl<const S: usize> FxGridColWiseBuilder<S> {
 
 #[cfg(test)]
 mod test_grid {
-
-    // TODO: lots of dependecy traits import (same in bundle.rs), a workaround is to directly call `use crate::ab::*;`
-    use crate::{
-        Chunking, ChunkingContainer, FxChunkingRowBuilder, FxChunkingRowBuilderGenerator,
-        FxContainerRowBuilder,
-    };
-
-    // use crate::ab::*;
+    use crate::cont::ab::*;
 
     use super::*;
 

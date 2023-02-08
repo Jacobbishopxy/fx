@@ -443,7 +443,7 @@ macro_rules! impl_sql_meta {
                 sql: &'a str,
             ) -> ::futures::future::BoxFuture<'a, FxResult<FxGrid>>
             where
-                D: Send + $crate::FxChunkingRowBuilderGenerator<FxGrid>,
+                D: Send + $crate::cont::ab::FxChunkingRowBuilderGenerator<FxGrid>,
                 D: From<Self::Row>,
             {
                 let q = async move {
