@@ -6,10 +6,8 @@
 pub mod builder;
 pub mod chunking;
 pub mod container;
-pub mod nullopt;
 pub(crate) mod private;
 
 pub use builder::*;
 pub use chunking::*;
 pub use container::*;
-pub use nullopt::*;

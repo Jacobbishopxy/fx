@@ -110,11 +110,13 @@ impl<const S: usize> FxGridColWiseBuilder<S> {
 #[cfg(test)]
 mod test_grid {
 
-    // TODO: lots of dependecy traits import (same in bundle.rs)
+    // TODO: lots of dependecy traits import (same in bundle.rs), a workaround is to directly call `use crate::ab::*;`
     use crate::{
         Chunking, ChunkingContainer, FxChunkingRowBuilder, FxChunkingRowBuilderGenerator,
         FxContainerRowBuilder,
     };
+
+    // use crate::ab::*;
 
     use super::*;
 
