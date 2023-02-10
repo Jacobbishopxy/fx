@@ -90,7 +90,7 @@ mod test_builder {
         check: Option<bool>,
     }
 
-    #[derive(Default)]
+    #[derive(Debug, Default)]
     struct UsersChunkingBuild {
         id: Vec<i32>,
         name: Vec<String>,
@@ -151,12 +151,13 @@ mod test_builder {
         println!("{d:?}");
     }
 
+    #[derive(Debug)]
     struct UsersContainerBuild {
-        result: FxBundle,
+        result: FxBundle<FxGrid>,
         buffer: Option<UsersChunkingBuild>,
     }
 
-    impl FxContainerRowBuilder<UsersChunkingBuild, Users, FxBundle, usize, FxGrid>
+    impl FxContainerRowBuilder<UsersChunkingBuild, Users, FxBundle<FxGrid>, usize, FxGrid>
         for UsersContainerBuild
     {
         fn new() -> FxResult<Self>
@@ -169,7 +170,7 @@ mod test_builder {
                 Field::new("check", DataType::Boolean, true),
             ];
 
-            let result = FxBundle::new_empty_by_fields(fields)?;
+            let result = FxBundle::<FxGrid>::new_empty_by_fields(fields)?;
             let buffer = Some(Users::gen_chunking_row_builder());
 
             Ok(Self { result, buffer })
@@ -197,12 +198,14 @@ mod test_builder {
             Ok(self)
         }
 
-        fn build(self) -> FxBundle {
+        fn build(self) -> FxBundle<FxGrid> {
             self.result
         }
     }
 
-    impl FxContainerRowBuilderGenerator<UsersChunkingBuild, Users, FxBundle, usize, FxGrid> for Users {
+    impl FxContainerRowBuilderGenerator<UsersChunkingBuild, Users, FxBundle<FxGrid>, usize, FxGrid>
+        for Users
+    {
         type Builder = UsersContainerBuild;
 
         fn gen_container_row_builder() -> FxResult<Self::Builder> {

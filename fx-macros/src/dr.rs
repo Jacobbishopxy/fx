@@ -1,4 +1,7 @@
-//! Derive
+//! file: dr.rs
+//! author: Jacob Xie
+//! date: 2023/02/10 21:10:37 Friday
+//! brief: Derive
 
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -291,10 +294,10 @@ pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
     let impl_chunking_row_build = gen_impl_chunking(&struct_name, &chunking_name, &named_fields);
 
     // auto generated code (container)
-    let container_name = gen_container_build_name(&struct_name);
-    let container_builder_struct = gen_container_builder_struct(&chunking_name, &container_name);
-    let impl_container_row_build =
-        gen_impl_container(&struct_name, &chunking_name, &container_name, &named_fields);
+    // let container_name = gen_container_build_name(&struct_name);
+    // let container_builder_struct = gen_container_builder_struct(&chunking_name, &container_name);
+    // let impl_container_row_build =
+    //     gen_impl_container(&struct_name, &chunking_name, &container_name, &named_fields);
 
     let expanded = quote! {
 
@@ -304,9 +307,9 @@ pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
 
         #impl_chunking_row_build
 
-        #container_builder_struct
+        // #container_builder_struct
 
-        #impl_container_row_build
+        // #impl_container_row_build
     };
 
     expanded

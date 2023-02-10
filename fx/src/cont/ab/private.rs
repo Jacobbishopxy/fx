@@ -8,7 +8,7 @@ use std::sync::Arc;
 
 use arrow2::array::Array;
 use arrow2::chunk::Chunk;
-use arrow2::datatypes::DataType;
+use arrow2::datatypes::{DataType, Schema};
 
 use crate::FxResult;
 
@@ -77,6 +77,8 @@ where
     where
         Self: Sized;
 
+    fn ref_schema(&self) -> &Schema;
+
     fn ref_container(&self) -> Vec<&C>;
 
     fn get_chunk(&self, key: I) -> FxResult<&C>;
@@ -100,9 +102,7 @@ where
     }
 
     fn width(&self) -> usize {
-        self.ref_container()
-            .first()
-            .map_or(0, |fst| fst.ref_chunk().iter().count())
+        self.ref_schema().fields.len()
     }
 
     fn size(&self) -> (usize, usize) {
@@ -114,13 +114,12 @@ where
     }
 
     fn data_types(&self) -> Vec<DataType> {
-        self.ref_container().first().map_or(Vec::new(), |fst| {
-            fst.ref_chunk()
-                .iter()
-                .map(|e| e.data_type())
-                .cloned()
-                .collect::<Vec<_>>()
-        })
+        self.ref_schema()
+            .fields
+            .iter()
+            .map(|f| f.data_type())
+            .cloned()
+            .collect::<Vec<_>>()
     }
 
     fn data_types_check(&self, c: &C) -> bool {
