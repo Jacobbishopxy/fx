@@ -132,6 +132,7 @@ mod test_grid {
 
         #[allow(dead_code)]
         #[derive(FX)]
+        #[fx(FxGrid)]
         struct Users {
             id: i32,
             name: String,

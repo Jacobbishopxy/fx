@@ -9,13 +9,12 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     ├── examples
     ├── fx
     │   ├── src
-    │   │   ├── containers
+    │   │   ├── cont
     │   │   │   ├── ab
     │   │   │   │   ├── builder.rs
     │   │   │   │   ├── chunking.rs
     │   │   │   │   ├── container.rs
     │   │   │   │   ├── mod.rs
-    │   │   │   │   ├── nullopt.rs
     │   │   │   │   └── private.rs
     │   │   │   ├── array.rs
     │   │   │   ├── batch.rs
@@ -23,9 +22,13 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   │   ├── cvt.rs
     │   │   │   ├── grid.rs
     │   │   │   ├── mod.rs
+    │   │   │   ├── nullopt.rs
+    │   │   │   ├── parcel.rs
     │   │   │   ├── table.rs
     │   │   │   └── vector.rs
     │   │   ├── io
+    │   │   │   ├── ab
+    │   │   │   │   └── mod.rs
     │   │   │   ├── arvo.rs
     │   │   │   ├── csv.rs
     │   │   │   ├── ipc.rs
@@ -42,6 +45,7 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     ├── fx-macros
     │   └── src
     │       ├── dr.rs
+    │       ├── helper.rs
     │       └── lib.rs
     ├── LICENSE
     └── README.md
@@ -79,9 +83,5 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 - To get a tree view of this project, run `cargo make --makefile fx.toml tree`
 
 ## Todo
-
-- general type into arrow's `DataType`
-
-- add `FxContainerRowBuilder` in `fx-macros`, [example](./fx/src/containers/ab/builder.rs)
 
 - Let I/O satisfies all containers

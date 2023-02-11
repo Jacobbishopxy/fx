@@ -3,20 +3,30 @@
 //! date: 2023/01/20 22:34:35 Friday
 //! brief: Bundle
 
-use arrow2::datatypes::DataType;
-use arrow2::datatypes::Field;
-use arrow2::datatypes::Schema;
+use arrow2::datatypes::{DataType, Field, Schema};
 
-use crate::cont::ab::{private, Chunking};
-use crate::{FxError, FxGrid, FxResult, NullableOptions};
+use crate::cont::ab::{private, Chunking, ChunkingContainer};
+use crate::{FxError, FxResult, NullableOptions};
 
-#[derive(Debug, Clone, Default)]
-pub struct FxBundle {
+#[derive(Debug, Clone)]
+pub struct FxBundle<T: Chunking> {
     pub(crate) schema: Schema,
-    pub(crate) data: Vec<FxGrid>,
+    pub(crate) data: Vec<T>,
 }
 
-impl private::InnerChunkingContainer<usize, FxGrid> for FxBundle {
+impl<T> Default for FxBundle<T>
+where
+    T: Chunking,
+{
+    fn default() -> Self {
+        Self {
+            schema: Default::default(),
+            data: Vec::<T>::new(),
+        }
+    }
+}
+
+impl<T: Chunking> private::InnerChunkingContainer<usize, T> for FxBundle<T> {
     fn empty() -> Self
     where
         Self: Sized,
@@ -27,24 +37,28 @@ impl private::InnerChunkingContainer<usize, FxGrid> for FxBundle {
         }
     }
 
-    fn ref_container(&self) -> Vec<&FxGrid> {
+    fn ref_schema(&self) -> &Schema {
+        &self.schema
+    }
+
+    fn ref_container(&self) -> Vec<&T> {
         self.data.iter().collect()
     }
 
-    fn get_chunk(&self, key: usize) -> FxResult<&FxGrid> {
+    fn get_chunk(&self, key: usize) -> FxResult<&T> {
         self.data
             .get(key)
             .ok_or_else(|| FxError::LengthMismatch(key, self.data.len()))
     }
 
-    fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut FxGrid> {
+    fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut T> {
         let s_len = self.data.len();
         self.data
             .get_mut(key)
             .ok_or_else(|| FxError::LengthMismatch(key, s_len))
     }
 
-    fn insert_chunk_type_unchecked(&mut self, key: usize, data: FxGrid) -> FxResult<()> {
+    fn insert_chunk_type_unchecked(&mut self, key: usize, data: T) -> FxResult<()> {
         let s_len = self.data.len();
         if key > s_len {
             return Err(FxError::LengthMismatch(key, s_len));
@@ -62,7 +76,7 @@ impl private::InnerChunkingContainer<usize, FxGrid> for FxBundle {
         Ok(())
     }
 
-    fn push_chunk_type_unchecked(&mut self, data: FxGrid) -> FxResult<()> {
+    fn push_chunk_type_unchecked(&mut self, data: T) -> FxResult<()> {
         self.data.push(data);
         Ok(())
     }
@@ -72,22 +86,22 @@ impl private::InnerChunkingContainer<usize, FxGrid> for FxBundle {
         Ok(())
     }
 
-    fn take_container(self) -> Vec<FxGrid> {
+    fn take_container(self) -> Vec<T> {
         self.data
     }
 }
 
-impl FxBundle {
+impl<C: Chunking> FxBundle<C> {
     pub fn try_new<I, T>(
         fields_name: I,
-        data: FxGrid,
+        data: C,
         nullable_options: NullableOptions,
     ) -> FxResult<Self>
     where
         I: IntoIterator<Item = T>,
         T: AsRef<str>,
     {
-        let schema = nullable_options.gen_schema(fields_name, data.data_types())?;
+        let schema = nullable_options.gen_schema(fields_name, Chunking::data_types(&data))?;
 
         Ok(Self {
             schema,
@@ -137,11 +151,11 @@ impl FxBundle {
 // ================================================================================================
 
 #[cfg(test)]
-mod test_batches {
+mod test_bundle {
     use super::*;
 
     use crate::cont::ab::*;
-    use crate::{FromSlice, FxArray};
+    use crate::{FromSlice, FxArray, FxGrid};
 
     #[test]
     fn new_fx_batches() {

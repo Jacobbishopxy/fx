@@ -1,5 +1,9 @@
-//! Fx macros
+//! file: lib.rs
+//! author: Jacob Xie
+//! date: 2023/02/10 23:08:04 Friday
+//! brief: ProcMacro FX
 
+use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput};
 
 mod dr;
@@ -8,7 +12,7 @@ mod helper;
 use dr::*;
 
 #[proc_macro_derive(FX, attributes(fx))]
-pub fn derive_fx(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn derive_fx(input: TokenStream) -> TokenStream {
     // Parse the input tokens into a syntax tree
     let input = parse_macro_input!(input as DeriveInput);
 
@@ -17,5 +21,5 @@ pub fn derive_fx(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     // Debug use:
     // println!("{}", &stream);
 
-    proc_macro::TokenStream::from(stream)
+    TokenStream::from(stream)
 }
