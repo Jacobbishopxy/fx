@@ -8,10 +8,22 @@ use arrow2::datatypes::{DataType, Field, Schema};
 use crate::cont::ab::{private, Chunking, ChunkingContainer};
 use crate::{FxError, FxResult, NullableOptions};
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct FxBundle<T: Chunking> {
     pub(crate) schema: Schema,
     pub(crate) data: Vec<T>,
+}
+
+impl<T> Default for FxBundle<T>
+where
+    T: Chunking,
+{
+    fn default() -> Self {
+        Self {
+            schema: Default::default(),
+            data: Vec::<T>::new(),
+        }
+    }
 }
 
 impl<T: Chunking> private::InnerChunkingContainer<usize, T> for FxBundle<T> {
@@ -164,34 +176,34 @@ mod test_bundle {
 
     #[test]
     fn grid_builder_row_wise_proc_macro_success() {
-        // use crate::FX;
+        use crate::FX;
 
-        // #[allow(dead_code)]
-        // #[derive(FX)]
-        // struct Users {
-        //     id: i32,
-        //     name: String,
-        //     check: Option<bool>,
-        // }
+        #[allow(dead_code)]
+        #[derive(FX)]
+        struct Users {
+            id: i32,
+            name: String,
+            check: Option<bool>,
+        }
 
-        // let r1 = Users {
-        //     id: 1,
-        //     name: "Jacob".to_string(),
-        //     check: Some(true),
-        // };
+        let r1 = Users {
+            id: 1,
+            name: "Jacob".to_string(),
+            check: Some(true),
+        };
 
-        // let r2 = Users {
-        //     id: 2,
-        //     name: "Mia".to_string(),
-        //     check: None,
-        // };
+        let r2 = Users {
+            id: 2,
+            name: "Mia".to_string(),
+            check: None,
+        };
 
-        // let mut bd = Users::gen_container_row_builder().unwrap();
+        let mut bd = Users::gen_container_row_builder().unwrap();
 
-        // bd.stack(r1).save().unwrap().stack(r2).save().unwrap();
+        bd.stack(r1).save().unwrap().stack(r2).save().unwrap();
 
-        // let d = bd.build();
+        let d = bd.build();
 
-        // println!("{d:?}");
+        println!("{d:?}");
     }
 }

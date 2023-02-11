@@ -10,6 +10,15 @@ use syn::{Data, DeriveInput, Field, Fields, Ident};
 use crate::helper::{get_option_type_name, NamedFields};
 
 // ================================================================================================
+// Constants
+// ================================================================================================
+
+#[allow(dead_code)]
+const FX_GRID: &str = "FxGrid";
+#[allow(dead_code)]
+const FX_BATCH: &str = "FxBatch";
+
+// ================================================================================================
 // Helper Functions
 // ================================================================================================
 
@@ -27,12 +36,91 @@ fn named_fields(ast: &DeriveInput) -> NamedFields {
     }
 }
 
+/// generate chunking builder and its generator
 fn gen_chunking_build_name(struct_name: &Ident) -> Ident {
     format_ident!("__{}ChunkingBuild", struct_name)
 }
 
+/// generate container builder and its generator
 fn gen_container_build_name(struct_name: &Ident) -> Ident {
     format_ident!("__{}ContainerBuild", struct_name)
+}
+
+/// extract the first attribute from `fx`.
+/// For instance, if chk = Some(FxBundle), then use FxGrid as Chunking param in row-builders;
+/// otherwise, default to FxGrid
+#[allow(dead_code)]
+fn get_gx_attribute(input: &DeriveInput) -> Option<String> {
+    // test case is in `grid.rs`
+    input
+        .attrs
+        .iter()
+        .find(|a| a.path.segments[0].ident == "fx")
+        .map(|a| match a.parse_meta().unwrap() {
+            syn::Meta::List(syn::MetaList { nested, .. }) => match nested.first().unwrap() {
+                syn::NestedMeta::Meta(m) => m.path().segments.first().unwrap().ident.to_string(),
+                _ => panic!("Unsupported nested"),
+            },
+            _ => panic!("Unsupported attribute form"),
+        })
+}
+
+/// generate chunking type by string
+#[allow(dead_code)]
+fn gen_chunking_type(s: String) -> TokenStream {
+    match s.as_str() {
+        FX_GRID => quote! {crate::FxGrid},
+        FX_BATCH => quote! {crate::FxBatch},
+        _ => quote! {crate::FxGrid}, // default to FxGrid
+    }
+}
+
+/// generate arrow's field
+fn gen_arrow_field(f: &Field) -> TokenStream {
+    let fd = f.ident.as_ref().unwrap().to_string();
+    let ty = &f.ty;
+
+    let (is_option, type_name) = get_option_type_name(ty);
+
+    match type_name.as_str() {
+        "bool" => quote! {
+            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::Boolean, #is_option)
+        },
+        "i8" => quote! {
+            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::Int8, #is_option)
+        },
+        "i16" => quote! {
+            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::Int16, #is_option)
+        },
+        "i32" => quote! {
+            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::Int32, #is_option)
+        },
+        "i64" => quote! {
+            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::Int64, #is_option)
+        },
+        "u8" => quote! {
+            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::UInt8, #is_option)
+        },
+        "u16" => quote! {
+            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::UInt16, #is_option)
+        },
+        "u32" => quote! {
+            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::UInt32, #is_option)
+        },
+        "u64" => quote! {
+            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::UInt64, #is_option)
+        },
+        "f32" => quote! {
+            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::Float32, #is_option)
+        },
+        "f64" => quote! {
+            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::Float64, #is_option)
+        },
+        "String" => quote! {
+            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::Utf8, #is_option)
+        },
+        _ => panic!("unsupported type!"),
+    }
 }
 
 // ================================================================================================
@@ -164,56 +252,9 @@ fn gen_container_builder_struct(
     quote! {
         #[derive(Default)]
         struct #container_build_name {
-            result: crate::FxBundle,
+            result: crate::FxBundle<crate::FxGrid>,
             buffer: Option<#chunking_build_name>
         }
-    }
-}
-
-fn gen_arrow_fields(f: &Field) -> TokenStream {
-    let fd = f.ident.as_ref().unwrap().to_string();
-    let ty = &f.ty;
-
-    let (is_option, type_name) = get_option_type_name(ty);
-
-    match type_name.as_str() {
-        "bool" => quote! {
-            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::Boolean, #is_option)
-        },
-        "i8" => quote! {
-            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::Int8, #is_option)
-        },
-        "i16" => quote! {
-            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::Int16, #is_option)
-        },
-        "i32" => quote! {
-            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::Int32, #is_option)
-        },
-        "i64" => quote! {
-            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::Int64, #is_option)
-        },
-        "u8" => quote! {
-            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::UInt8, #is_option)
-        },
-        "u16" => quote! {
-            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::UInt16, #is_option)
-        },
-        "u32" => quote! {
-            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::UInt32, #is_option)
-        },
-        "u64" => quote! {
-            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::UInt64, #is_option)
-        },
-        "f32" => quote! {
-            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::Float32, #is_option)
-        },
-        "f64" => quote! {
-            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::Float64, #is_option)
-        },
-        "String" => quote! {
-            ::arrow2::datatypes::Field::new(#fd, ::arrow2::datatypes::DataType::Utf8, #is_option)
-        },
-        _ => panic!("unsupported type!"),
     }
 }
 
@@ -223,13 +264,10 @@ fn gen_impl_container(
     container_build_name: &Ident,
     named_fields: &NamedFields,
 ) -> TokenStream {
-    let fields_ctt = named_fields
-        .iter()
-        .map(gen_arrow_fields)
-        .collect::<Vec<_>>();
+    let fields_ctt = named_fields.iter().map(gen_arrow_field).collect::<Vec<_>>();
 
     quote! {
-        impl crate::cont::ab::FxContainerRowBuilder<#chunking_build_name, #struct_name, crate::FxBundle, usize, crate::FxGrid>
+        impl crate::cont::ab::FxContainerRowBuilder<#chunking_build_name, #struct_name, crate::FxBundle<crate::FxGrid>, usize, crate::FxGrid>
             for #container_build_name
         {
             fn new() -> crate::FxResult<Self>
@@ -238,7 +276,7 @@ fn gen_impl_container(
             {
                 let fields = vec![#(#fields_ctt),*];
 
-                let result = crate::FxBundle::new_empty_by_fields(fields)?;
+                let result = crate::FxBundle::<crate::FxGrid>::new_empty_by_fields(fields)?;
 
                 let buffer = Some(#struct_name::gen_chunking_row_builder());
 
@@ -267,12 +305,12 @@ fn gen_impl_container(
                 Ok(self)
             }
 
-            fn build(self) -> crate::FxBundle {
+            fn build(self) -> crate::FxBundle<crate::FxGrid> {
                 self.result
             }
         }
 
-        impl crate::cont::ab::FxContainerRowBuilderGenerator<#chunking_build_name, #struct_name, crate::FxBundle, usize, crate::FxGrid> for #struct_name {
+        impl crate::cont::ab::FxContainerRowBuilderGenerator<#chunking_build_name, #struct_name, crate::FxBundle<crate::FxGrid>, usize, crate::FxGrid> for #struct_name {
             type Builder = #container_build_name;
 
             fn gen_container_row_builder() -> crate::FxResult<Self::Builder> {
@@ -282,26 +320,17 @@ fn gen_impl_container(
     }
 }
 
+// ================================================================================================
+// Main impl
+// ================================================================================================
+
 pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
     // name of the struct
     let struct_name = input.ident.clone();
     let named_fields = named_fields(input);
 
     // attributes
-    // TODO: extract the first attribute from `fx`. For instance, if chk = Some(FxBundle), then use FxGrid as Chunking param in row-builders; otherwise, default to FxGrid
-    // test case is in `grid.rs`
-    let chk = input
-        .attrs
-        .iter()
-        .find(|a| a.path.segments[0].ident == "fx")
-        .map(|a| match a.parse_meta().unwrap() {
-            syn::Meta::List(syn::MetaList { nested, .. }) => match nested.first().unwrap() {
-                syn::NestedMeta::Meta(m) => m.path().segments.first().unwrap().ident.to_string(),
-                _ => panic!("Unsupported nested"),
-            },
-            _ => panic!("Unsupported attribute form"),
-        });
-    println!(">>>>> {chk:?}");
+    // TODO
 
     // auto generated code (chunking)
     let chunking_name = gen_chunking_build_name(&struct_name);
@@ -310,10 +339,10 @@ pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
     let impl_chunking_row_build = gen_impl_chunking(&struct_name, &chunking_name, &named_fields);
 
     // auto generated code (container)
-    // let container_name = gen_container_build_name(&struct_name);
-    // let container_builder_struct = gen_container_builder_struct(&chunking_name, &container_name);
-    // let impl_container_row_build =
-    //     gen_impl_container(&struct_name, &chunking_name, &container_name, &named_fields);
+    let container_name = gen_container_build_name(&struct_name);
+    let container_builder_struct = gen_container_builder_struct(&chunking_name, &container_name);
+    let impl_container_row_build =
+        gen_impl_container(&struct_name, &chunking_name, &container_name, &named_fields);
 
     let expanded = quote! {
 
@@ -323,9 +352,9 @@ pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
 
         #impl_chunking_row_build
 
-        // #container_builder_struct
+        #container_builder_struct
 
-        // #impl_container_row_build
+        #impl_container_row_build
     };
 
     expanded
