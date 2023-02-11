@@ -287,6 +287,22 @@ pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
     let struct_name = input.ident.clone();
     let named_fields = named_fields(input);
 
+    // attributes
+    // TODO: extract the first attribute from `fx`. For instance, if chk = Some(FxBundle), then use FxGrid as Chunking param in row-builders; otherwise, default to FxGrid
+    // test case is in `grid.rs`
+    let chk = input
+        .attrs
+        .iter()
+        .find(|a| a.path.segments[0].ident == "fx")
+        .map(|a| match a.parse_meta().unwrap() {
+            syn::Meta::List(syn::MetaList { nested, .. }) => match nested.first().unwrap() {
+                syn::NestedMeta::Meta(m) => m.path().segments.first().unwrap().ident.to_string(),
+                _ => panic!("Unsupported nested"),
+            },
+            _ => panic!("Unsupported attribute form"),
+        });
+    println!(">>>>> {chk:?}");
+
     // auto generated code (chunking)
     let chunking_name = gen_chunking_build_name(&struct_name);
     let impl_from_sql_row = gen_impl_from_sql_row(&struct_name, &named_fields);
