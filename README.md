@@ -15,7 +15,8 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   │   │   ├── chunking.rs
     │   │   │   │   ├── container.rs
     │   │   │   │   ├── mod.rs
-    │   │   │   │   └── private.rs
+    │   │   │   │   ├── private.rs
+    │   │   │   │   └── seq.rs
     │   │   │   ├── array.rs
     │   │   │   ├── batch.rs
     │   │   │   ├── bundle.rs
@@ -83,5 +84,7 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 - To get a tree view of this project, run `cargo make --makefile fx.toml tree`
 
 ## Todo
+
+- Use a new structure which can hold either `Array` or `Vector`
 
 - Let I/O satisfies all containers

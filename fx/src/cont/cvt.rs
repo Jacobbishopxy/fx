@@ -22,7 +22,7 @@ impl TryFrom<FxVector> for FxArray {
     type Error = FxError;
 
     fn try_from(mut vector: FxVector) -> Result<Self, Self::Error> {
-        let arr = std::sync::Arc::get_mut(&mut vector.0)
+        let arr = Arc::get_mut(&mut vector.0)
             .ok_or(FxError::FailedToConvert)?
             .as_arc();
 

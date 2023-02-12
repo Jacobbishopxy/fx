@@ -8,7 +8,8 @@
     │   │   │   │   ├── chunking.rs
     │   │   │   │   ├── container.rs
     │   │   │   │   ├── mod.rs
-    │   │   │   │   └── private.rs
+    │   │   │   │   ├── private.rs
+    │   │   │   │   └── seq.rs
     │   │   │   ├── array.rs
     │   │   │   ├── batch.rs
     │   │   │   ├── bundle.rs

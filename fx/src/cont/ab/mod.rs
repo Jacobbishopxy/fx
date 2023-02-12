@@ -13,3 +13,38 @@ pub use builder::*;
 pub use chunking::*;
 pub use container::*;
 pub use seq::*;
+
+// ================================================================================================
+// Helper macro
+// ================================================================================================
+
+macro_rules! arr_to_vec {
+    ($arr:expr, $dwn_cst_r:ident, $arrow_ma:ident) => {{
+        let arr = $arr
+            .as_any()
+            .downcast_ref::<$dwn_cst_r>()
+            .ok_or($crate::FxError::FailedToConvert)?
+            .into_iter();
+
+        let mba = $arrow_ma::from_iter(arr);
+
+        Ok(::std::sync::Arc::new(mba))
+    }};
+}
+
+macro_rules! arr_to_vec_p {
+    ($arr:expr, $dwn_cst_r:ident, $arrow_ma:ident) => {{
+        let arr = $arr
+            .as_any()
+            .downcast_ref::<$dwn_cst_r>()
+            .ok_or($crate::FxError::FailedToConvert)?
+            .into_iter();
+
+        let mba = $arrow_ma::from_trusted_len_iter(arr);
+
+        Ok(::std::sync::Arc::new(mba))
+    }};
+}
+
+pub(crate) use arr_to_vec;
+pub(crate) use arr_to_vec_p;
