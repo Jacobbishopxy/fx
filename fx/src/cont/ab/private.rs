@@ -10,7 +10,56 @@ use arrow2::array::Array;
 use arrow2::chunk::Chunk;
 use arrow2::datatypes::{DataType, Schema};
 
+use crate::cont::ab::{ArcArr, FxSeq};
 use crate::FxResult;
+
+// ================================================================================================
+// InnerSheaf
+//
+// A generous purpose of Arc<dyn Array> collection.
+// To replace InnerChunking.
+// ================================================================================================
+
+// TODO
+
+#[doc(hidden)]
+pub trait InnerSheaf {
+    type ARR: FxSeq;
+
+    fn empty() -> Self
+    where
+        Self: Sized;
+
+    fn ref_arrays(&self) -> &[Self::ARR];
+
+    fn set_arrays(&mut self, arrays: Vec<Self::ARR>);
+
+    fn take_arrays(self) -> Vec<Self::ARR>;
+
+    fn take_chunk(self) -> Chunk<ArcArr>;
+
+    // default implementations
+
+    fn width(&self) -> usize {
+        self.ref_arrays().iter().count()
+    }
+
+    fn is_empty(&self) -> bool {
+        self.ref_arrays().is_empty()
+    }
+
+    fn data_types(&self) -> Vec<DataType> {
+        self.ref_arrays()
+            .iter()
+            .map(|e| e.data_type())
+            .cloned()
+            .collect()
+    }
+
+    fn data_types_match<T: InnerSheaf>(&self, d: &T) -> bool {
+        self.width() == d.width() && self.data_types() == d.data_types()
+    }
+}
 
 // ================================================================================================
 // InnerChunking

@@ -7,7 +7,9 @@ pub mod builder;
 pub mod chunking;
 pub mod container;
 pub(crate) mod private;
+pub mod seq;
 
 pub use builder::*;
 pub use chunking::*;
 pub use container::*;
+pub use seq::*;
