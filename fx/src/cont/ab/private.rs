@@ -10,7 +10,8 @@ use arrow2::array::Array;
 use arrow2::chunk::Chunk;
 use arrow2::datatypes::{DataType, Schema};
 
-use crate::cont::ab::{ArcArr, FxSeq};
+use crate::cont::ab::FxSeq;
+use crate::types::ArcArr;
 use crate::FxResult;
 
 // ================================================================================================
@@ -20,43 +21,132 @@ use crate::FxResult;
 // To replace InnerChunking.
 // ================================================================================================
 
-// TODO
-
 #[doc(hidden)]
 pub trait InnerSheaf {
-    type ARR: FxSeq;
+    type Seq: FxSeq; // Arc<Array> or Arc<MutableArray>
 
     fn empty() -> Self
     where
         Self: Sized;
 
-    fn ref_arrays(&self) -> &[Self::ARR];
+    fn ref_sequences(&self) -> &[Self::Seq];
 
-    fn set_arrays(&mut self, arrays: Vec<Self::ARR>);
+    fn set_sequences(&mut self, arrays: Vec<Self::Seq>);
 
-    fn take_arrays(self) -> Vec<Self::ARR>;
+    fn take_sequences(self) -> Vec<Self::Seq>;
 
     fn take_chunk(self) -> Chunk<ArcArr>;
 
     // default implementations
 
     fn width(&self) -> usize {
-        self.ref_arrays().iter().count()
+        self.ref_sequences().iter().count()
+    }
+
+    fn lens(&self) -> Vec<usize> {
+        self.ref_sequences()
+            .iter()
+            .map(|s| s.len())
+            .collect::<Vec<_>>()
+    }
+
+    fn max_len(&self) -> Option<usize> {
+        self.lens().iter().max().cloned()
+    }
+
+    fn min_len(&self) -> Option<usize> {
+        self.lens().iter().min().cloned()
+    }
+
+    fn is_lens_same(&self) -> bool {
+        let l = self.lens();
+
+        l.get(0)
+            .map(|first| l.iter().all(|x| x == first))
+            .unwrap_or(true)
     }
 
     fn is_empty(&self) -> bool {
-        self.ref_arrays().is_empty()
+        self.ref_sequences().is_empty()
     }
 
-    fn data_types(&self) -> Vec<DataType> {
-        self.ref_arrays()
-            .iter()
-            .map(|e| e.data_type())
-            .cloned()
-            .collect()
+    fn data_types(&self) -> Vec<&DataType> {
+        self.ref_sequences().iter().map(|e| e.data_type()).collect()
     }
 
     fn data_types_match<T: InnerSheaf>(&self, d: &T) -> bool {
+        self.width() == d.width() && self.data_types() == d.data_types()
+    }
+}
+
+// ================================================================================================
+// InnerSheafContainer
+//
+// Replacement of InnerChunkingContainer
+// ================================================================================================
+
+#[doc(hidden)]
+pub trait InnerSheafContainer<I, C>
+where
+    I: Hash,
+    C: InnerSheaf,
+{
+    fn empty() -> Self
+    where
+        Self: Sized;
+
+    fn ref_schema(&self) -> &Schema;
+
+    fn ref_container(&self) -> Vec<&C>;
+
+    fn get_chunk(&self, key: I) -> FxResult<&C>;
+
+    fn get_mut_chunk(&mut self, key: I) -> FxResult<&mut C>;
+
+    fn insert_chunk_type_unchecked(&mut self, key: I, data: C) -> FxResult<()>;
+
+    fn remove_chunk(&mut self, key: I) -> FxResult<()>;
+
+    fn push_chunk_type_unchecked(&mut self, data: C) -> FxResult<()>;
+
+    fn pop_chunk(&mut self) -> FxResult<()>;
+
+    fn take_container(self) -> Vec<C>;
+
+    // default implementations
+
+    fn length(&self) -> usize {
+        self.ref_container().len()
+    }
+
+    fn width(&self) -> usize {
+        self.ref_schema().fields.len()
+    }
+
+    fn size(&self) -> (usize, usize) {
+        (self.length(), self.width())
+    }
+
+    fn is_empty(&self) -> bool {
+        self.ref_container().is_empty()
+    }
+
+    fn data_types(&self) -> Vec<&DataType> {
+        self.ref_schema()
+            .fields
+            .iter()
+            .map(|f| f.data_type())
+            .collect::<Vec<_>>()
+    }
+
+    fn data_types_check(&self, c: &C) -> bool {
+        self.width() == c.width() && self.data_types() == c.data_types()
+    }
+
+    fn data_types_match<T>(&self, d: &T) -> bool
+    where
+        T: InnerSheafContainer<I, C>,
+    {
         self.width() == d.width() && self.data_types() == d.data_types()
     }
 }

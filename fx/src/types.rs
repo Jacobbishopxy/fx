@@ -3,7 +3,12 @@
 //! date: 2023/01/14 19:12:30 Saturday
 //! brief: Types
 
+use std::sync::Arc;
+
 use arrow2::array::*;
+
+pub type ArcArr = Arc<dyn Array>;
+pub type ArcVec = Arc<dyn MutableArray>;
 
 pub(crate) type BA = BooleanArray;
 pub(crate) type PAi8 = PrimitiveArray<i8>;

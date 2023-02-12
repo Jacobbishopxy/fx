@@ -6,7 +6,6 @@
 use std::any::Any;
 use std::sync::Arc;
 
-use arrow2::array::{Array, MutableArray};
 use arrow2::datatypes::DataType;
 
 use super::{arr_to_vec, arr_to_vec_p};
@@ -16,9 +15,6 @@ use crate::{FxError, FxResult};
 // ================================================================================================
 // Sqq
 // ================================================================================================
-
-pub type ArcArr = Arc<dyn Array>;
-pub type ArcVec = Arc<dyn MutableArray>;
 
 pub trait FxSeq {
     fn as_any(&self) -> &dyn Any;
