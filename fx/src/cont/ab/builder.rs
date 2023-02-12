@@ -236,3 +236,84 @@ mod test_builder {
         println!("{d:?}");
     }
 }
+
+/// another builder test case for schemed container
+#[cfg(test)]
+mod test_schemed_builder {
+
+    use crate::{FxArray, FxBatch, NullableOptions};
+
+    use super::*;
+
+    #[allow(dead_code)]
+    struct Users {
+        id: i32,
+        name: String,
+        check: Option<bool>,
+    }
+
+    #[derive(Debug, Default)]
+    struct UsersChunkingBuild {
+        id: Vec<i32>,
+        name: Vec<String>,
+        check: Vec<Option<bool>>,
+    }
+
+    impl FxChunkingRowBuilder<Users, FxBatch> for UsersChunkingBuild {
+        fn new() -> Self {
+            Self::default()
+        }
+
+        fn stack(&mut self, row: Users) -> &mut Self {
+            self.id.push(row.id);
+            self.name.push(row.name);
+            self.check.push(row.check);
+
+            self
+        }
+
+        fn build(self) -> FxResult<FxBatch> {
+            FxBatch::try_new(
+                ["id", "name", "check"],
+                vec![
+                    FxArray::from(self.id).into_array(),
+                    FxArray::from(self.name).into_array(),
+                    FxArray::from(self.check).into_array(),
+                ],
+                NullableOptions::indexed_true([2]),
+            )
+        }
+    }
+
+    impl FxChunkingRowBuilderGenerator<FxBatch> for Users {
+        type Builder = UsersChunkingBuild;
+
+        fn gen_chunking_row_builder() -> Self::Builder {
+            UsersChunkingBuild::new()
+        }
+    }
+
+    #[test]
+    fn chunking_builder_success() {
+        let r1 = Users {
+            id: 1,
+            name: "Jacob".to_string(),
+            check: Some(true),
+        };
+
+        let r2 = Users {
+            id: 2,
+            name: "Mia".to_string(),
+            check: None,
+        };
+
+        // 3. generate `FxGrid` from builder
+        let mut bd = Users::gen_chunking_row_builder();
+
+        bd.stack(r1).stack(r2);
+
+        let d = bd.build();
+
+        println!("{d:?}");
+    }
+}

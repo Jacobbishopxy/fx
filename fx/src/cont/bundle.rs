@@ -5,7 +5,7 @@
 
 use arrow2::datatypes::{DataType, Field, Schema};
 
-use crate::cont::ab::{private, Chunking, ChunkingContainer};
+use crate::cont::ab::{private, Chunking};
 use crate::{FxError, FxResult, NullableOptions};
 
 #[derive(Debug, Clone)]

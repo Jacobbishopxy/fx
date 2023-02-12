@@ -5,9 +5,9 @@
 
 use std::sync::Arc;
 
+use arrow2::array::*;
 use arrow2::chunk::Chunk;
-use arrow2::datatypes::Schema;
-use arrow2::{array::*, datatypes::Field};
+use arrow2::datatypes::{Field, Schema};
 
 use crate::cont::ab::private;
 use crate::{FxResult, NullableOptions};
