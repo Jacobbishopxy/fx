@@ -61,7 +61,7 @@ pub trait InnerSheaf {
     fn is_lens_same(&self) -> bool {
         let l = self.lens();
 
-        l.get(0)
+        l.first()
             .map(|first| l.iter().all(|x| x == first))
             .unwrap_or(true)
     }

@@ -6,9 +6,9 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 
 ```txt
     .
-    ├── examples
     ├── fx
     │   ├── src
+    │   │   ├── bin
     │   │   ├── cont
     │   │   │   ├── ab
     │   │   │   │   ├── builder.rs
@@ -16,7 +16,8 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   │   │   ├── container.rs
     │   │   │   │   ├── mod.rs
     │   │   │   │   ├── private.rs
-    │   │   │   │   └── seq.rs
+    │   │   │   │   ├── seq.rs
+    │   │   │   │   └── sheaf.rs
     │   │   │   ├── array.rs
     │   │   │   ├── batch.rs
     │   │   │   ├── bundle.rs

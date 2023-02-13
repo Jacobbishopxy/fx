@@ -1,7 +1,7 @@
     .
-    ├── examples
     ├── fx
     │   ├── src
+    │   │   ├── bin
     │   │   ├── cont
     │   │   │   ├── ab
     │   │   │   │   ├── builder.rs
@@ -9,7 +9,8 @@
     │   │   │   │   ├── container.rs
     │   │   │   │   ├── mod.rs
     │   │   │   │   ├── private.rs
-    │   │   │   │   └── seq.rs
+    │   │   │   │   ├── seq.rs
+    │   │   │   │   └── sheaf.rs
     │   │   │   ├── array.rs
     │   │   │   ├── batch.rs
     │   │   │   ├── bundle.rs

@@ -38,7 +38,7 @@ pub trait FxSeq {
 
 impl FxSeq for ArcArr {
     fn as_any(&self) -> &dyn Any {
-        (&**self).as_any()
+        (**self).as_any()
     }
 
     fn as_any_mut(&mut self) -> Option<&mut dyn Any> {
@@ -46,21 +46,19 @@ impl FxSeq for ArcArr {
     }
 
     fn len(&self) -> usize {
-        (&**self).len()
+        (**self).len()
     }
 
     fn is_empty(&self) -> bool {
-        (&**self).is_empty()
+        (**self).is_empty()
     }
 
     fn data_type(&self) -> &DataType {
-        (&**self).data_type()
+        (**self).data_type()
     }
 
     fn get_nulls(&self) -> Option<Vec<bool>> {
-        self.validity()
-            .as_ref()
-            .map(|bm| bm.iter().map(|i| i).collect())
+        self.validity().as_ref().map(|bm| bm.iter().collect())
     }
 
     fn is_null(&self, idx: usize) -> Option<bool> {
@@ -92,7 +90,7 @@ impl FxSeq for ArcArr {
 
 impl FxSeq for ArcVec {
     fn as_any(&self) -> &dyn Any {
-        (&**self).as_any()
+        (**self).as_any()
     }
 
     fn as_any_mut(&mut self) -> Option<&mut dyn Any> {
@@ -100,21 +98,19 @@ impl FxSeq for ArcVec {
     }
 
     fn len(&self) -> usize {
-        (&**self).len()
+        (**self).len()
     }
 
     fn is_empty(&self) -> bool {
-        (&**self).is_empty()
+        (**self).is_empty()
     }
 
     fn data_type(&self) -> &DataType {
-        (&**self).data_type()
+        (**self).data_type()
     }
 
     fn get_nulls(&self) -> Option<Vec<bool>> {
-        self.validity()
-            .as_ref()
-            .map(|bm| bm.iter().map(|i| i).collect())
+        self.validity().as_ref().map(|bm| bm.iter().collect())
     }
 
     fn is_null(&self, idx: usize) -> Option<bool> {
