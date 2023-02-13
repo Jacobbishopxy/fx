@@ -4,8 +4,11 @@
 //! brief: Seq
 
 use std::any::Any;
+use std::ops::Deref;
 use std::sync::Arc;
 
+// use arrow2::array::TryPush;
+use arrow2::compute::concatenate::concatenate;
 use arrow2::datatypes::DataType;
 
 use super::{arr_to_vec, arr_to_vec_p};
@@ -13,7 +16,7 @@ use crate::types::*;
 use crate::{FxError, FxResult};
 
 // ================================================================================================
-// Sqq
+// Seq
 // ================================================================================================
 
 pub trait FxSeq {
@@ -34,6 +37,8 @@ pub trait FxSeq {
     fn to_array(self) -> FxResult<ArcArr>;
 
     fn to_vector(self) -> FxResult<ArcVec>;
+
+    fn concat(&mut self, s: &Self) -> FxResult<&mut Self>;
 }
 
 impl FxSeq for ArcArr {
@@ -86,6 +91,13 @@ impl FxSeq for ArcArr {
             _ => Err(FxError::FailedToConvert),
         }
     }
+
+    fn concat(&mut self, s: &ArcArr) -> FxResult<&mut Self> {
+        let ct = concatenate(&[self.as_ref(), s.deref()])?;
+        *self = Arc::from(ct);
+
+        Ok(self)
+    }
 }
 
 impl FxSeq for ArcVec {
@@ -127,5 +139,35 @@ impl FxSeq for ArcVec {
 
     fn to_vector(self) -> FxResult<ArcVec> {
         Ok(self)
+    }
+
+    fn concat(&mut self, s: &Self) -> FxResult<&mut Self> {
+        match &self.data_type() {
+            DataType::Boolean => {
+                // TODO extract dwn_cst
+
+                let fo = self
+                    .as_any_mut()
+                    .ok_or(FxError::InvalidDowncast)?
+                    .downcast_mut::<MB>()
+                    .ok_or(FxError::FailedToConvert)?;
+
+                // TODO
+
+                Ok(self)
+            }
+            DataType::Int8 => todo!(),
+            DataType::Int16 => todo!(),
+            DataType::Int32 => todo!(),
+            DataType::Int64 => todo!(),
+            DataType::UInt8 => todo!(),
+            DataType::UInt16 => todo!(),
+            DataType::UInt32 => todo!(),
+            DataType::UInt64 => todo!(),
+            DataType::Float32 => todo!(),
+            DataType::Float64 => todo!(),
+            DataType::Utf8 => todo!(),
+            _ => Err(FxError::FailedToConvert),
+        }
     }
 }
