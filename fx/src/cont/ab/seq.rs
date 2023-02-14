@@ -48,6 +48,10 @@ pub trait FxSeq {
 
     fn get_nulls(&self) -> Option<Vec<bool>>;
 
+    fn has_null(&self) -> bool {
+        self.get_nulls().is_some()
+    }
+
     fn is_null(&self, idx: usize) -> Option<bool>;
 
     fn to_array(self) -> FxResult<ArcArr>;

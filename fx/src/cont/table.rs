@@ -3,7 +3,7 @@
 //! date: 2023/02/14 17:25:37 Tuesday
 //! brief: Table
 
-use arrow2::datatypes::Schema;
+use arrow2::datatypes::{Field, Schema};
 
 use crate::{FxError, FxResult};
 
@@ -14,6 +14,7 @@ use super::ab::{private, FxSeq};
 // ================================================================================================
 
 /// A scalable FxSeq container
+#[derive(Debug, Clone)]
 pub struct FxTable<S: FxSeq> {
     schema: Schema,
     data: Vec<S>,
@@ -23,8 +24,40 @@ impl<S> FxTable<S>
 where
     S: FxSeq,
 {
-    pub fn new() -> Self {
-        todo!()
+    pub fn new<I, T>(data: Vec<S>, names: Option<I>) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: AsRef<str>,
+    {
+        // default columns names
+        let cols = (0..data.len()).map(|i| format!("Col_{i:?}"));
+
+        let names = match names {
+            Some(ns) => {
+                let mut ns = ns
+                    .into_iter()
+                    .map(|e| e.as_ref().to_string())
+                    .collect::<Vec<_>>();
+                let (ns_size, cl_size) = (ns.len(), cols.size_hint().0);
+
+                if ns_size < cl_size {
+                    ns.extend(cols.skip(ns_size).collect::<Vec<_>>())
+                }
+
+                ns
+            }
+            None => cols.collect(),
+        };
+
+        let fields = data
+            .iter()
+            .zip(names)
+            .map(|(d, n)| Field::new(n, d.data_type().clone(), d.has_null()))
+            .collect::<Vec<_>>();
+
+        let schema = Schema::from(fields);
+
+        Self { schema, data }
     }
 
     pub fn schema(&self) -> &Schema {
@@ -133,7 +166,45 @@ where
 
 #[cfg(test)]
 mod test_table {
+    use super::*;
+
     use crate::{cont::ab::Sheaf, FxArray, FxVector};
+
+    #[test]
+    fn create_new_table_name_none_succes() {
+        let a = FxArray::from(vec![None, Some("x")]).into_array();
+        let b = FxArray::from(vec![None, Some(2), None]).into_array();
+
+        let vaa = vec![a, b];
+
+        let table = FxTable::new(vaa, Option::<&[&str]>::None);
+
+        println!("{table:?}",);
+    }
+
+    #[test]
+    fn create_new_table_name_less_succes() {
+        let a = FxArray::from(vec![None, Some("x")]).into_array();
+        let b = FxArray::from(vec![None, Some(2), None]).into_array();
+
+        let vaa = vec![a, b];
+
+        let table = FxTable::new(vaa, Some(["1"]));
+
+        println!("{table:?}",);
+    }
+
+    #[test]
+    fn create_new_table_name_more_succes() {
+        let a = FxArray::from(vec![None, Some("x")]).into_array();
+        let b = FxArray::from(vec![None, Some(2), None]).into_array();
+
+        let vaa = vec![a, b];
+
+        let table = FxTable::new(vaa, Some(["1", "2", "3"]));
+
+        println!("{table:?}",);
+    }
 
     #[test]
     fn test_vec_of_arc_arr() {
