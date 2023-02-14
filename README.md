@@ -86,6 +86,6 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 
 ## Todo
 
-- Use a new structure which can hold either `Array` or `Vector`
+- declarative macros for each container
 
 - Let I/O satisfies all containers

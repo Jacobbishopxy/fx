@@ -64,11 +64,11 @@ pub trait Sheaf: private::InnerSheaf + Clone {
         unimplemented!()
     }
 
-    fn extent<T: Sheaf<Seq = Self::Seq>>(&mut self, d: &T) -> FxResult<&mut Self> {
-        self.concat(&[d.clone()])
+    fn try_extent<T: Sheaf<Seq = Self::Seq>>(&mut self, d: &T) -> FxResult<&mut Self> {
+        self.try_concat(&[d.clone()])
     }
 
-    fn concat<T: Sheaf<Seq = Self::Seq>>(&mut self, d: &[T]) -> FxResult<&mut Self> {
+    fn try_concat<T: Sheaf<Seq = Self::Seq>>(&mut self, d: &[T]) -> FxResult<&mut Self> {
         for e in d.iter() {
             if !Sheaf::data_types_match(self, e) {
                 return Err(FxError::SchemaMismatch);
