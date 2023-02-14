@@ -8,10 +8,11 @@ use std::ops::Deref;
 use std::sync::Arc;
 
 // use arrow2::array::TryPush;
+use arrow2::array::TryExtendFromSelf;
 use arrow2::compute::concatenate::concatenate;
 use arrow2::datatypes::DataType;
 
-use super::{arr_to_vec, arr_to_vec_p};
+use super::{arr_to_vec, arr_to_vec_p, try_ext_from_slf};
 use crate::types::*;
 use crate::{FxError, FxResult};
 
@@ -23,6 +24,21 @@ pub trait FxSeq {
     fn as_any(&self) -> &dyn Any;
 
     fn as_any_mut(&mut self) -> Option<&mut dyn Any>;
+
+    // default impl
+    fn as_typed<T: 'static>(&self) -> FxResult<&T> {
+        self.as_any()
+            .downcast_ref::<T>()
+            .ok_or(FxError::InvalidDowncast)
+    }
+
+    // default impl
+    fn as_typed_mut<T: 'static>(&mut self) -> FxResult<&mut T> {
+        self.as_any_mut()
+            .ok_or(FxError::InvalidDowncast)?
+            .downcast_mut::<T>()
+            .ok_or(FxError::InvalidDowncast)
+    }
 
     fn len(&self) -> usize;
 
@@ -38,7 +54,15 @@ pub trait FxSeq {
 
     fn to_vector(self) -> FxResult<ArcVec>;
 
-    fn concat(&mut self, s: &Self) -> FxResult<&mut Self>;
+    fn extend(&mut self, s: &Self) -> FxResult<&mut Self>;
+
+    fn concat(&mut self, ss: &[&Self]) -> FxResult<&mut Self> {
+        for s in ss {
+            Self::extend(self, s)?;
+        }
+
+        Ok(self)
+    }
 }
 
 impl FxSeq for ArcArr {
@@ -92,7 +116,7 @@ impl FxSeq for ArcArr {
         }
     }
 
-    fn concat(&mut self, s: &ArcArr) -> FxResult<&mut Self> {
+    fn extend(&mut self, s: &ArcArr) -> FxResult<&mut Self> {
         let ct = concatenate(&[self.as_ref(), s.deref()])?;
         *self = Arc::from(ct);
 
@@ -141,32 +165,20 @@ impl FxSeq for ArcVec {
         Ok(self)
     }
 
-    fn concat(&mut self, s: &Self) -> FxResult<&mut Self> {
+    fn extend(&mut self, s: &Self) -> FxResult<&mut Self> {
         match &self.data_type() {
-            DataType::Boolean => {
-                // TODO extract dwn_cst
-
-                let fo = self
-                    .as_any_mut()
-                    .ok_or(FxError::InvalidDowncast)?
-                    .downcast_mut::<MB>()
-                    .ok_or(FxError::FailedToConvert)?;
-
-                // TODO
-
-                Ok(self)
-            }
-            DataType::Int8 => todo!(),
-            DataType::Int16 => todo!(),
-            DataType::Int32 => todo!(),
-            DataType::Int64 => todo!(),
-            DataType::UInt8 => todo!(),
-            DataType::UInt16 => todo!(),
-            DataType::UInt32 => todo!(),
-            DataType::UInt64 => todo!(),
-            DataType::Float32 => todo!(),
-            DataType::Float64 => todo!(),
-            DataType::Utf8 => todo!(),
+            DataType::Boolean => try_ext_from_slf!(self, s, MB),
+            DataType::Int8 => try_ext_from_slf!(self, s, MPAi8),
+            DataType::Int16 => try_ext_from_slf!(self, s, MPAi16),
+            DataType::Int32 => try_ext_from_slf!(self, s, MPAi32),
+            DataType::Int64 => try_ext_from_slf!(self, s, MPAi64),
+            DataType::UInt8 => try_ext_from_slf!(self, s, MPAu8),
+            DataType::UInt16 => try_ext_from_slf!(self, s, MPAu16),
+            DataType::UInt32 => try_ext_from_slf!(self, s, MPAu32),
+            DataType::UInt64 => try_ext_from_slf!(self, s, MPAu64),
+            DataType::Float32 => try_ext_from_slf!(self, s, MPAf32),
+            DataType::Float64 => try_ext_from_slf!(self, s, MPAf64),
+            DataType::Utf8 => try_ext_from_slf!(self, s, MU),
             _ => Err(FxError::FailedToConvert),
         }
     }

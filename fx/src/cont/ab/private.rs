@@ -31,7 +31,9 @@ pub trait InnerSheaf {
 
     fn ref_sequences(&self) -> &[Self::Seq];
 
-    fn set_sequences(&mut self, arrays: Vec<Self::Seq>);
+    fn mut_sequences(&mut self) -> &mut [Self::Seq];
+
+    fn set_sequences(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()>;
 
     fn take_sequences(self) -> Vec<Self::Seq>;
 

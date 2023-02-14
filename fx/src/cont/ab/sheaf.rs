@@ -9,6 +9,8 @@ use crate::cont::ab::private;
 use crate::types::ArcArr;
 use crate::{FxError, FxResult};
 
+use super::FxSeq;
+
 pub trait Sheaf: private::InnerSheaf + Clone {
     fn empty() -> Self {
         private::InnerSheaf::empty()
@@ -73,18 +75,17 @@ pub trait Sheaf: private::InnerSheaf + Clone {
             }
         }
 
-        let mut cols = self.sequences().iter().map(|e| vec![e]).collect::<Vec<_>>();
+        let cols = self.mut_sequences();
 
         for sheaf in d.iter() {
-            cols.iter_mut()
-                .zip(sheaf.sequences().iter())
-                .for_each(|(s, a)| s.push(a));
+            let zp = cols.iter_mut().zip(sheaf.sequences().iter());
+            for (s, a) in zp {
+                s.extend(a)?;
+            }
         }
 
-        todo!()
+        Ok(self)
     }
-
-    // TODO: see `Chunking`
 }
 
 impl<T> Sheaf for T where T: private::InnerSheaf + Clone {}
