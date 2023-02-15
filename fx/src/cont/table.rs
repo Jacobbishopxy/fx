@@ -24,12 +24,13 @@ impl<S> FxTable<S>
 where
     S: FxSeq,
 {
-    pub fn new<I, T>(data: Vec<S>, names: Option<I>) -> Self
+    /// private method, use `new` & `new_with_names` for public constructors
+    fn _new<I, T>(data: Vec<S>, names: Option<I>) -> Self
     where
         I: IntoIterator<Item = T>,
         T: AsRef<str>,
     {
-        // default columns names
+        // default columns names, based on data's length
         let cols = (0..data.len()).map(|i| format!("Col_{i:?}"));
 
         let names = match names {
@@ -40,9 +41,13 @@ where
                     .collect::<Vec<_>>();
                 let (ns_size, cl_size) = (ns.len(), cols.size_hint().0);
 
+                // if names' length is shorter than data's length, then use defual `cols` to fill the empties
                 if ns_size < cl_size {
                     ns.extend(cols.skip(ns_size).collect::<Vec<_>>())
                 }
+                // another situation is when names' lenght is greater than data's length, whereas the following
+                // `data.iter().zip(names)` would only iterate through the shortest iterator. Hence, there is
+                // no need to handle the rest of situations (greater or equal).
 
                 ns
             }
@@ -58,6 +63,18 @@ where
         let schema = Schema::from(fields);
 
         Self { schema, data }
+    }
+
+    pub fn new(data: Vec<S>) -> Self {
+        FxTable::_new(data, Option::<&[&str]>::None)
+    }
+
+    pub fn new_with_names<I, T>(data: Vec<S>, names: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: AsRef<str>,
+    {
+        FxTable::_new(data, Some(names))
     }
 
     pub fn schema(&self) -> &Schema {
@@ -171,13 +188,13 @@ mod test_table {
     use crate::{cont::ab::Sheaf, FxArray, FxVector};
 
     #[test]
-    fn create_new_table_name_none_succes() {
+    fn create_new_table_succes() {
         let a = FxArray::from(vec![None, Some("x")]).into_array();
         let b = FxArray::from(vec![None, Some(2), None]).into_array();
 
         let vaa = vec![a, b];
 
-        let table = FxTable::new(vaa, Option::<&[&str]>::None);
+        let table = FxTable::new(vaa);
 
         println!("{table:?}",);
     }
@@ -189,7 +206,7 @@ mod test_table {
 
         let vaa = vec![a, b];
 
-        let table = FxTable::new(vaa, Some(["1"]));
+        let table = FxTable::new_with_names(vaa, ["1"]);
 
         println!("{table:?}",);
     }
@@ -201,7 +218,7 @@ mod test_table {
 
         let vaa = vec![a, b];
 
-        let table = FxTable::new(vaa, Some(["1", "2", "3"]));
+        let table = FxTable::new_with_names(vaa, ["1", "2", "3"]);
 
         println!("{table:?}",);
     }
@@ -222,19 +239,33 @@ mod test_table {
         let a = FxVector::from(vec![None, Some(1)]).into_mutable_array();
         let b = FxVector::from(vec![None, Some("y"), None]).into_mutable_array();
 
-        let vaa = vec![a, b];
+        let vam = vec![a, b];
 
-        println!("{:?}", vaa.lens());
-        println!("{:?}", vaa.data_types());
+        println!("{:?}", vam.lens());
+        println!("{:?}", vam.data_types());
     }
 
     #[test]
     fn test_table_of_arc_arr() {
-        unimplemented!();
+        let a = FxArray::from(vec![None, Some("x")]).into_array();
+        let b = FxArray::from(vec![None, Some(2), None]).into_array();
+
+        let vaa = vec![a, b];
+
+        let table = FxTable::new(vaa);
+
+        println!("{table:?}");
     }
 
     #[test]
     fn test_table_of_arc_vec() {
-        unimplemented!();
+        let a = FxVector::from(vec![None, Some(1)]).into_mutable_array();
+        let b = FxVector::from(vec![None, Some("y"), None]).into_mutable_array();
+
+        let vam = vec![a, b];
+
+        let table = FxTable::new_with_names(vam, ["a"]);
+
+        println!("{table:?}");
     }
 }
