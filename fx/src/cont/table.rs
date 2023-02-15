@@ -3,11 +3,12 @@
 //! date: 2023/02/14 17:25:37 Tuesday
 //! brief: Table
 
-use arrow2::datatypes::{Field, Schema};
+use arrow2::datatypes::Schema;
+use inherent::inherent;
 
 use crate::{FxError, FxResult};
 
-use super::ab::{private, FxSeq};
+use super::ab::{private, FxSeq, Purport};
 
 // ================================================================================================
 // FxTable
@@ -20,53 +21,25 @@ pub struct FxTable<S: FxSeq> {
     data: Vec<S>,
 }
 
+#[inherent]
+impl<S> Purport for FxTable<S>
+where
+    S: FxSeq,
+{
+    pub fn schema(&self) -> &Schema {
+        &self.schema
+    }
+}
+
 impl<S> FxTable<S>
 where
     S: FxSeq,
 {
-    /// private method, use `new` & `new_with_names` for public constructors
-    fn _new<I, T>(data: Vec<S>, names: Option<I>) -> Self
-    where
-        I: IntoIterator<Item = T>,
-        T: AsRef<str>,
-    {
-        // default columns names, based on data's length
-        let cols = (0..data.len()).map(|i| format!("Col_{i:?}"));
-
-        let names = match names {
-            Some(ns) => {
-                let mut ns = ns
-                    .into_iter()
-                    .map(|e| e.as_ref().to_string())
-                    .collect::<Vec<_>>();
-                let (ns_size, cl_size) = (ns.len(), cols.size_hint().0);
-
-                // if names' length is shorter than data's length, then use defual `cols` to fill the empties
-                if ns_size < cl_size {
-                    ns.extend(cols.skip(ns_size).collect::<Vec<_>>())
-                }
-                // another situation is when names' lenght is greater than data's length, whereas the following
-                // `data.iter().zip(names)` would only iterate through the shortest iterator. Hence, there is
-                // no need to handle the rest of situations (greater or equal).
-
-                ns
-            }
-            None => cols.collect(),
-        };
-
-        let fields = data
-            .iter()
-            .zip(names)
-            .map(|(d, n)| Field::new(n, d.data_type().clone(), d.has_null()))
-            .collect::<Vec<_>>();
-
-        let schema = Schema::from(fields);
-
-        Self { schema, data }
-    }
-
     pub fn new(data: Vec<S>) -> Self {
-        FxTable::_new(data, Option::<&[&str]>::None)
+        Self {
+            schema: Self::gen_schema(&data),
+            data,
+        }
     }
 
     pub fn new_with_names<I, T>(data: Vec<S>, names: I) -> Self
@@ -74,11 +47,10 @@ where
         I: IntoIterator<Item = T>,
         T: AsRef<str>,
     {
-        FxTable::_new(data, Some(names))
-    }
-
-    pub fn schema(&self) -> &Schema {
-        &self.schema
+        Self {
+            schema: Self::gen_schema_with_names(&data, names),
+            data,
+        }
     }
 
     pub fn data(&self) -> &Vec<S> {

@@ -8,7 +8,6 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     .
     ├── fx
     │   ├── src
-    │   │   ├── bin
     │   │   ├── cont
     │   │   │   ├── ab
     │   │   │   │   ├── builder.rs
@@ -16,6 +15,7 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   │   │   ├── container.rs
     │   │   │   │   ├── mod.rs
     │   │   │   │   ├── private.rs
+    │   │   │   │   ├── purport.rs
     │   │   │   │   ├── seq.rs
     │   │   │   │   └── sheaf.rs
     │   │   │   ├── array.rs
@@ -73,6 +73,7 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
   - `thiserror`
   - `tokio`
   - `ref-cast`
+  - `inherent`
 
 - fx-macros
 
@@ -85,6 +86,12 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 - To get a tree view of this project, run `cargo make --makefile fx.toml tree`
 
 ## Todo
+
+- cont/ab reduction: replace `chunking` by `sheaf`
+
+- new row builders
+
+- test `inherent` crate in `fx-macros` (for builders)
 
 - declarative macros for each container
 
