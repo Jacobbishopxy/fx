@@ -11,7 +11,6 @@ use arrow2::chunk::Chunk;
 use arrow2::datatypes::{DataType, Schema};
 
 use crate::cont::ab::FxSeq;
-use crate::types::ArcArr;
 use crate::FxResult;
 
 // ================================================================================================
@@ -36,8 +35,6 @@ pub trait InnerSheaf {
     fn set_sequences(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()>;
 
     fn take_sequences(self) -> Vec<Self::Seq>;
-
-    fn take_chunk(self) -> Chunk<ArcArr>;
 
     // default implementations
 

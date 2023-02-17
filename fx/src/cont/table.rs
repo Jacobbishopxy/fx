@@ -96,10 +96,6 @@ where
     fn take_sequences(self) -> Vec<Self::Seq> {
         self
     }
-
-    fn take_chunk(self) -> arrow2::chunk::Chunk<crate::types::ArcArr> {
-        todo!()
-    }
 }
 
 // ================================================================================================
@@ -142,10 +138,6 @@ where
 
     fn take_sequences(self) -> Vec<Self::Seq> {
         self.data
-    }
-
-    fn take_chunk(self) -> arrow2::chunk::Chunk<crate::types::ArcArr> {
-        todo!()
     }
 }
 

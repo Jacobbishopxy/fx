@@ -3,10 +3,9 @@
 //! date: 2023/02/12 22:33:08 Sunday
 //! brief: Sheaf & Container
 
-use arrow2::{chunk::Chunk, datatypes::DataType};
+use arrow2::datatypes::DataType;
 
 use crate::cont::ab::private;
-use crate::types::ArcArr;
 use crate::{FxError, FxResult};
 
 use super::FxSeq;
@@ -54,10 +53,6 @@ pub trait Sheaf: private::InnerSheaf + Clone {
 
     fn into_sequences(self) -> Vec<Self::Seq> {
         self.take_sequences()
-    }
-
-    fn into_chunk(self) -> Chunk<ArcArr> {
-        self.take_chunk()
     }
 
     fn slice() {

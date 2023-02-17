@@ -87,6 +87,8 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 
 ## Todo
 
+- before replacing `chunking` by `sheaf`, need a new trait to describe lengths have the same length
+
 - cont/ab reduction: replace `chunking` by `sheaf`
 
 - new row builders
