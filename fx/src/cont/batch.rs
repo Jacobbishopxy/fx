@@ -74,25 +74,25 @@ impl FxBatch {
 
 #[cfg(test)]
 mod test_batch {
-    use super::*;
-    use crate::{cont::ab::Chunking, FromSlice, FxArray};
+    // use super::*;
+    // use crate::{cont::ab::Chunking, FromSlice, FxArray};
 
-    #[test]
-    fn new_fx_batch_should_be_successful() {
-        let arrays = vec![
-            FxArray::from_slice(&["a", "c", "x"]).into_array(),
-            FxArray::from(vec![Some("x"), None, Some("y")]).into_array(),
-            FxArray::from_slice(&[true, false, false]).into_array(),
-        ];
+    // #[test]
+    // fn new_fx_batch_should_be_successful() {
+    //     let arrays = vec![
+    //         FxArray::from_slice(&["a", "c", "x"]).into_array(),
+    //         FxArray::from(vec![Some("x"), None, Some("y")]).into_array(),
+    //         FxArray::from_slice(&[true, false, false]).into_array(),
+    //     ];
 
-        let names = &["col1", "col2", "col3"];
+    //     let names = &["col1", "col2", "col3"];
 
-        let batch = FxBatch::try_new(names, arrays, NullableOptions::indexed_true([2]));
+    //     let batch = FxBatch::try_new(names, arrays, NullableOptions::indexed_true([2]));
 
-        assert!(batch.is_ok());
+    //     assert!(batch.is_ok());
 
-        let batch = batch.unwrap();
-        println!("{batch:?}");
-        println!("{:?}", batch.validities());
-    }
+    //     let batch = batch.unwrap();
+    //     println!("{batch:?}");
+    //     println!("{:?}", batch.validities());
+    // }
 }

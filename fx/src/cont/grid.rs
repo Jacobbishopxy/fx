@@ -8,7 +8,7 @@ use arrow2::datatypes::{Field, Schema};
 use ref_cast::RefCast;
 
 use crate::cont::ab::{private, Chunking};
-use crate::{FxArray, FxError, FxResult};
+use crate::{FxError, FxResult};
 
 // ================================================================================================
 // FxGrid
@@ -68,40 +68,40 @@ impl FxGrid {
 // FxGridColWiseBuilder
 // ================================================================================================
 
-#[derive(Debug)]
-pub struct FxGridColWiseBuilder<const S: usize> {
-    buffer: [Option<FxArray>; S],
-}
+// #[derive(Debug)]
+// pub struct FxGridColWiseBuilder<const S: usize> {
+//     buffer: [Option<FxArray>; S],
+// }
 
-impl<const S: usize> Default for FxGridColWiseBuilder<S> {
-    fn default() -> Self {
-        Self {
-            buffer: [(); S].map(|_| None),
-        }
-    }
-}
+// impl<const S: usize> Default for FxGridColWiseBuilder<S> {
+//     fn default() -> Self {
+//         Self {
+//             buffer: [(); S].map(|_| None),
+//         }
+//     }
+// }
 
-impl<const S: usize> FxGridColWiseBuilder<S> {
-    pub fn new() -> Self {
-        Self::default()
-    }
+// impl<const S: usize> FxGridColWiseBuilder<S> {
+//     pub fn new() -> Self {
+//         Self::default()
+//     }
 
-    pub fn stack<T: Into<FxArray>>(&mut self, arr: T) -> &mut Self {
-        for e in self.buffer.iter_mut() {
-            if e.is_none() {
-                *e = Some(arr.into());
-                break;
-            }
-        }
+//     pub fn stack<T: Into<FxArray>>(&mut self, arr: T) -> &mut Self {
+//         for e in self.buffer.iter_mut() {
+//             if e.is_none() {
+//                 *e = Some(arr.into());
+//                 break;
+//             }
+//         }
 
-        self
-    }
+//         self
+//     }
 
-    pub fn build(self) -> FxResult<FxGrid> {
-        let vec = self.buffer.into_iter().flatten().collect::<Vec<_>>();
-        FxGrid::try_from(vec)
-    }
-}
+//     pub fn build(self) -> FxResult<FxGrid> {
+//         let vec = self.buffer.into_iter().flatten().collect::<Vec<_>>();
+//         FxGrid::try_from(vec)
+//     }
+// }
 
 // ================================================================================================
 // Test
@@ -109,91 +109,91 @@ impl<const S: usize> FxGridColWiseBuilder<S> {
 
 #[cfg(test)]
 mod test_grid {
-    use crate::cont::ab::*;
+    // use crate::cont::ab::*;
 
-    use super::*;
+    // use super::*;
 
-    #[test]
-    fn grid_builder_col_wise_success() {
-        let mut builder = FxGridColWiseBuilder::<3>::new();
+    // #[test]
+    // fn grid_builder_col_wise_success() {
+    //     let mut builder = FxGridColWiseBuilder::<3>::new();
 
-        builder.stack(vec!["a", "b", "c"]);
-        builder.stack(vec![1, 2, 3]);
-        builder.stack(vec![Some(1.2), None, Some(2.1)]);
+    //     builder.stack(vec!["a", "b", "c"]);
+    //     builder.stack(vec![1, 2, 3]);
+    //     builder.stack(vec![Some(1.2), None, Some(2.1)]);
 
-        let d = builder.build().unwrap();
+    //     let d = builder.build().unwrap();
 
-        println!("{d:?}");
-    }
+    //     println!("{d:?}");
+    // }
 
-    #[test]
-    fn grid_builder_row_wise_proc_macro_success() {
-        use crate::FX;
+    // #[test]
+    // fn grid_builder_row_wise_proc_macro_success() {
+    //     use crate::FX;
 
-        #[allow(dead_code)]
-        #[derive(FX)]
-        #[fx(FxGrid)]
-        struct Users {
-            id: i32,
-            name: String,
-            check: Option<bool>,
-        }
+    //     #[allow(dead_code)]
+    //     #[derive(FX)]
+    //     #[fx(FxGrid)]
+    //     struct Users {
+    //         id: i32,
+    //         name: String,
+    //         check: Option<bool>,
+    //     }
 
-        let r1 = Users {
-            id: 1,
-            name: "Jacob".to_string(),
-            check: Some(true),
-        };
+    //     let r1 = Users {
+    //         id: 1,
+    //         name: "Jacob".to_string(),
+    //         check: Some(true),
+    //     };
 
-        let r2 = Users {
-            id: 2,
-            name: "Mia".to_string(),
-            check: None,
-        };
+    //     let r2 = Users {
+    //         id: 2,
+    //         name: "Mia".to_string(),
+    //         check: None,
+    //     };
 
-        // 3. generate `FxGrid` from builder
-        let mut bd = Users::gen_chunking_row_builder();
+    //     // 3. generate `FxGrid` from builder
+    //     let mut bd = Users::gen_chunking_row_builder();
 
-        bd.stack(r1).stack(r2);
+    //     bd.stack(r1).stack(r2);
 
-        let d = bd.build();
+    //     let d = bd.build();
 
-        println!("{d:?}");
-    }
+    //     println!("{d:?}");
+    // }
 
-    #[test]
-    fn concat_should_be_successful() {
-        let mut builder = FxGridColWiseBuilder::<3>::new();
+    // #[test]
+    // fn concat_should_be_successful() {
+    //     let mut builder = FxGridColWiseBuilder::<3>::new();
 
-        builder.stack(vec!["a", "b", "c"]);
-        builder.stack(vec![1, 2, 3]);
-        builder.stack(vec![Some(1.2), None, Some(2.1)]);
+    //     builder.stack(vec!["a", "b", "c"]);
+    //     builder.stack(vec![1, 2, 3]);
+    //     builder.stack(vec![Some(1.2), None, Some(2.1)]);
 
-        let mut d1 = builder.build().unwrap();
-        println!("{:?}", d1.data_types());
+    //     let mut d1 = builder.build().unwrap();
+    //     println!("{:?}", d1.data_types());
 
-        let mut builder = FxGridColWiseBuilder::<3>::new();
+    //     let mut builder = FxGridColWiseBuilder::<3>::new();
 
-        builder.stack(vec!["d", "e"]);
-        builder.stack(vec![4, 5]);
-        builder.stack(vec![Some(3.3), None]);
+    //     builder.stack(vec!["d", "e"]);
+    //     builder.stack(vec![4, 5]);
+    //     builder.stack(vec![Some(3.3), None]);
 
-        let d2 = builder.build().unwrap();
-        println!("{:?}", d2.data_types());
+    //     let d2 = builder.build().unwrap();
+    //     println!("{:?}", d2.data_types());
 
-        let mut builder = FxGridColWiseBuilder::<3>::new();
+    //     let mut builder = FxGridColWiseBuilder::<3>::new();
 
-        builder.stack(vec!["f"]);
-        builder.stack(vec![6]);
-        builder.stack(vec![Some(4.1)]);
+    //     builder.stack(vec!["f"]);
+    //     builder.stack(vec![6]);
+    //     builder.stack(vec![Some(4.1)]);
 
-        let d3 = builder.build().unwrap();
-        println!("{:?}", d3.data_types());
+    //     let d3 = builder.build().unwrap();
+    //     println!("{:?}", d3.data_types());
 
-        let res = d1.concat(&[d2, d3]);
+    //     let res = d1.concat(&[d2, d3]);
 
-        assert!(res.is_ok());
+    //     assert!(res.is_ok());
 
-        println!("{res:?}");
-    }
+    //     println!("{res:?}");
+    // }
 }

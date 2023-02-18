@@ -62,7 +62,7 @@ where
 // Impl private::InnerSheaf for Vec<FxSeq>
 // ================================================================================================
 
-impl<S> private::InnerSheaf for Vec<S>
+impl<S> private::InnerEclectic for Vec<S>
 where
     S: FxSeq,
 {
@@ -102,7 +102,7 @@ where
 // Impl private::InnerSheaf for FxTable
 // ================================================================================================
 
-impl<S> private::InnerSheaf for FxTable<S>
+impl<S> private::InnerEclectic for FxTable<S>
 where
     S: FxSeq,
 {
@@ -147,89 +147,89 @@ where
 
 #[cfg(test)]
 mod test_table {
-    use super::*;
+    // use super::*;
 
-    use crate::{cont::ab::Sheaf, FxArray, FxVector};
+    // use crate::{cont::ab::Eclectic, FxArray, FxVector};
 
-    #[test]
-    fn create_new_table_succes() {
-        let a = FxArray::from(vec![None, Some("x")]).into_array();
-        let b = FxArray::from(vec![None, Some(2), None]).into_array();
+    // #[test]
+    // fn create_new_table_succes() {
+    //     let a = FxArray::from(vec![None, Some("x")]).into_array();
+    //     let b = FxArray::from(vec![None, Some(2), None]).into_array();
 
-        let vaa = vec![a, b];
+    //     let vaa = vec![a, b];
 
-        let table = FxTable::new(vaa);
+    //     let table = FxTable::new(vaa);
 
-        println!("{table:?}",);
-    }
+    //     println!("{table:?}",);
+    // }
 
-    #[test]
-    fn create_new_table_name_less_succes() {
-        let a = FxArray::from(vec![None, Some("x")]).into_array();
-        let b = FxArray::from(vec![None, Some(2), None]).into_array();
+    // #[test]
+    // fn create_new_table_name_less_succes() {
+    //     let a = FxArray::from(vec![None, Some("x")]).into_array();
+    //     let b = FxArray::from(vec![None, Some(2), None]).into_array();
 
-        let vaa = vec![a, b];
+    //     let vaa = vec![a, b];
 
-        let table = FxTable::new_with_names(vaa, ["1"]);
+    //     let table = FxTable::new_with_names(vaa, ["1"]);
 
-        println!("{table:?}",);
-    }
+    //     println!("{table:?}",);
+    // }
 
-    #[test]
-    fn create_new_table_name_more_succes() {
-        let a = FxArray::from(vec![None, Some("x")]).into_array();
-        let b = FxArray::from(vec![None, Some(2), None]).into_array();
+    // #[test]
+    // fn create_new_table_name_more_succes() {
+    //     let a = FxArray::from(vec![None, Some("x")]).into_array();
+    //     let b = FxArray::from(vec![None, Some(2), None]).into_array();
 
-        let vaa = vec![a, b];
+    //     let vaa = vec![a, b];
 
-        let table = FxTable::new_with_names(vaa, ["1", "2", "3"]);
+    //     let table = FxTable::new_with_names(vaa, ["1", "2", "3"]);
 
-        println!("{table:?}",);
-    }
+    //     println!("{table:?}",);
+    // }
 
-    #[test]
-    fn test_vec_of_arc_arr() {
-        let a = FxArray::from(vec![None, Some("x")]).into_array();
-        let b = FxArray::from(vec![None, Some(2), None]).into_array();
+    // #[test]
+    // fn test_vec_of_arc_arr() {
+    //     let a = FxArray::from(vec![None, Some("x")]).into_array();
+    //     let b = FxArray::from(vec![None, Some(2), None]).into_array();
 
-        let vaa = vec![a, b];
+    //     let vaa = vec![a, b];
 
-        println!("{:?}", vaa.lens());
-        println!("{:?}", vaa.data_types());
-    }
+    //     println!("{:?}", vaa.lens());
+    //     println!("{:?}", vaa.data_types());
+    // }
 
-    #[test]
-    fn test_vec_of_arc_vec() {
-        let a = FxVector::from(vec![None, Some(1)]).into_mutable_array();
-        let b = FxVector::from(vec![None, Some("y"), None]).into_mutable_array();
+    // #[test]
+    // fn test_vec_of_arc_vec() {
+    //     let a = FxVector::from(vec![None, Some(1)]).into_mutable_array();
+    //     let b = FxVector::from(vec![None, Some("y"), None]).into_mutable_array();
 
-        let vam = vec![a, b];
+    //     let vam = vec![a, b];
 
-        println!("{:?}", vam.lens());
-        println!("{:?}", vam.data_types());
-    }
+    //     println!("{:?}", vam.lens());
+    //     println!("{:?}", vam.data_types());
+    // }
 
-    #[test]
-    fn test_table_of_arc_arr() {
-        let a = FxArray::from(vec![None, Some("x")]).into_array();
-        let b = FxArray::from(vec![None, Some(2), None]).into_array();
+    // #[test]
+    // fn test_table_of_arc_arr() {
+    //     let a = FxArray::from(vec![None, Some("x")]).into_array();
+    //     let b = FxArray::from(vec![None, Some(2), None]).into_array();
 
-        let vaa = vec![a, b];
+    //     let vaa = vec![a, b];
 
-        let table = FxTable::new(vaa);
+    //     let table = FxTable::new(vaa);
 
-        println!("{table:?}");
-    }
+    //     println!("{table:?}");
+    // }
 
-    #[test]
-    fn test_table_of_arc_vec() {
-        let a = FxVector::from(vec![None, Some(1)]).into_mutable_array();
-        let b = FxVector::from(vec![None, Some("y"), None]).into_mutable_array();
+    // #[test]
+    // fn test_table_of_arc_vec() {
+    //     let a = FxVector::from(vec![None, Some(1)]).into_mutable_array();
+    //     let b = FxVector::from(vec![None, Some("y"), None]).into_mutable_array();
 
-        let vam = vec![a, b];
+    //     let vam = vec![a, b];
 
-        let table = FxTable::new_with_names(vam, ["a"]);
+    //     let table = FxTable::new_with_names(vam, ["a"]);
 
-        println!("{table:?}");
-    }
+    //     println!("{table:?}");
+    // }
 }

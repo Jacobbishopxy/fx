@@ -21,6 +21,12 @@ use crate::{FxError, FxResult};
 // ================================================================================================
 
 pub trait FxSeq {
+    fn new_nulls(data_type: DataType, len: usize) -> Self;
+
+    fn is_arr() -> bool;
+
+    fn is_vec() -> bool;
+
     fn as_any(&self) -> &dyn Any;
 
     fn as_any_mut(&mut self) -> Option<&mut dyn Any>;
@@ -58,6 +64,14 @@ pub trait FxSeq {
 
     fn to_vector(self) -> FxResult<ArcVec>;
 
+    // fn set_value<T>(&mut self, index: usize, value: T);
+
+    // fn set_null(&mut self, index: usize);
+
+    // fn slice_range(&self, offset: usize, length: usize) -> FxResult<&Self>;
+
+    // fn take_range(self, offset: usize, length: usize) -> FxResult<Self>;
+
     fn extend(&mut self, s: &Self) -> FxResult<&mut Self>;
 
     fn concat(&mut self, ss: &[&Self]) -> FxResult<&mut Self> {
@@ -70,6 +84,32 @@ pub trait FxSeq {
 }
 
 impl FxSeq for ArcArr {
+    fn new_nulls(data_type: DataType, len: usize) -> Self {
+        match data_type {
+            DataType::Boolean => todo!(),
+            DataType::Int8 => todo!(),
+            DataType::Int16 => todo!(),
+            DataType::Int32 => todo!(),
+            DataType::Int64 => todo!(),
+            DataType::UInt8 => todo!(),
+            DataType::UInt16 => todo!(),
+            DataType::UInt32 => todo!(),
+            DataType::UInt64 => todo!(),
+            DataType::Float32 => todo!(),
+            DataType::Float64 => todo!(),
+            DataType::Utf8 => todo!(),
+            _ => unimplemented!(),
+        }
+    }
+
+    fn is_arr() -> bool {
+        true
+    }
+
+    fn is_vec() -> bool {
+        false
+    }
+
     fn as_any(&self) -> &dyn Any {
         (**self).as_any()
     }
@@ -129,6 +169,32 @@ impl FxSeq for ArcArr {
 }
 
 impl FxSeq for ArcVec {
+    fn new_nulls(data_type: DataType, len: usize) -> Self {
+        match data_type {
+            DataType::Boolean => todo!(),
+            DataType::Int8 => todo!(),
+            DataType::Int16 => todo!(),
+            DataType::Int32 => todo!(),
+            DataType::Int64 => todo!(),
+            DataType::UInt8 => todo!(),
+            DataType::UInt16 => todo!(),
+            DataType::UInt32 => todo!(),
+            DataType::UInt64 => todo!(),
+            DataType::Float32 => todo!(),
+            DataType::Float64 => todo!(),
+            DataType::Utf8 => todo!(),
+            _ => unimplemented!(),
+        }
+    }
+
+    fn is_arr() -> bool {
+        false
+    }
+
+    fn is_vec() -> bool {
+        true
+    }
+
     fn as_any(&self) -> &dyn Any {
         (**self).as_any()
     }

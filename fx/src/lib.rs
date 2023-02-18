@@ -7,6 +7,7 @@
 mod macros;
 
 pub mod cont;
+pub mod ctor;
 pub mod error;
 pub mod io;
 mod types;
@@ -14,7 +15,6 @@ pub mod value;
 
 use macros::*;
 
-pub use cont::array::*;
 pub use cont::batch::*;
 pub use cont::bundle::*;
 pub use cont::cvt::*;
@@ -22,7 +22,6 @@ pub use cont::grid::*;
 pub use cont::nullopt::*;
 pub use cont::parcel::*;
 pub use cont::table::*;
-pub use cont::vector::*;
 
 pub use error::*;
 pub use fx_macros::FX;
@@ -42,4 +41,8 @@ pub use arrow2::*;
 
 pub trait FromSlice<T, D> {
     fn from_slice(slice: &[T]) -> D;
+}
+
+pub trait FromVec<T, D> {
+    fn from_vec(vec: Vec<T>) -> D;
 }

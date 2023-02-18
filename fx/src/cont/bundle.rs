@@ -152,58 +152,58 @@ impl<C: Chunking> FxBundle<C> {
 
 #[cfg(test)]
 mod test_bundle {
-    use super::*;
+    // use super::*;
 
-    use crate::cont::ab::*;
-    use crate::{FromSlice, FxArray, FxGrid};
+    // use crate::cont::ab::*;
+    // use crate::{FromSlice, FxArray, FxGrid};
 
-    #[test]
-    fn new_fx_batches() {
-        let arrays = vec![
-            FxArray::from_slice(&["a", "c", "z"]).into_array(),
-            FxArray::from(vec![Some("x"), None, Some("y")]).into_array(),
-            FxArray::from_slice(&[true, false, false]).into_array(),
-        ];
-        let data = FxGrid::new(arrays);
+    // #[test]
+    // fn new_fx_batches() {
+    //     let arrays = vec![
+    //         FxArray::from_slice(&["a", "c", "z"]).into_array(),
+    //         FxArray::from(vec![Some("x"), None, Some("y")]).into_array(),
+    //         FxArray::from_slice(&[true, false, false]).into_array(),
+    //     ];
+    //     let data = FxGrid::new(arrays);
 
-        let batches =
-            FxBundle::try_new(["c1", "c2", "c3"], data, NullableOptions::indexed_true([2]));
+    //     let batches =
+    //         FxBundle::try_new(["c1", "c2", "c3"], data, NullableOptions::indexed_true([2]));
 
-        assert!(batches.is_ok());
+    //     assert!(batches.is_ok());
 
-        println!("{:?}", batches.unwrap());
-    }
+    //     println!("{:?}", batches.unwrap());
+    // }
 
-    #[test]
-    fn grid_builder_row_wise_proc_macro_success() {
-        use crate::FX;
+    // #[test]
+    // fn grid_builder_row_wise_proc_macro_success() {
+    //     use crate::FX;
 
-        #[allow(dead_code)]
-        #[derive(FX)]
-        struct Users {
-            id: i32,
-            name: String,
-            check: Option<bool>,
-        }
+    //     #[allow(dead_code)]
+    //     #[derive(FX)]
+    //     struct Users {
+    //         id: i32,
+    //         name: String,
+    //         check: Option<bool>,
+    //     }
 
-        let r1 = Users {
-            id: 1,
-            name: "Jacob".to_string(),
-            check: Some(true),
-        };
+    //     let r1 = Users {
+    //         id: 1,
+    //         name: "Jacob".to_string(),
+    //         check: Some(true),
+    //     };
 
-        let r2 = Users {
-            id: 2,
-            name: "Mia".to_string(),
-            check: None,
-        };
+    //     let r2 = Users {
+    //         id: 2,
+    //         name: "Mia".to_string(),
+    //         check: None,
+    //     };
 
-        let mut bd = Users::gen_container_row_builder().unwrap();
+    //     let mut bd = Users::gen_container_row_builder().unwrap();
 
-        bd.stack(r1).save().unwrap().stack(r2).save().unwrap();
+    //     bd.stack(r1).save().unwrap().stack(r2).save().unwrap();
 
-        let d = bd.build();
+    //     let d = bd.build();
 
-        println!("{d:?}");
-    }
+    //     println!("{d:?}");
+    // }
 }

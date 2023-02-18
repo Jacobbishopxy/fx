@@ -46,13 +46,7 @@ arc_vec_impl_from_bool!();
 #[cfg(test)]
 mod test_ctor {
     use super::*;
-
-    #[test]
-    fn ba_ctor() {
-        let foo = BA::from(vec![Some(true)]);
-
-        println!("{foo:?}");
-    }
+    use crate::{FromSlice, FromVec};
 
     #[test]
     fn arc_arr_from_is_successful() {

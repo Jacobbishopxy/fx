@@ -14,14 +14,14 @@ use crate::cont::ab::FxSeq;
 use crate::FxResult;
 
 // ================================================================================================
-// InnerSheaf
+// InnerEclectic
 //
-// A generous purpose of Arc<dyn Array> collection.
+// A genetic purpose of Arc<dyn Array> collection.
 // To replace InnerChunking.
 // ================================================================================================
 
 #[doc(hidden)]
-pub trait InnerSheaf {
+pub trait InnerEclectic {
     type Seq: FxSeq; // Arc<Array> or Arc<MutableArray>
 
     fn empty() -> Self
@@ -38,6 +38,14 @@ pub trait InnerSheaf {
 
     // default implementations
 
+    fn is_arr(&self) -> bool {
+        Self::Seq::is_arr()
+    }
+
+    fn is_vec(&self) -> bool {
+        Self::Seq::is_vec()
+    }
+
     fn width(&self) -> usize {
         self.ref_sequences().iter().count()
     }
@@ -49,10 +57,12 @@ pub trait InnerSheaf {
             .collect::<Vec<_>>()
     }
 
+    // if `lens()` is empty, return `None`
     fn max_len(&self) -> Option<usize> {
         self.lens().iter().max().cloned()
     }
 
+    // if `lens()` is empty, return `None`
     fn min_len(&self) -> Option<usize> {
         self.lens().iter().min().cloned()
     }
@@ -73,22 +83,22 @@ pub trait InnerSheaf {
         self.ref_sequences().iter().map(|e| e.data_type()).collect()
     }
 
-    fn data_types_match<T: InnerSheaf>(&self, d: &T) -> bool {
+    fn data_types_match<T: InnerEclectic>(&self, d: &T) -> bool {
         self.width() == d.width() && self.data_types() == d.data_types()
     }
 }
 
 // ================================================================================================
-// InnerSheafContainer
+// InnerEclecticCollection
 //
 // Replacement of InnerChunkingContainer
 // ================================================================================================
 
 #[doc(hidden)]
-pub trait InnerSheafContainer<I, C>
+pub trait InnerEclecticCollection<I, C>
 where
     I: Hash,
-    C: InnerSheaf,
+    C: InnerEclectic,
 {
     fn empty() -> Self
     where
@@ -144,7 +154,7 @@ where
 
     fn data_types_match<T>(&self, d: &T) -> bool
     where
-        T: InnerSheafContainer<I, C>,
+        T: InnerEclecticCollection<I, C>,
     {
         self.width() == d.width() && self.data_types() == d.data_types()
     }
