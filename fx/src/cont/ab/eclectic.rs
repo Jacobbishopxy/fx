@@ -1,7 +1,7 @@
-//! file: sheaf.rs
+//! file: eclectic.rs
 //! author: Jacob Xie
 //! date: 2023/02/12 22:33:08 Sunday
-//! brief: Sheaf & Container
+//! brief: Eclectic
 
 use arrow2::datatypes::DataType;
 
@@ -10,41 +10,50 @@ use crate::{FxError, FxResult};
 
 use super::FxSeq;
 
-pub trait Sheaf: private::InnerSheaf + Clone {
+/// A collection consists of several `FxSeq`s, whose inner type can be different
+pub trait Eclectic: private::InnerEclectic + Clone {
     fn empty() -> Self {
-        private::InnerSheaf::empty()
+        private::InnerEclectic::empty()
+    }
+
+    fn is_arr(&self) -> bool {
+        private::InnerEclectic::is_arr(self)
+    }
+
+    fn is_vec(&self) -> bool {
+        private::InnerEclectic::is_vec(self)
     }
 
     fn width(&self) -> usize {
-        private::InnerSheaf::width(self)
+        private::InnerEclectic::width(self)
     }
 
     fn lens(&self) -> Vec<usize> {
-        private::InnerSheaf::lens(self)
+        private::InnerEclectic::lens(self)
     }
 
     fn max_len(&self) -> Option<usize> {
-        private::InnerSheaf::max_len(self)
+        private::InnerEclectic::max_len(self)
     }
 
     fn min_len(&self) -> Option<usize> {
-        private::InnerSheaf::min_len(self)
+        private::InnerEclectic::min_len(self)
     }
 
     fn is_lens_same(&self) -> bool {
-        private::InnerSheaf::is_lens_same(self)
+        private::InnerEclectic::is_lens_same(self)
     }
 
     fn is_empty(&self) -> bool {
-        private::InnerSheaf::is_empty(self)
+        private::InnerEclectic::is_empty(self)
     }
 
     fn data_types(&self) -> Vec<&DataType> {
-        private::InnerSheaf::data_types(self)
+        private::InnerEclectic::data_types(self)
     }
 
-    fn data_types_match<T: Sheaf>(&self, d: &T) -> bool {
-        private::InnerSheaf::data_types_match(self, d)
+    fn data_types_match<T: Eclectic>(&self, d: &T) -> bool {
+        private::InnerEclectic::data_types_match(self, d)
     }
 
     fn sequences(&self) -> &[Self::Seq] {
@@ -59,13 +68,13 @@ pub trait Sheaf: private::InnerSheaf + Clone {
         unimplemented!()
     }
 
-    fn try_extent<T: Sheaf<Seq = Self::Seq>>(&mut self, d: &T) -> FxResult<&mut Self> {
+    fn try_extent<T: Eclectic<Seq = Self::Seq>>(&mut self, d: &T) -> FxResult<&mut Self> {
         self.try_concat(&[d.clone()])
     }
 
-    fn try_concat<T: Sheaf<Seq = Self::Seq>>(&mut self, d: &[T]) -> FxResult<&mut Self> {
+    fn try_concat<T: Eclectic<Seq = Self::Seq>>(&mut self, d: &[T]) -> FxResult<&mut Self> {
         for e in d.iter() {
-            if !Sheaf::data_types_match(self, e) {
+            if !Eclectic::data_types_match(self, e) {
                 return Err(FxError::SchemaMismatch);
             }
         }
@@ -83,4 +92,4 @@ pub trait Sheaf: private::InnerSheaf + Clone {
     }
 }
 
-impl<T> Sheaf for T where T: private::InnerSheaf + Clone {}
+impl<T> Eclectic for T where T: private::InnerEclectic + Clone {}

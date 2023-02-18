@@ -5,18 +5,20 @@
 
 pub mod builder;
 pub mod chunking;
+pub mod congruent;
 pub mod container;
+pub mod eclectic;
 pub(crate) mod private;
 pub mod purport;
 pub mod seq;
-pub mod sheaf;
 
 pub use builder::*;
 pub use chunking::*;
+pub use congruent::*;
 pub use container::*;
+pub use eclectic::*;
 pub use purport::*;
 pub use seq::*;
-pub use sheaf::*;
 
 // ================================================================================================
 // Helper macro
