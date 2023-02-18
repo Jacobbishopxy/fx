@@ -476,3 +476,211 @@ macro_rules! impl_sql_meta {
 }
 
 pub(crate) use impl_sql_meta;
+
+// ================================================================================================
+// impl from native
+// ================================================================================================
+
+macro_rules! arc_arr_impl_from_native {
+    ($t:ty) => {
+        impl $crate::FromVec<$t, $crate::types::ArcArr> for $crate::types::ArcArr {
+            fn from_vec(vec: Vec<$t>) -> $crate::types::ArcArr {
+                let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
+                ::arrow2::array::PrimitiveArray::from(v).arced()
+            }
+        }
+
+        impl $crate::FromVec<Option<$t>, $crate::types::ArcArr> for $crate::types::ArcArr {
+            fn from_vec(vec: Vec<Option<$t>>) -> $crate::types::ArcArr {
+                ::arrow2::array::PrimitiveArray::from(vec).arced()
+            }
+        }
+
+        impl $crate::FromSlice<$t, $crate::types::ArcArr> for $crate::types::ArcArr {
+            fn from_slice(slice: &[$t]) -> $crate::types::ArcArr {
+                ::arrow2::array::PrimitiveArray::from_slice(slice).arced()
+            }
+        }
+
+        impl $crate::FromSlice<Option<$t>, $crate::types::ArcArr> for $crate::types::ArcArr {
+            fn from_slice(slice: &[Option<$t>]) -> $crate::types::ArcArr {
+                let vec = slice.to_vec();
+                ::arrow2::array::PrimitiveArray::from(vec).arced()
+            }
+        }
+    };
+}
+
+macro_rules! arc_vec_impl_from_native {
+    ($t:ty) => {
+        impl $crate::FromVec<$t, $crate::types::ArcVec> for $crate::types::ArcVec {
+            fn from_vec(vec: Vec<$t>) -> $crate::types::ArcVec {
+                let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
+                let mut v = ::arrow2::array::MutablePrimitiveArray::from(v);
+                // since `$t` is never `None`, use `set_validity` to clear incorrect validity info
+                v.set_validity(None);
+                ::std::sync::Arc::new(v)
+            }
+        }
+
+        impl $crate::FromVec<Option<$t>, $crate::types::ArcVec> for $crate::types::ArcVec {
+            fn from_vec(vec: Vec<Option<$t>>) -> $crate::types::ArcVec {
+                ::std::sync::Arc::new(::arrow2::array::MutablePrimitiveArray::from(vec))
+            }
+        }
+
+        impl $crate::FromSlice<$t, $crate::types::ArcVec> for $crate::types::ArcVec {
+            fn from_slice(slice: &[$t]) -> $crate::types::ArcVec {
+                ::std::sync::Arc::new(::arrow2::array::MutablePrimitiveArray::from_slice(slice))
+            }
+        }
+
+        impl $crate::FromSlice<Option<$t>, $crate::types::ArcVec> for $crate::types::ArcVec {
+            fn from_slice(slice: &[Option<$t>]) -> $crate::types::ArcVec {
+                let vec = slice.to_vec();
+                ::std::sync::Arc::new(::arrow2::array::MutablePrimitiveArray::from(vec))
+            }
+        }
+    };
+}
+
+pub(crate) use arc_arr_impl_from_native;
+pub(crate) use arc_vec_impl_from_native;
+
+// ================================================================================================
+// impl from str
+// ================================================================================================
+
+macro_rules! arc_arr_impl_from_str {
+    ($t:ty) => {
+        impl $crate::FromVec<$t, $crate::types::ArcArr> for $crate::types::ArcArr {
+            fn from_vec(vec: Vec<$t>) -> $crate::types::ArcArr {
+                let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
+                ::arrow2::array::Utf8Array::<i32>::from(v).arced()
+            }
+        }
+
+        impl $crate::FromVec<Option<$t>, $crate::types::ArcArr> for $crate::types::ArcArr {
+            fn from_vec(vec: Vec<Option<$t>>) -> $crate::types::ArcArr {
+                ::arrow2::array::Utf8Array::<i32>::from(vec).arced()
+            }
+        }
+
+        impl $crate::FromSlice<$t, $crate::types::ArcArr> for $crate::types::ArcArr {
+            fn from_slice(slice: &[$t]) -> $crate::types::ArcArr {
+                ::arrow2::array::Utf8Array::<i32>::from_slice(slice).arced()
+            }
+        }
+
+        impl $crate::FromSlice<Option<$t>, $crate::types::ArcArr> for $crate::types::ArcArr {
+            fn from_slice(slice: &[Option<$t>]) -> $crate::types::ArcArr {
+                let vec = slice.to_vec();
+                ::arrow2::array::Utf8Array::<i32>::from(vec).arced()
+            }
+        }
+    };
+}
+
+macro_rules! arc_vec_impl_from_str {
+    ($t:ty) => {
+        impl $crate::FromVec<$t, $crate::types::ArcVec> for $crate::types::ArcVec {
+            fn from_vec(vec: Vec<$t>) -> $crate::types::ArcVec {
+                let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
+                let v = ::arrow2::array::MutableUtf8Array::<i32>::from(v);
+                ::std::sync::Arc::new(v)
+            }
+        }
+
+        impl $crate::FromVec<Option<$t>, $crate::types::ArcVec> for $crate::types::ArcVec {
+            fn from_vec(vec: Vec<Option<$t>>) -> $crate::types::ArcVec {
+                ::std::sync::Arc::new(::arrow2::array::MutableUtf8Array::<i32>::from(vec))
+            }
+        }
+
+        impl $crate::FromSlice<$t, $crate::types::ArcVec> for $crate::types::ArcVec {
+            fn from_slice(slice: &[$t]) -> $crate::types::ArcVec {
+                ::std::sync::Arc::new(::arrow2::array::MutableUtf8Array::<i32>::from_iter_values(
+                    slice.into_iter(),
+                ))
+            }
+        }
+
+        impl $crate::FromSlice<Option<$t>, $crate::types::ArcVec> for $crate::types::ArcVec {
+            fn from_slice(slice: &[Option<$t>]) -> $crate::types::ArcVec {
+                let vec = slice.to_vec();
+                ::std::sync::Arc::new(::arrow2::array::MutableUtf8Array::<i32>::from(vec))
+            }
+        }
+    };
+}
+
+pub(crate) use arc_arr_impl_from_str;
+pub(crate) use arc_vec_impl_from_str;
+
+// ================================================================================================
+// impl from bool
+// ================================================================================================
+
+macro_rules! arc_arr_impl_from_bool {
+    () => {
+        impl $crate::FromVec<bool, $crate::types::ArcArr> for $crate::types::ArcArr {
+            fn from_vec(vec: Vec<bool>) -> $crate::types::ArcArr {
+                let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
+                ::arrow2::array::BooleanArray::from(v).arced()
+            }
+        }
+
+        impl $crate::FromVec<Option<bool>, $crate::types::ArcArr> for $crate::types::ArcArr {
+            fn from_vec(vec: Vec<Option<bool>>) -> $crate::types::ArcArr {
+                ::arrow2::array::BooleanArray::from(vec).arced()
+            }
+        }
+
+        impl $crate::FromSlice<bool, $crate::types::ArcArr> for $crate::types::ArcArr {
+            fn from_slice(slice: &[bool]) -> $crate::types::ArcArr {
+                ::arrow2::array::BooleanArray::from_slice(slice).arced()
+            }
+        }
+
+        impl $crate::FromSlice<Option<bool>, $crate::types::ArcArr> for $crate::types::ArcArr {
+            fn from_slice(slice: &[Option<bool>]) -> $crate::types::ArcArr {
+                let vec = slice.to_vec();
+                ::arrow2::array::BooleanArray::from(vec).arced()
+            }
+        }
+    };
+}
+
+macro_rules! arc_vec_impl_from_bool {
+    () => {
+        impl $crate::FromVec<bool, $crate::types::ArcVec> for $crate::types::ArcVec {
+            fn from_vec(vec: Vec<bool>) -> $crate::types::ArcVec {
+                let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
+                let v = ::arrow2::array::MutableBooleanArray::from(v);
+                ::std::sync::Arc::new(v)
+            }
+        }
+
+        impl $crate::FromVec<Option<bool>, $crate::types::ArcVec> for $crate::types::ArcVec {
+            fn from_vec(vec: Vec<Option<bool>>) -> $crate::types::ArcVec {
+                ::std::sync::Arc::new(::arrow2::array::MutableBooleanArray::from(vec))
+            }
+        }
+
+        impl $crate::FromSlice<bool, $crate::types::ArcVec> for $crate::types::ArcVec {
+            fn from_slice(slice: &[bool]) -> $crate::types::ArcVec {
+                ::std::sync::Arc::new(::arrow2::array::MutableBooleanArray::from_slice(slice))
+            }
+        }
+
+        impl $crate::FromSlice<Option<bool>, $crate::types::ArcVec> for $crate::types::ArcVec {
+            fn from_slice(slice: &[Option<bool>]) -> $crate::types::ArcVec {
+                let vec = slice.to_vec();
+                ::std::sync::Arc::new(::arrow2::array::MutableBooleanArray::from(vec))
+            }
+        }
+    };
+}
+
+pub(crate) use arc_arr_impl_from_bool;
+pub(crate) use arc_vec_impl_from_bool;
