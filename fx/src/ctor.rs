@@ -44,8 +44,8 @@ arc_vec_impl_from_bool!();
 
 #[cfg(test)]
 mod test_ctor {
+    use crate::ab::{FromSlice, FromVec};
     use crate::types::*;
-    use crate::{FromSlice, FromVec};
 
     #[test]
     fn arc_arr_from_is_successful() {

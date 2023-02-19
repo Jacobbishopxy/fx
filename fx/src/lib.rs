@@ -1,4 +1,5 @@
-//! FX
+//! author: Jacob Xie
+//! date: 2023/02/19 22:11:02 Sunday
 //!
 //! Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix)
 
@@ -40,13 +41,19 @@ pub use io::FxIO;
 pub use arrow2::*;
 
 // ================================================================================================
-// Public traits
+// Crate namespace ab
 // ================================================================================================
 
-pub trait FromSlice<T, D> {
-    fn from_slice(slice: &[T]) -> D;
-}
+// reexport all ab, so that can use all the traits in ab as `use fx::ab::*`
+pub mod ab {
+    pub use crate::cont::ab::*;
+    pub use crate::io::ab::*;
 
-pub trait FromVec<T, D> {
-    fn from_vec(vec: Vec<T>) -> D;
+    pub trait FromSlice<T, D> {
+        fn from_slice(slice: &[T]) -> D;
+    }
+
+    pub trait FromVec<T, D> {
+        fn from_vec(vec: Vec<T>) -> D;
+    }
 }

@@ -8,7 +8,7 @@ use inherent::inherent;
 
 use crate::FxResult;
 
-use crate::cont::{private, FxSeq, Purport};
+use crate::ab::{private, FxSeq, Purport};
 
 // ================================================================================================
 // FxTable
@@ -79,10 +79,6 @@ where
         self.as_slice()
     }
 
-    fn mut_sequences(&mut self) -> &mut [Self::Seq] {
-        self.as_mut_slice()
-    }
-
     fn set_sequences_unchecked(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
         *self = arrays;
 
@@ -91,6 +87,15 @@ where
 
     fn take_sequences(self) -> Vec<Self::Seq> {
         self
+    }
+}
+
+impl<S> private::InnerEclecticMutSeq for Vec<S>
+where
+    S: FxSeq,
+{
+    fn mut_sequences(&mut self) -> &mut [Self::Seq] {
+        self.as_mut_slice()
     }
 }
 
@@ -118,10 +123,6 @@ where
         &self.data
     }
 
-    fn mut_sequences(&mut self) -> &mut [Self::Seq] {
-        &mut self.data
-    }
-
     fn set_sequences_unchecked(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
         self.data = arrays;
 
@@ -130,6 +131,15 @@ where
 
     fn take_sequences(self) -> Vec<Self::Seq> {
         self.data
+    }
+}
+
+impl<S> private::InnerEclecticMutSeq for FxTable<S>
+where
+    S: FxSeq,
+{
+    fn mut_sequences(&mut self) -> &mut [Self::Seq] {
+        &mut self.data
     }
 }
 

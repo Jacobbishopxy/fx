@@ -5,10 +5,11 @@
 
 use std::hash::Hash;
 
+use arrow2::chunk::Chunk;
 use arrow2::datatypes::Schema;
 
-use crate::cont::FxSeq;
-use crate::FxResult;
+use crate::ab::FxSeq;
+use crate::{ArcArr, FxResult};
 
 // ================================================================================================
 // InnerEclectic
@@ -27,12 +28,19 @@ pub trait InnerEclectic {
 
     fn ref_sequences(&self) -> &[Self::Seq];
 
-    // TODO: should also consider arrow's Chunk
-    fn mut_sequences(&mut self) -> &mut [Self::Seq];
-
     fn set_sequences_unchecked(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()>;
 
     fn take_sequences(self) -> Vec<Self::Seq>;
+}
+
+#[doc(hidden)]
+pub trait InnerEclecticMutSeq: InnerEclectic {
+    fn mut_sequences(&mut self) -> &mut [Self::Seq];
+}
+
+#[doc(hidden)]
+pub trait InnerEclecticMutChunk: InnerEclectic {
+    fn mut_chunk(&mut self) -> &mut Chunk<ArcArr>;
 }
 
 // ================================================================================================

@@ -7,9 +7,9 @@ use arrow2::chunk::Chunk;
 use arrow2::datatypes::{Field, Schema};
 use inherent::inherent;
 
-use crate::cont::{private, Purport};
+use crate::ab::{private, Purport};
 use crate::types::ArcArr;
-use crate::{FxResult, NullableOptions};
+use crate::FxResult;
 
 // ================================================================================================
 // FxBatch
@@ -42,12 +42,7 @@ impl private::InnerEclectic for FxBatch {
         self.data.arrays()
     }
 
-    fn mut_sequences(&mut self) -> &mut [Self::Seq] {
-        unimplemented!()
-    }
-
     fn set_sequences_unchecked(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
-        // TODO: no type checking
         self.data = Chunk::try_new(arrays)?;
 
         Ok(())
@@ -58,26 +53,41 @@ impl private::InnerEclectic for FxBatch {
     }
 }
 
+impl private::InnerEclecticMutChunk for FxBatch {
+    fn mut_chunk(&mut self) -> &mut Chunk<ArcArr> {
+        &mut self.data
+    }
+}
+
 impl FxBatch {
-    pub fn try_new<I, T>(
-        fields_name: I,
-        arrays: Vec<ArcArr>,
-        nullable_options: NullableOptions,
-    ) -> FxResult<Self>
+    // watch out panic if data's length are not the same
+    pub fn new(data: Vec<ArcArr>) -> Self {
+        FxBatch::try_new(data).expect("data length should always be the same")
+    }
+
+    pub fn try_new(data: Vec<ArcArr>) -> FxResult<Self> {
+        Ok(Self {
+            schema: Self::gen_schema(&data),
+            data: Chunk::try_new(data)?,
+        })
+    }
+
+    pub fn new_with_names<I, T>(data: Vec<ArcArr>, names: I) -> Self
     where
         I: IntoIterator<Item = T>,
         T: AsRef<str>,
     {
-        let data_types = arrays
-            .iter()
-            .map(|a| a.data_type())
-            .cloned()
-            .collect::<Vec<_>>();
-        let schema = nullable_options.gen_schema(fields_name, data_types)?;
+        FxBatch::try_new_with_names(data, names).expect("data length should always be the same")
+    }
 
+    pub fn try_new_with_names<I, T>(data: Vec<ArcArr>, names: I) -> FxResult<Self>
+    where
+        I: IntoIterator<Item = T>,
+        T: AsRef<str>,
+    {
         Ok(Self {
-            schema,
-            data: Chunk::try_new(arrays)?,
+            schema: Self::gen_schema_with_names(&data, names),
+            data: Chunk::try_new(data)?,
         })
     }
 }
@@ -89,7 +99,7 @@ impl FxBatch {
 #[cfg(test)]
 mod test_batch {
     use super::*;
-    use crate::{cont::ab::Eclectic, FromSlice};
+    use crate::ab::*;
 
     #[test]
     fn new_fx_batch_should_be_successful() {
@@ -99,14 +109,36 @@ mod test_batch {
             ArcArr::from_slice(&[true, false, false]),
         ];
 
-        let names = &["col1", "col2", "col3"];
-
-        let batch = FxBatch::try_new(names, arrays, NullableOptions::indexed_true([2]));
+        let batch = FxBatch::try_new(arrays);
 
         assert!(batch.is_ok());
 
         let batch = batch.unwrap();
         println!("{batch:?}");
         println!("{:?}", batch.is_lens_same());
+    }
+
+    #[test]
+    fn extend_should_be_successful() {
+        let arrays = vec![
+            ArcArr::from_slice(&["a", "c", "x"]),
+            ArcArr::from_slice(&[Some("x"), None, Some("y")]),
+            ArcArr::from_slice(&[true, false, false]),
+        ];
+
+        let mut batch1 = FxBatch::new(arrays);
+
+        let arrays = vec![
+            ArcArr::from_slice(&["a", "c", "x"]),
+            ArcArr::from_slice(&[Some("x"), None, Some("y")]),
+            ArcArr::from_slice(&[true, false, false]),
+        ];
+
+        let batch2 = FxBatch::new(arrays);
+
+        let ext_res = batch1.try_extent(&batch2);
+        assert!(ext_res.is_ok());
+
+        println!("{batch1:?}");
     }
 }

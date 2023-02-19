@@ -4,11 +4,14 @@
 //! brief: Eclectic
 
 use std::hash::Hash;
+use std::ops::Deref;
 
+use arrow2::chunk::Chunk;
+use arrow2::compute::concatenate::concatenate;
 use arrow2::datatypes::DataType;
 
-use crate::cont::private;
-use crate::{FxError, FxResult};
+use crate::ab::private;
+use crate::{ArcArr, FxError, FxResult};
 
 use super::FxSeq;
 
@@ -17,7 +20,7 @@ use super::FxSeq;
 // ================================================================================================
 
 /// A collection consists of several `FxSeq`s, whose inner type can be different
-pub trait Eclectic: private::InnerEclectic + Clone {
+pub trait Eclectic: private::InnerEclectic + Sized {
     fn empty() -> Self {
         private::InnerEclectic::empty()
     }
@@ -86,33 +89,67 @@ pub trait Eclectic: private::InnerEclectic + Clone {
     fn slice() {
         unimplemented!()
     }
+}
 
+impl<T> Eclectic for T where T: private::InnerEclectic {}
+
+pub trait EclecticMutSeq: private::InnerEclecticMutSeq + Eclectic {
     fn try_extent<T: Eclectic<Seq = Self::Seq>>(&mut self, d: &T) -> FxResult<&mut Self> {
-        self.try_concat(&[d.clone()])
-    }
-
-    // TODO: it requires `self.mut_sequences()`! However, if a struct's field is arrow's `Chunk`, it is failed
-    fn try_concat<T: Eclectic<Seq = Self::Seq>>(&mut self, d: &[T]) -> FxResult<&mut Self> {
-        for e in d.iter() {
-            if !Eclectic::data_types_match(self, e) {
-                return Err(FxError::SchemaMismatch);
-            }
+        if !Eclectic::data_types_match(self, d) {
+            return Err(FxError::SchemaMismatch);
         }
 
         let cols = self.mut_sequences();
 
-        for sheaf in d.iter() {
-            let zp = cols.iter_mut().zip(sheaf.sequences().iter());
-            for (s, a) in zp {
-                s.extend(a)?;
-            }
+        let zp = cols.iter_mut().zip(d.sequences().iter());
+        for (s, a) in zp {
+            s.extend(a)?;
+        }
+
+        Ok(self)
+    }
+
+    fn try_concat<T: Eclectic<Seq = Self::Seq>>(&mut self, d: &[T]) -> FxResult<&mut Self> {
+        for i in d.iter() {
+            self.try_extent(i)?;
         }
 
         Ok(self)
     }
 }
 
-impl<T> Eclectic for T where T: private::InnerEclectic + Clone {}
+impl<T> EclecticMutSeq for T where T: private::InnerEclecticMutSeq {}
+
+pub trait EclecticMutChunk: private::InnerEclecticMutChunk + Eclectic {
+    fn try_extent<T: Eclectic<Seq = ArcArr>>(&mut self, d: &T) -> FxResult<&mut Self> {
+        if !Eclectic::data_types_match(self, d) || !Eclectic::is_lens_same(d) {
+            return Err(FxError::SchemaMismatch);
+        }
+
+        let cols = self.mut_chunk();
+
+        let zp = cols.iter().zip(d.sequences().iter());
+        let mut cct = vec![];
+        for (s, a) in zp {
+            let aa: ArcArr = concatenate(&[s.deref(), a.deref()])?.into();
+            cct.push(aa);
+        }
+
+        *cols = Chunk::try_new(cct)?;
+
+        Ok(self)
+    }
+
+    fn try_concat<T: Eclectic<Seq = ArcArr>>(&mut self, d: &[T]) -> FxResult<&mut Self> {
+        for i in d.iter() {
+            self.try_extent(i)?;
+        }
+
+        Ok(self)
+    }
+}
+
+impl<T> EclecticMutChunk for T where T: private::InnerEclecticMutChunk {}
 
 // ================================================================================================
 // EclecticCollection

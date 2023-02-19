@@ -7,12 +7,9 @@ use arrow2::chunk::Chunk;
 use arrow2::datatypes::{Field, Schema};
 use ref_cast::RefCast;
 
-use crate::cont::private;
+use crate::ab::{private, Eclectic};
 use crate::types::ArcArr;
 use crate::{FxError, FxResult};
-
-use crate::cont::private::InnerEclectic;
-use crate::cont::Eclectic;
 
 // ================================================================================================
 // FxGrid
@@ -36,10 +33,6 @@ impl private::InnerEclectic for FxGrid {
         self.0.arrays()
     }
 
-    fn mut_sequences(&mut self) -> &mut [Self::Seq] {
-        unimplemented!()
-    }
-
     fn set_sequences_unchecked(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
         self.0 = Chunk::try_new(arrays)?;
 
@@ -48,6 +41,12 @@ impl private::InnerEclectic for FxGrid {
 
     fn take_sequences(self) -> Vec<Self::Seq> {
         self.0.into_arrays()
+    }
+}
+
+impl private::InnerEclecticMutChunk for FxGrid {
+    fn mut_chunk(&mut self) -> &mut Chunk<ArcArr> {
+        &mut self.0
     }
 }
 
@@ -70,7 +69,7 @@ impl FxGrid {
 
         let fld = names
             .iter()
-            .zip(self.ref_sequences())
+            .zip(self.sequences())
             .map(|(n, a)| Field::new(*n, a.data_type().clone(), a.null_count() > 0))
             .collect::<Vec<_>>();
 

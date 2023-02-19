@@ -8,8 +8,8 @@ use std::ops::Deref;
 use arrow2::chunk::Chunk;
 use arrow2::compute::concatenate::concatenate;
 
+use fx::ab::FromVec;
 use fx::types::ArcArr;
-use fx::FromVec;
 
 #[test]
 fn concat_success() {
