@@ -5,7 +5,7 @@
 
 // use arrow2::datatypes::{DataType, Field, Schema};
 
-// use crate::cont::ab::private;
+// use crate::cont::private;
 // use crate::{FxError, FxGrid, FxResult, NullableOptions};
 
 // #[derive(Debug, Clone)]
@@ -67,7 +67,7 @@
 mod test_bundle {
     // use super::*;
 
-    // use crate::cont::ab::*;
+    // use crate::cont::*;
     // use crate::{FromSlice, FxArray, FxGrid};
 
     // #[test]

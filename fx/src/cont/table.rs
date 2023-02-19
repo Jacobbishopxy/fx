@@ -6,9 +6,9 @@
 use arrow2::datatypes::Schema;
 use inherent::inherent;
 
-use crate::{FxError, FxResult};
+use crate::FxResult;
 
-use crate::cont::ab::{private, FxSeq, Purport};
+use crate::cont::{private, FxSeq, Purport};
 
 // ================================================================================================
 // FxTable
@@ -83,11 +83,7 @@ where
         self.as_mut_slice()
     }
 
-    fn set_sequences(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
-        if !self.data_types_match(&arrays) {
-            return Err(FxError::SchemaMismatch);
-        }
-
+    fn set_sequences_unchecked(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
         *self = arrays;
 
         Ok(())
@@ -126,11 +122,7 @@ where
         &mut self.data
     }
 
-    fn set_sequences(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
-        if !self.data_types_match(&arrays) {
-            return Err(FxError::SchemaMismatch);
-        }
-
+    fn set_sequences_unchecked(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
         self.data = arrays;
 
         Ok(())

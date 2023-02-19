@@ -5,9 +5,9 @@
 
 use std::hash::Hash;
 
-use arrow2::datatypes::{DataType, Schema};
+use arrow2::datatypes::Schema;
 
-use crate::cont::ab::FxSeq;
+use crate::cont::FxSeq;
 use crate::FxResult;
 
 // ================================================================================================
@@ -30,62 +30,9 @@ pub trait InnerEclectic {
     // TODO: should also consider arrow's Chunk
     fn mut_sequences(&mut self) -> &mut [Self::Seq];
 
-    fn set_sequences(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()>;
+    fn set_sequences_unchecked(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()>;
 
     fn take_sequences(self) -> Vec<Self::Seq>;
-
-    // default implementations
-
-    fn is_arr(&self) -> bool {
-        Self::Seq::is_arr()
-    }
-
-    fn is_vec(&self) -> bool {
-        Self::Seq::is_vec()
-    }
-
-    fn width(&self) -> usize {
-        self.ref_sequences().iter().count()
-    }
-
-    fn lens(&self) -> Vec<usize> {
-        self.ref_sequences()
-            .iter()
-            .map(|s| s.len())
-            .collect::<Vec<_>>()
-    }
-
-    // if `lens()` is empty, return `None`
-    fn max_len(&self) -> Option<usize> {
-        self.lens().iter().max().cloned()
-    }
-
-    // if `lens()` is empty, return `None`
-    fn min_len(&self) -> Option<usize> {
-        self.lens().iter().min().cloned()
-    }
-
-    fn is_lens_same(&self) -> bool {
-        let l = self.lens();
-
-        l.first()
-            .map(|first| l.iter().all(|x| x == first))
-            .unwrap_or(true)
-    }
-
-    fn is_empty(&self) -> bool {
-        self.ref_sequences().is_empty()
-    }
-
-    fn data_types(&self) -> Vec<&DataType> {
-        self.ref_sequences().iter().map(|e| e.data_type()).collect()
-    }
-
-    fn data_types_match<T: InnerEclectic>(&self, d: &T) -> bool {
-        self.width() == d.width() && self.data_types() == d.data_types()
-    }
-
-    // TODO: nulls/has_nulls/
 }
 
 // ================================================================================================
@@ -121,41 +68,4 @@ where
     fn pop_chunk(&mut self) -> FxResult<()>;
 
     fn take_container(self) -> Vec<C>;
-
-    // default implementations
-
-    fn length(&self) -> usize {
-        self.ref_container().len()
-    }
-
-    fn width(&self) -> usize {
-        self.ref_schema().fields.len()
-    }
-
-    fn size(&self) -> (usize, usize) {
-        (self.length(), self.width())
-    }
-
-    fn is_empty(&self) -> bool {
-        self.ref_container().is_empty()
-    }
-
-    fn data_types(&self) -> Vec<&DataType> {
-        self.ref_schema()
-            .fields
-            .iter()
-            .map(|f| f.data_type())
-            .collect::<Vec<_>>()
-    }
-
-    fn data_types_check(&self, c: &C) -> bool {
-        self.width() == c.width() && self.data_types() == c.data_types()
-    }
-
-    fn data_types_match<T>(&self, d: &T) -> bool
-    where
-        T: InnerEclecticCollection<I, C>,
-    {
-        self.width() == d.width() && self.data_types() == d.data_types()
-    }
 }

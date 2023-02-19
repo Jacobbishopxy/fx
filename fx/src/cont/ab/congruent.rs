@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use arrow2::chunk::Chunk;
 
-use super::{private::InnerEclectic, FxSeq};
+use super::{Eclectic, FxSeq};
 use crate::{types::ArcArr, FxError, FxResult};
 
 // ================================================================================================
@@ -16,7 +16,7 @@ use crate::{types::ArcArr, FxError, FxResult};
 // A genetic purpose of Chunk
 // ================================================================================================
 
-pub trait Congruent: InnerEclectic {
+pub trait Congruent: Eclectic {
     fn take_longest(self) -> FxResult<Chunk<ArcArr>>
     where
         Self: Sized,

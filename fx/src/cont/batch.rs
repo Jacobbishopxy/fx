@@ -7,7 +7,7 @@ use arrow2::chunk::Chunk;
 use arrow2::datatypes::{Field, Schema};
 use inherent::inherent;
 
-use crate::cont::ab::{private, Purport};
+use crate::cont::{private, Purport};
 use crate::types::ArcArr;
 use crate::{FxResult, NullableOptions};
 
@@ -46,7 +46,7 @@ impl private::InnerEclectic for FxBatch {
         unimplemented!()
     }
 
-    fn set_sequences(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
+    fn set_sequences_unchecked(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
         // TODO: no type checking
         self.data = Chunk::try_new(arrays)?;
 

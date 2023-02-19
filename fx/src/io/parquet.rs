@@ -93,7 +93,7 @@
 // #[cfg(test)]
 // mod test_parquet {
 
-//     use crate::cont::ab::Chunking;
+//     use crate::cont::Chunking;
 
 //     use super::*;
 

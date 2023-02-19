@@ -7,11 +7,12 @@ use arrow2::chunk::Chunk;
 use arrow2::datatypes::{Field, Schema};
 use ref_cast::RefCast;
 
-use crate::cont::ab::private;
+use crate::cont::private;
 use crate::types::ArcArr;
 use crate::{FxError, FxResult};
 
-use super::ab::private::InnerEclectic;
+use crate::cont::private::InnerEclectic;
+use crate::cont::Eclectic;
 
 // ================================================================================================
 // FxGrid
@@ -39,7 +40,7 @@ impl private::InnerEclectic for FxGrid {
         unimplemented!()
     }
 
-    fn set_sequences(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
+    fn set_sequences_unchecked(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
         self.0 = Chunk::try_new(arrays)?;
 
         Ok(())
@@ -122,7 +123,7 @@ impl FxGrid {
 
 #[cfg(test)]
 mod test_grid {
-    // use crate::cont::ab::*;
+    // use crate::cont::*;
 
     // use super::*;
 

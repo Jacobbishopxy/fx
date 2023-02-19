@@ -13,7 +13,7 @@
 // use arrow2::io::avro::read as avro_read;
 // use arrow2::io::avro::write as avro_write;
 
-// use crate::cont::ab::Chunking;
+// use crate::cont::Chunking;
 // use crate::{FxGrid, FxIO, FxResult};
 
 // // TODO generic FxGrid
