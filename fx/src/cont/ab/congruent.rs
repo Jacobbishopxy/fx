@@ -17,18 +17,32 @@ use crate::{types::ArcArr, FxError, FxResult};
 // ================================================================================================
 
 pub trait Congruent: Eclectic {
-    fn take_longest(self) -> FxResult<Chunk<ArcArr>>
+    fn take_longest_to_chunk(self) -> FxResult<Chunk<ArcArr>>
     where
         Self: Sized,
     {
-        let _len = self.max_len().ok_or(FxError::EmptyContent)?;
+        let len = self.max_len().ok_or(FxError::EmptyContent)?;
 
-        // fill Nan by None
+        let vec_arc_arr = self
+            .take_sequences()
+            .into_iter()
+            .map(|s| {
+                s.to_array().and_then(|mut arr| {
+                    let missing = len - arr.len();
+                    // fill missing by None
+                    if missing > 0 {
+                        arr.extend(&ArcArr::new_nulls(arr.data_type().clone(), missing))?;
+                    }
 
-        todo!()
+                    Ok(arr)
+                })
+            })
+            .collect::<FxResult<Vec<_>>>()?;
+
+        Ok(Chunk::try_new(vec_arc_arr)?)
     }
 
-    fn take_shortest(self) -> FxResult<Chunk<ArcArr>>
+    fn take_shortest_to_chunk(self) -> FxResult<Chunk<ArcArr>>
     where
         Self: Sized,
     {
@@ -48,10 +62,30 @@ pub trait Congruent: Eclectic {
         Ok(Chunk::try_new(vec_arc_arr)?)
     }
 
-    fn take_len(self, _len: usize) -> FxResult<Chunk<ArcArr>>
+    fn take_len_to_chunk(self, len: usize) -> FxResult<Chunk<ArcArr>>
     where
         Self: Sized,
     {
-        unimplemented!()
+        let vec_arc_arr = self
+            .take_sequences()
+            .into_iter()
+            .map(|s| {
+                s.to_array().and_then(|mut arr| {
+                    let al = arr.len();
+                    // case: missing
+                    if len > al {
+                        arr.extend(&ArcArr::new_nulls(arr.data_type().clone(), len - al))?;
+                    }
+                    // case: over-length
+                    if len < al {
+                        arr = Arc::from(arr.slice(0, len));
+                    }
+
+                    Ok(arr)
+                })
+            })
+            .collect::<FxResult<Vec<_>>>()?;
+
+        Ok(Chunk::try_new(vec_arc_arr)?)
     }
 }
