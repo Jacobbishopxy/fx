@@ -24,7 +24,7 @@ pub use cont::parcel::*;
 pub use cont::table::*;
 
 pub use error::*;
-pub use fx_macros::FX;
+// pub use fx_macros::FX;
 pub use io::arvo::*;
 pub use io::csv::*;
 pub use io::ipc::*;

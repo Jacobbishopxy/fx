@@ -3,10 +3,10 @@
 //! date: 2023/01/31 14:14:43 Tuesday
 //! brief: Builder
 
-use std::hash::Hash;
+// use std::hash::Hash;
 
-use crate::cont::ab::{Chunking, ChunkingContainer};
-use crate::FxResult;
+// use crate::cont::ab::{Chunking, ChunkingContainer};
+// use crate::FxResult;
 
 // ================================================================================================
 // FxChunkingRowBuilder & FxChunkingRowBuilderGenerator
@@ -17,63 +17,63 @@ use crate::FxResult;
 // all the required implementations for a struct who represents a schema.
 // ================================================================================================
 
-pub trait FxChunkingRowBuilder<R, T>: Send
-where
-    T: Chunking,
-{
-    fn new() -> Self
-    where
-        Self: Sized;
+// pub trait FxChunkingRowBuilder<R, T>: Send
+// where
+//     T: Chunking,
+// {
+//     fn new() -> Self
+//     where
+//         Self: Sized;
 
-    fn stack(&mut self, row: R) -> &mut Self;
+//     fn stack(&mut self, row: R) -> &mut Self;
 
-    fn build(self) -> FxResult<T>;
-}
+//     fn build(self) -> FxResult<T>;
+// }
 
-pub trait FxChunkingRowBuilderGenerator<T>
-where
-    Self: Sized,
-    T: Chunking,
-{
-    type Builder: FxChunkingRowBuilder<Self, T>;
+// pub trait FxChunkingRowBuilderGenerator<T>
+// where
+//     Self: Sized,
+//     T: Chunking,
+// {
+//     type Builder: FxChunkingRowBuilder<Self, T>;
 
-    fn gen_chunking_row_builder() -> Self::Builder;
-}
+//     fn gen_chunking_row_builder() -> Self::Builder;
+// }
 
 // ================================================================================================
 // FxContainerRowBuilder & FxContainerRowBuilderGenerator
 // ================================================================================================
 
-pub trait FxContainerRowBuilder<B, R, T, I, C>: Send
-where
-    B: FxChunkingRowBuilder<R, C>,
-    T: ChunkingContainer<I, C>,
-    I: Hash,
-    C: Chunking,
-{
-    fn new() -> FxResult<Self>
-    where
-        Self: Sized;
+// pub trait FxContainerRowBuilder<B, R, T, I, C>: Send
+// where
+//     B: FxChunkingRowBuilder<R, C>,
+//     T: ChunkingContainer<I, C>,
+//     I: Hash,
+//     C: Chunking,
+// {
+//     fn new() -> FxResult<Self>
+//     where
+//         Self: Sized;
 
-    fn stack(&mut self, row: R) -> &mut Self;
+//     fn stack(&mut self, row: R) -> &mut Self;
 
-    fn save(&mut self) -> FxResult<&mut Self>;
+//     fn save(&mut self) -> FxResult<&mut Self>;
 
-    fn build(self) -> T;
-}
+//     fn build(self) -> T;
+// }
 
-pub trait FxContainerRowBuilderGenerator<B, R, T, I, C>
-where
-    Self: Sized,
-    B: FxChunkingRowBuilder<R, C>,
-    T: ChunkingContainer<I, C>,
-    I: Hash,
-    C: Chunking,
-{
-    type Builder: FxContainerRowBuilder<B, R, T, I, C>;
+// pub trait FxContainerRowBuilderGenerator<B, R, T, I, C>
+// where
+//     Self: Sized,
+//     B: FxChunkingRowBuilder<R, C>,
+//     T: ChunkingContainer<I, C>,
+//     I: Hash,
+//     C: Chunking,
+// {
+//     type Builder: FxContainerRowBuilder<B, R, T, I, C>;
 
-    fn gen_container_row_builder() -> FxResult<Self::Builder>;
-}
+//     fn gen_container_row_builder() -> FxResult<Self::Builder>;
+// }
 
 // #[cfg(test)]
 // mod test_builder {

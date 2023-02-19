@@ -5,146 +5,60 @@
 
 use arrow2::datatypes::{DataType, Field, Schema};
 
-use crate::cont::ab::{private, Chunking};
-use crate::{FxError, FxResult, NullableOptions};
+use crate::cont::ab::private;
+use crate::types::ArcVec;
+use crate::{FxBatch, FxError, FxResult, NullableOptions};
 
 #[derive(Debug, Clone)]
-pub struct FxBundle<T: Chunking> {
+pub struct FxBundle {
     pub(crate) schema: Schema,
-    pub(crate) data: Vec<T>,
+    pub(crate) data: Vec<FxBatch>,
 }
 
-impl<T> Default for FxBundle<T>
-where
-    T: Chunking,
-{
-    fn default() -> Self {
-        Self {
-            schema: Default::default(),
-            data: Vec::<T>::new(),
-        }
-    }
-}
+// impl private::InnerEclecticCollection<usize, FxBatch> for FxBundle {
+//     fn empty() -> Self
+//     where
+//         Self: Sized,
+//     {
+//         todo!()
+//     }
 
-impl<T: Chunking> private::InnerChunkingContainer<usize, T> for FxBundle<T> {
-    fn empty() -> Self
-    where
-        Self: Sized,
-    {
-        Self {
-            schema: Schema::from(Vec::<Field>::new()),
-            data: Vec::new(),
-        }
-    }
+//     fn ref_schema(&self) -> &Schema {
+//         todo!()
+//     }
 
-    fn ref_schema(&self) -> &Schema {
-        &self.schema
-    }
+//     fn ref_container(&self) -> Vec<&C> {
+//         todo!()
+//     }
 
-    fn ref_container(&self) -> Vec<&T> {
-        self.data.iter().collect()
-    }
+//     fn get_chunk(&self, key: I) -> FxResult<&C> {
+//         todo!()
+//     }
 
-    fn get_chunk(&self, key: usize) -> FxResult<&T> {
-        self.data
-            .get(key)
-            .ok_or_else(|| FxError::LengthMismatch(key, self.data.len()))
-    }
+//     fn get_mut_chunk(&mut self, key: I) -> FxResult<&mut C> {
+//         todo!()
+//     }
 
-    fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut T> {
-        let s_len = self.data.len();
-        self.data
-            .get_mut(key)
-            .ok_or_else(|| FxError::LengthMismatch(key, s_len))
-    }
+//     fn insert_chunk_type_unchecked(&mut self, key: I, data: C) -> FxResult<()> {
+//         todo!()
+//     }
 
-    fn insert_chunk_type_unchecked(&mut self, key: usize, data: T) -> FxResult<()> {
-        let s_len = self.data.len();
-        if key > s_len {
-            return Err(FxError::LengthMismatch(key, s_len));
-        }
-        self.data.insert(key, data);
-        Ok(())
-    }
+//     fn remove_chunk(&mut self, key: I) -> FxResult<()> {
+//         todo!()
+//     }
 
-    fn remove_chunk(&mut self, key: usize) -> FxResult<()> {
-        let s_len = self.data.len();
-        if key > s_len {
-            return Err(FxError::LengthMismatch(key, s_len));
-        }
-        self.data.remove(key);
-        Ok(())
-    }
+//     fn push_chunk_type_unchecked(&mut self, data: C) -> FxResult<()> {
+//         todo!()
+//     }
 
-    fn push_chunk_type_unchecked(&mut self, data: T) -> FxResult<()> {
-        self.data.push(data);
-        Ok(())
-    }
+//     fn pop_chunk(&mut self) -> FxResult<()> {
+//         todo!()
+//     }
 
-    fn pop_chunk(&mut self) -> FxResult<()> {
-        self.data.pop();
-        Ok(())
-    }
-
-    fn take_container(self) -> Vec<T> {
-        self.data
-    }
-}
-
-impl<C: Chunking> FxBundle<C> {
-    pub fn try_new<I, T>(
-        fields_name: I,
-        data: C,
-        nullable_options: NullableOptions,
-    ) -> FxResult<Self>
-    where
-        I: IntoIterator<Item = T>,
-        T: AsRef<str>,
-    {
-        let schema = nullable_options.gen_schema(fields_name, Chunking::data_types(&data))?;
-
-        Ok(Self {
-            schema,
-            data: vec![data],
-        })
-    }
-
-    pub fn new_empty<IN, N, IT, D>(
-        fields_name: IN,
-        data_types: IT,
-        nullable_options: NullableOptions,
-    ) -> FxResult<Self>
-    where
-        IN: IntoIterator<Item = N>,
-        N: AsRef<str>,
-        IT: IntoIterator<Item = D>,
-        D: Into<DataType>,
-    {
-        let schema = nullable_options.gen_schema(fields_name, data_types)?;
-
-        Ok(Self {
-            schema,
-            data: vec![],
-        })
-    }
-
-    pub fn new_empty_by_fields<I, F>(fields: I) -> FxResult<Self>
-    where
-        I: IntoIterator<Item = F>,
-        F: Into<Field>,
-    {
-        let schema = Schema::from(fields.into_iter().map(|f| f.into()).collect::<Vec<_>>());
-
-        Ok(Self {
-            schema,
-            data: vec![],
-        })
-    }
-
-    pub fn schema(&self) -> &Schema {
-        &self.schema
-    }
-}
+//     fn take_container(self) -> Vec<C> {
+//         todo!()
+//     }
+// }
 
 // ================================================================================================
 // Test

@@ -48,7 +48,7 @@ pub trait Congruent: InnerEclectic {
         Ok(Chunk::try_new(vec_arc_arr)?)
     }
 
-    fn take_len(self, len: usize) -> FxResult<Chunk<ArcArr>>
+    fn take_len(self, _len: usize) -> FxResult<Chunk<ArcArr>>
     where
         Self: Sized,
     {

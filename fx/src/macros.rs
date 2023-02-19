@@ -467,28 +467,28 @@ macro_rules! impl_sql_meta {
                 Box::pin(q)
             }
 
-            fn query_grid<'a, D>(
-                &'a self,
-                sql: &'a str,
-            ) -> ::futures::future::BoxFuture<'a, FxResult<FxGrid>>
-            where
-                D: Send + $crate::cont::ab::FxChunkingRowBuilderGenerator<FxGrid>,
-                D: From<Self::Row>,
-            {
-                let q = async move {
-                    let mut build = D::gen_chunking_row_builder();
+            // fn query_grid<'a, D>(
+            //     &'a self,
+            //     sql: &'a str,
+            // ) -> ::futures::future::BoxFuture<'a, FxResult<FxGrid>>
+            // where
+            //     D: Send + $crate::cont::ab::FxChunkingRowBuilderGenerator<FxGrid>,
+            //     D: From<Self::Row>,
+            // {
+            //     let q = async move {
+            //         let mut build = D::gen_chunking_row_builder();
 
-                    let mut rows = ::sqlx::query(sql).fetch(self);
+            //         let mut rows = ::sqlx::query(sql).fetch(self);
 
-                    while let Some(row) = rows.try_next().await? {
-                        build.stack(row.into());
-                    }
+            //         while let Some(row) = rows.try_next().await? {
+            //             build.stack(row.into());
+            //         }
 
-                    build.build()
-                };
+            //         build.build()
+            //     };
 
-                Box::pin(q)
-            }
+            //     Box::pin(q)
+            // }
 
             fn execute<'a>(
                 &'a self,

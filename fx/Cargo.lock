@@ -713,21 +713,11 @@ version = "0.1.0"
 dependencies = [
  "arrow2",
  "futures",
- "fx-macros",
  "inherent",
  "ref-cast",
  "sqlx",
  "thiserror",
  "tokio",
-]
-
-[[package]]
-name = "fx-macros"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]

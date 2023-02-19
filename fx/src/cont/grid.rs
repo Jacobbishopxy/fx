@@ -7,8 +7,11 @@ use arrow2::chunk::Chunk;
 use arrow2::datatypes::{Field, Schema};
 use ref_cast::RefCast;
 
-use crate::cont::ab::{private, Chunking};
+use crate::cont::ab::private;
+use crate::types::ArcArr;
 use crate::{FxError, FxResult};
+
+use super::ab::private::InnerEclectic;
 
 // ================================================================================================
 // FxGrid
@@ -16,34 +19,44 @@ use crate::{FxError, FxResult};
 
 #[derive(Debug, Clone, RefCast)]
 #[repr(transparent)]
-pub struct FxGrid(pub(crate) Chunk<Arc<dyn Array>>);
+pub struct FxGrid(pub(crate) Chunk<ArcArr>);
 
-impl private::InnerChunking for FxGrid {
-    fn empty() -> Self {
-        FxGrid(Chunk::new(vec![]))
+impl private::InnerEclectic for FxGrid {
+    type Seq = ArcArr;
+
+    fn empty() -> Self
+    where
+        Self: Sized,
+    {
+        Self(Chunk::new(Vec::new()))
     }
 
-    fn ref_chunk(&self) -> &Chunk<Arc<dyn Array>> {
-        &self.0
+    fn ref_sequences(&self) -> &[Self::Seq] {
+        self.0.arrays()
     }
 
-    fn set_chunk(&mut self, arrays: Vec<Arc<dyn Array>>) -> FxResult<()> {
-        self.0 = Chunk::new(arrays);
+    fn mut_sequences(&mut self) -> &mut [Self::Seq] {
+        unimplemented!()
+    }
+
+    fn set_sequences(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
+        self.0 = Chunk::try_new(arrays)?;
+
         Ok(())
     }
 
-    fn take_chunk(self) -> Chunk<Arc<dyn Array>> {
-        self.0
+    fn take_sequences(self) -> Vec<Self::Seq> {
+        self.0.into_arrays()
     }
 }
 
 impl FxGrid {
     // WARNING: arrays with different length will cause runtime panic!!!
-    pub fn new(arrays: Vec<Arc<dyn Array>>) -> Self {
-        FxGrid(Chunk::new(arrays))
+    pub fn new(arrays: Vec<ArcArr>) -> Self {
+        FxGrid(Chunk::try_new(arrays).expect("ArcArr in Vec should always have the same length"))
     }
 
-    pub fn try_new(arrays: Vec<Arc<dyn Array>>) -> FxResult<Self> {
+    pub fn try_new(arrays: Vec<ArcArr>) -> FxResult<Self> {
         let chunk = Chunk::try_new(arrays)?;
         Ok(FxGrid(chunk))
     }
@@ -56,7 +69,7 @@ impl FxGrid {
 
         let fld = names
             .iter()
-            .zip(self.arrays())
+            .zip(self.ref_sequences())
             .map(|(n, a)| Field::new(*n, a.data_type().clone(), a.null_count() > 0))
             .collect::<Vec<_>>();
 

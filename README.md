@@ -53,7 +53,23 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     └── README.md
 ```
 
-- `Array`/`Vector`: immutable array (wrapping arrow's `Array`) and mutable vector (wrapping arrow's `MutableArray`)
+### Traits
+
+- `FxSeq`
+
+- `Eclectic`
+
+- `Congruent`
+
+- `Purport`
+
+### Types
+
+- `ArcArr`: `Arc<dyn Array>` implement `FxSeq` trait
+
+- `ArcVec`: `Arc<dyn MutableArray>` implement `FxSeq` trait
+
+### Structs and Enums
 
 - `Grid`/`Batch`: chunked data consists of arrow's `Array`, the latter one has a schema field
 

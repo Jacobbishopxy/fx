@@ -10,15 +10,18 @@ use arrow2::chunk::Chunk;
 use arrow2::datatypes::{Field, Schema};
 
 use crate::cont::ab::private;
+use crate::types::ArcArr;
 use crate::{FxResult, NullableOptions};
 
 #[derive(Debug, Clone)]
 pub struct FxBatch {
     pub(crate) schema: Schema,
-    pub(crate) data: Chunk<Arc<dyn Array>>,
+    pub(crate) data: Chunk<ArcArr>,
 }
 
-impl private::InnerChunking for FxBatch {
+impl private::InnerEclectic for FxBatch {
+    type Seq = ArcArr;
+
     fn empty() -> Self {
         Self {
             schema: Schema::from(Vec::<Field>::new()),
@@ -26,17 +29,22 @@ impl private::InnerChunking for FxBatch {
         }
     }
 
-    fn ref_chunk(&self) -> &Chunk<Arc<dyn Array>> {
-        &self.data
+    fn ref_sequences(&self) -> &[Self::Seq] {
+        self.data.arrays()
     }
 
-    fn set_chunk(&mut self, arrays: Vec<Arc<dyn Array>>) -> FxResult<()> {
-        self.data = Chunk::new(arrays);
+    fn mut_sequences(&mut self) -> &mut [Self::Seq] {
+        unimplemented!()
+    }
+
+    fn set_sequences(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
+        self.data = Chunk::try_new(arrays)?;
+
         Ok(())
     }
 
-    fn take_chunk(self) -> Chunk<Arc<dyn Array>> {
-        self.data
+    fn take_sequences(self) -> Vec<Self::Seq> {
+        self.data.into_arrays()
     }
 }
 

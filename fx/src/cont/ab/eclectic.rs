@@ -10,6 +10,10 @@ use crate::{FxError, FxResult};
 
 use super::FxSeq;
 
+// ================================================================================================
+// Eclectic
+// ================================================================================================
+
 /// A collection consists of several `FxSeq`s, whose inner type can be different
 pub trait Eclectic: private::InnerEclectic + Clone {
     fn empty() -> Self {

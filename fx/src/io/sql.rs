@@ -124,16 +124,16 @@ impl<T: SqlMeta> Connector<T> {
         }
     }
 
-    pub async fn query_grid<'a, D>(&'a self, sql: &'a str) -> FxResult<FxGrid>
-    where
-        D: Send + FxChunkingRowBuilderGenerator<FxGrid>,
-        D: From<T::Row>,
-    {
-        match self.pool_options.as_ref() {
-            Some(p) => p.query_grid::<D>(sql).await,
-            None => Err(FxError::DatabaseConnectionN),
-        }
-    }
+    // pub async fn query_grid<'a, D>(&'a self, sql: &'a str) -> FxResult<FxGrid>
+    // where
+    //     D: Send + FxChunkingRowBuilderGenerator<FxGrid>,
+    //     D: From<T::Row>,
+    // {
+    //     match self.pool_options.as_ref() {
+    //         Some(p) => p.query_grid::<D>(sql).await,
+    //         None => Err(FxError::DatabaseConnectionN),
+    //     }
+    // }
 }
 
 // ================================================================================================
@@ -194,10 +194,10 @@ pub trait SqlMeta: Sized {
         D: Send + Unpin + for<'r> FromRow<'r, <Self::DB as Database>::Row>;
 
     // query with generic param `D` as schema, and return `FxGrid`
-    fn query_grid<'a, D>(&'a self, sql: &'a str) -> BoxFuture<'a, FxResult<FxGrid>>
-    where
-        D: From<Self::Row>,
-        D: Send + FxChunkingRowBuilderGenerator<FxGrid>;
+    // fn query_grid<'a, D>(&'a self, sql: &'a str) -> BoxFuture<'a, FxResult<FxGrid>>
+    // where
+    //     D: From<Self::Row>,
+    //     D: Send + FxChunkingRowBuilderGenerator<FxGrid>;
 
     // execute SQL statement without output
     fn execute<'a>(
