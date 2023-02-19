@@ -1,8 +1,8 @@
-//! FxGrid
+//! file: grid.rs
+//! author: Jacob Xie
+//! date: 2023/02/19 11:43:09 Sunday
+//! brief: Chunk wrapper
 
-use std::sync::Arc;
-
-use arrow2::array::*;
 use arrow2::chunk::Chunk;
 use arrow2::datatypes::{Field, Schema};
 use ref_cast::RefCast;

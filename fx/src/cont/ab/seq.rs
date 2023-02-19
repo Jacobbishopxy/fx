@@ -84,20 +84,20 @@ pub trait FxSeq {
 }
 
 impl FxSeq for ArcArr {
-    fn new_nulls(data_type: DataType, len: usize) -> Self {
+    fn new_nulls(data_type: DataType, length: usize) -> Self {
         match data_type {
-            DataType::Boolean => todo!(),
-            DataType::Int8 => todo!(),
-            DataType::Int16 => todo!(),
-            DataType::Int32 => todo!(),
-            DataType::Int64 => todo!(),
-            DataType::UInt8 => todo!(),
-            DataType::UInt16 => todo!(),
-            DataType::UInt32 => todo!(),
-            DataType::UInt64 => todo!(),
-            DataType::Float32 => todo!(),
-            DataType::Float64 => todo!(),
-            DataType::Utf8 => todo!(),
+            DataType::Boolean => BA::new_null(data_type, length).arced(),
+            DataType::Int8 => PAi8::new_null(data_type, length).arced(),
+            DataType::Int16 => PAi16::new_null(data_type, length).arced(),
+            DataType::Int32 => PAi32::new_null(data_type, length).arced(),
+            DataType::Int64 => PAi64::new_null(data_type, length).arced(),
+            DataType::UInt8 => PAu8::new_null(data_type, length).arced(),
+            DataType::UInt16 => PAu16::new_null(data_type, length).arced(),
+            DataType::UInt32 => PAu32::new_null(data_type, length).arced(),
+            DataType::UInt64 => PAu64::new_null(data_type, length).arced(),
+            DataType::Float32 => PAf32::new_null(data_type, length).arced(),
+            DataType::Float64 => PAf64::new_null(data_type, length).arced(),
+            DataType::Utf8 => UA::new_null(data_type, length).arced(),
             _ => unimplemented!(),
         }
     }
@@ -171,18 +171,18 @@ impl FxSeq for ArcArr {
 impl FxSeq for ArcVec {
     fn new_nulls(data_type: DataType, len: usize) -> Self {
         match data_type {
-            DataType::Boolean => todo!(),
-            DataType::Int8 => todo!(),
-            DataType::Int16 => todo!(),
-            DataType::Int32 => todo!(),
-            DataType::Int64 => todo!(),
-            DataType::UInt8 => todo!(),
-            DataType::UInt16 => todo!(),
-            DataType::UInt32 => todo!(),
-            DataType::UInt64 => todo!(),
-            DataType::Float32 => todo!(),
-            DataType::Float64 => todo!(),
-            DataType::Utf8 => todo!(),
+            DataType::Boolean => Arc::new(MB::from(vec![None; len])),
+            DataType::Int8 => Arc::new(MPAi8::from(vec![None; len])),
+            DataType::Int16 => Arc::new(MPAi16::from(vec![None; len])),
+            DataType::Int32 => Arc::new(MPAi32::from(vec![None; len])),
+            DataType::Int64 => Arc::new(MPAi64::from(vec![None; len])),
+            DataType::UInt8 => Arc::new(MPAu8::from(vec![None; len])),
+            DataType::UInt16 => Arc::new(MPAu16::from(vec![None; len])),
+            DataType::UInt32 => Arc::new(MPAu32::from(vec![None; len])),
+            DataType::UInt64 => Arc::new(MPAu64::from(vec![None; len])),
+            DataType::Float32 => Arc::new(MPAf32::from(vec![None; len])),
+            DataType::Float64 => Arc::new(MPAf64::from(vec![None; len])),
+            DataType::Utf8 => Arc::new(MU::from(vec![Option::<&str>::None; len])),
             _ => unimplemented!(),
         }
     }

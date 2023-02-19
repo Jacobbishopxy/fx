@@ -44,7 +44,7 @@ arc_vec_impl_from_bool!();
 
 #[cfg(test)]
 mod test_ctor {
-    use super::*;
+    use crate::types::*;
     use crate::{FromSlice, FromVec};
 
     #[test]

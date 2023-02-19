@@ -7,33 +7,33 @@
 // utils
 // ================================================================================================
 
-macro_rules! invalid_arg {
-    ($s:expr, $i:expr) => {
-        if $i >= $s.len() {
-            return Err($crate::FxError::InvalidArgument(format!(
-                "n: {} is greater than array length: {}",
-                $i,
-                $s.len()
-            )));
-        }
-    };
-}
+// macro_rules! invalid_arg {
+//     ($s:expr, $i:expr) => {
+//         if $i >= $s.len() {
+//             return Err($crate::FxError::InvalidArgument(format!(
+//                 "n: {} is greater than array length: {}",
+//                 $i,
+//                 $s.len()
+//             )));
+//         }
+//     };
+// }
 
-macro_rules! invalid_len {
-    ($v:expr) => {
-        let iter = $v.iter().map(|a| a.len());
-        let lens = ::std::collections::HashSet::<_>::from_iter(iter);
-        if lens.len() != 1 {
-            return Err($crate::FxError::InvalidArgument(format!(
-                "Vector of FxArray have different length: {:?}",
-                lens
-            )));
-        }
-    };
-}
+// macro_rules! invalid_len {
+//     ($v:expr) => {
+//         let iter = $v.iter().map(|a| a.len());
+//         let lens = ::std::collections::HashSet::<_>::from_iter(iter);
+//         if lens.len() != 1 {
+//             return Err($crate::FxError::InvalidArgument(format!(
+//                 "Vector of FxArray have different length: {:?}",
+//                 lens
+//             )));
+//         }
+//     };
+// }
 
-pub(crate) use invalid_arg;
-pub(crate) use invalid_len;
+// pub(crate) use invalid_arg;
+// pub(crate) use invalid_len;
 
 // ================================================================================================
 // FxValue
@@ -258,132 +258,6 @@ macro_rules! arc_vec_impl_from_bool {
 
 pub(crate) use arc_arr_impl_from_bool;
 pub(crate) use arc_vec_impl_from_bool;
-
-// ================================================================================================
-// FxVector
-// ================================================================================================
-
-macro_rules! vec_push_branch {
-    ($s:ident, $v:expr, $dwn_cst_t:ty, $dwn_cst_m:ident) => {{
-        let val = ($v as &dyn ::std::any::Any)
-            .downcast_ref::<$dwn_cst_t>()
-            .ok_or($crate::FxError::InvalidDowncast)?
-            .to_owned();
-
-        ::std::sync::Arc::get_mut(&mut $s.0)
-            .ok_or($crate::FxError::FailedToConvert)?
-            .as_mut_any()
-            .downcast_mut::<$dwn_cst_m>()
-            .ok_or($crate::FxError::InvalidDowncast)?
-            .try_push(Some(val))?;
-
-        Ok($s)
-    }};
-}
-
-macro_rules! vec_pop_branch {
-    ($s:ident, $dwn_cst_m:ident) => {{
-        ::std::sync::Arc::get_mut(&mut $s.0)
-            .ok_or($crate::FxError::FailedToConvert)?
-            .as_mut_any()
-            .downcast_mut::<$dwn_cst_m>()
-            .ok_or($crate::FxError::InvalidDowncast)?
-            .pop();
-
-        Ok($s)
-    }};
-    ($s:ident, $dwn_cst_m:ident, $fx_v:ident) => {{
-        ::std::sync::Arc::get_mut(&mut $s.0)?
-            .as_mut_any()
-            .downcast_mut::<$dwn_cst_m>()?
-            .pop()
-            .map($crate::FxValue::$fx_v)
-    }};
-}
-
-macro_rules! vec_reserve_branch {
-    ($s:ident, $dwn_cst_m:ident, $a:expr) => {{
-        ::std::sync::Arc::get_mut(&mut $s.0)
-            .ok_or($crate::FxError::FailedToConvert)?
-            .as_mut_any()
-            .downcast_mut::<$dwn_cst_m>()
-            .ok_or($crate::FxError::InvalidDowncast)?
-            .reserve($a);
-
-        Ok(())
-    }};
-    ($s:ident, $dwn_cst_m:ident, $a:expr, $av:expr) => {{
-        ::std::sync::Arc::get_mut(&mut $s.0)
-            .ok_or($crate::FxError::FailedToConvert)?
-            .as_mut_any()
-            .downcast_mut::<$dwn_cst_m>()
-            .ok_or($crate::FxError::InvalidDowncast)?
-            .reserve($a, $av);
-
-        Ok(())
-    }};
-}
-
-macro_rules! vec_extend_branch {
-    ($s:ident, $v:expr, $dwn_cst_m:ident) => {{
-        let iter =
-            $v.0.as_any()
-                .downcast_ref::<$dwn_cst_m>()
-                .ok_or($crate::FxError::InvalidDowncast)?
-                .iter();
-
-        ::std::sync::Arc::get_mut(&mut $s.0)
-            .ok_or($crate::FxError::FailedToConvert)?
-            .as_mut_any()
-            .downcast_mut::<$dwn_cst_m>()
-            .ok_or($crate::FxError::InvalidDowncast)?
-            .extend_trusted_len(iter);
-
-        Ok($s)
-    }};
-}
-
-pub(crate) use vec_extend_branch;
-pub(crate) use vec_pop_branch;
-pub(crate) use vec_push_branch;
-pub(crate) use vec_reserve_branch;
-
-// ================================================================================================
-// Convertion from FxArray to FxVector
-// ================================================================================================
-
-macro_rules! arr_to_vec_branch {
-    ($arr:expr, $dwn_cst_r:ident, $arrow_ma:ident) => {{
-        let arr = $arr
-            .0
-            .as_any()
-            .downcast_ref::<$dwn_cst_r>()
-            .ok_or($crate::FxError::FailedToConvert)?
-            .into_iter();
-
-        let mba = $arrow_ma::from_iter(arr);
-
-        Ok($crate::FxVector(::std::sync::Arc::new(mba)))
-    }};
-}
-
-macro_rules! arr_to_vec_p_branch {
-    ($arr:expr, $dwn_cst_r:ident, $arrow_ma:ident) => {{
-        let arr = $arr
-            .0
-            .as_any()
-            .downcast_ref::<$dwn_cst_r>()
-            .ok_or($crate::FxError::FailedToConvert)?
-            .into_iter();
-
-        let mba = $arrow_ma::from_trusted_len_iter(arr);
-
-        Ok($crate::FxVector(::std::sync::Arc::new(mba)))
-    }};
-}
-
-pub(crate) use arr_to_vec_branch;
-pub(crate) use arr_to_vec_p_branch;
 
 // ================================================================================================
 // Connector macros

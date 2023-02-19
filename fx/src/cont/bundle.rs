@@ -3,17 +3,16 @@
 //! date: 2023/01/20 22:34:35 Friday
 //! brief: Bundle
 
-use arrow2::datatypes::{DataType, Field, Schema};
+// use arrow2::datatypes::{DataType, Field, Schema};
 
-use crate::cont::ab::private;
-use crate::types::ArcVec;
-use crate::{FxBatch, FxError, FxResult, NullableOptions};
+// use crate::cont::ab::private;
+// use crate::{FxError, FxGrid, FxResult, NullableOptions};
 
-#[derive(Debug, Clone)]
-pub struct FxBundle {
-    pub(crate) schema: Schema,
-    pub(crate) data: Vec<FxBatch>,
-}
+// #[derive(Debug, Clone)]
+// pub struct FxBundle {
+//     pub(crate) schema: Schema,
+//     pub(crate) data: Vec<FxGrid>,
+// }
 
 // impl private::InnerEclecticCollection<usize, FxBatch> for FxBundle {
 //     fn empty() -> Self

@@ -4,10 +4,7 @@
 //! brief: Private
 
 use std::hash::Hash;
-use std::sync::Arc;
 
-use arrow2::array::Array;
-use arrow2::chunk::Chunk;
 use arrow2::datatypes::{DataType, Schema};
 
 use crate::cont::ab::FxSeq;
@@ -30,6 +27,7 @@ pub trait InnerEclectic {
 
     fn ref_sequences(&self) -> &[Self::Seq];
 
+    // TODO: should also consider arrow's Chunk
     fn mut_sequences(&mut self) -> &mut [Self::Seq];
 
     fn set_sequences(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()>;
@@ -86,6 +84,8 @@ pub trait InnerEclectic {
     fn data_types_match<T: InnerEclectic>(&self, d: &T) -> bool {
         self.width() == d.width() && self.data_types() == d.data_types()
     }
+
+    // TODO: nulls/has_nulls/
 }
 
 // ================================================================================================

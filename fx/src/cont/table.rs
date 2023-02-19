@@ -8,7 +8,7 @@ use inherent::inherent;
 
 use crate::{FxError, FxResult};
 
-use super::ab::{private, FxSeq, Purport};
+use crate::cont::ab::{private, FxSeq, Purport};
 
 // ================================================================================================
 // FxTable

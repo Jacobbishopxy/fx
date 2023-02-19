@@ -21,7 +21,7 @@ pub trait Congruent: InnerEclectic {
     where
         Self: Sized,
     {
-        let len = self.max_len().ok_or(FxError::EmptyContent)?;
+        let _len = self.max_len().ok_or(FxError::EmptyContent)?;
 
         // fill Nan by None
 

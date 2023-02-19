@@ -76,6 +76,7 @@ pub trait Eclectic: private::InnerEclectic + Clone {
         self.try_concat(&[d.clone()])
     }
 
+    // TODO: it requires `self.mut_sequences()`! However, if a struct's field is arrow's `Chunk`, it is failed
     fn try_concat<T: Eclectic<Seq = Self::Seq>>(&mut self, d: &[T]) -> FxResult<&mut Self> {
         for e in d.iter() {
             if !Eclectic::data_types_match(self, e) {
