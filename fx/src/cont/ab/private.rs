@@ -50,10 +50,11 @@ pub trait InnerEclecticMutChunk: InnerEclectic {
 // ================================================================================================
 
 #[doc(hidden)]
-pub trait InnerEclecticCollection<I, C>
+pub trait InnerEclecticCollection<const SCHEMA: bool, I, C>
 where
-    I: Hash,
+    I: Hash + Eq,
     C: InnerEclectic,
+    Self: Sized,
 {
     fn empty() -> Self
     where

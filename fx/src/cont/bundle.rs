@@ -3,61 +3,88 @@
 //! date: 2023/01/20 22:34:35 Friday
 //! brief: Bundle
 
-// use arrow2::datatypes::{DataType, Field, Schema};
+use arrow2::datatypes::{Field, Schema};
 
-// use crate::cont::private;
-// use crate::{FxError, FxGrid, FxResult, NullableOptions};
+use crate::ab::{private, Purport, StaticPurport};
+use crate::{ChunkArr, FxError, FxResult};
 
-// #[derive(Debug, Clone)]
-// pub struct FxBundle {
-//     pub(crate) schema: Schema,
-//     pub(crate) data: Vec<FxGrid>,
-// }
+#[derive(Debug, Clone)]
+pub struct FxBundle {
+    pub(crate) schema: Schema,
+    pub(crate) data: Vec<ChunkArr>,
+}
 
-// impl private::InnerEclecticCollection<usize, FxBatch> for FxBundle {
-//     fn empty() -> Self
-//     where
-//         Self: Sized,
-//     {
-//         todo!()
-//     }
+impl StaticPurport for FxBundle {}
 
-//     fn ref_schema(&self) -> &Schema {
-//         todo!()
-//     }
+impl Purport for FxBundle {
+    fn schema(&self) -> &Schema {
+        &self.schema
+    }
+}
 
-//     fn ref_container(&self) -> Vec<&C> {
-//         todo!()
-//     }
+impl private::InnerEclecticCollection<true, usize, ChunkArr> for FxBundle {
+    fn empty() -> Self
+    where
+        Self: Sized,
+    {
+        Self {
+            schema: Schema::from(Vec::<Field>::new()),
+            data: Vec::<ChunkArr>::new(),
+        }
+    }
 
-//     fn get_chunk(&self, key: I) -> FxResult<&C> {
-//         todo!()
-//     }
+    fn ref_schema(&self) -> Option<&Schema> {
+        Some(&self.schema)
+    }
 
-//     fn get_mut_chunk(&mut self, key: I) -> FxResult<&mut C> {
-//         todo!()
-//     }
+    fn ref_container(&self) -> Vec<&ChunkArr> {
+        self.data.iter().collect()
+    }
 
-//     fn insert_chunk_type_unchecked(&mut self, key: I, data: C) -> FxResult<()> {
-//         todo!()
-//     }
+    fn get_chunk(&self, key: usize) -> FxResult<&ChunkArr> {
+        self.data.get(key).ok_or(FxError::OutBounds)
+    }
 
-//     fn remove_chunk(&mut self, key: I) -> FxResult<()> {
-//         todo!()
-//     }
+    fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut ChunkArr> {
+        self.data.get_mut(key).ok_or(FxError::OutBounds)
+    }
 
-//     fn push_chunk_type_unchecked(&mut self, data: C) -> FxResult<()> {
-//         todo!()
-//     }
+    fn insert_chunk_type_unchecked(&mut self, key: usize, data: ChunkArr) -> FxResult<()> {
+        if key > self.data.len() {
+            return Err(FxError::OutBounds);
+        }
 
-//     fn pop_chunk(&mut self) -> FxResult<()> {
-//         todo!()
-//     }
+        self.data.insert(key, data);
 
-//     fn take_container(self) -> Vec<C> {
-//         todo!()
-//     }
-// }
+        Ok(())
+    }
+
+    fn remove_chunk(&mut self, key: usize) -> FxResult<()> {
+        if key > self.data.len() {
+            return Err(FxError::OutBounds);
+        }
+
+        self.data.remove(key);
+
+        Ok(())
+    }
+
+    fn push_chunk_type_unchecked(&mut self, data: ChunkArr) -> FxResult<()> {
+        self.data.push(data);
+
+        Ok(())
+    }
+
+    fn pop_chunk(&mut self) -> FxResult<()> {
+        self.data.pop();
+
+        Ok(())
+    }
+
+    fn take_container(self) -> Vec<ChunkArr> {
+        self.data
+    }
+}
 
 // ================================================================================================
 // Test

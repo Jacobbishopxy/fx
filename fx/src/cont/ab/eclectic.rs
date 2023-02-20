@@ -154,9 +154,10 @@ impl<T> EclecticMutChunk for T where T: private::InnerEclecticMutChunk {}
 // EclecticCollection
 // ================================================================================================
 
-pub trait EclecticCollection<I, C>: private::InnerEclecticCollection<I, C>
+pub trait EclecticCollection<const SCHEMA: bool, I, C>:
+    private::InnerEclecticCollection<SCHEMA, I, C>
 where
-    I: Hash,
+    I: Hash + Eq,
     C: Eclectic,
 {
     fn length(&self) -> usize {
@@ -187,16 +188,74 @@ where
 
     fn data_types_match<T>(&self, d: &T) -> bool
     where
-        T: EclecticCollection<I, C>,
+        T: EclecticCollection<SCHEMA, I, C>,
     {
         self.width() == d.width() && self.data_types() == d.data_types()
     }
+
+    fn get(&self, key: I) -> FxResult<&C> {
+        self.get_chunk(key)
+    }
+
+    fn get_mut(&mut self, key: I) -> FxResult<&mut C> {
+        self.get_mut_chunk(key)
+    }
+
+    fn insert(&mut self, key: I, data: C) -> FxResult<()> {
+        if SCHEMA && !self.data_types_check(&data) {
+            return Err(FxError::SchemaMismatch);
+        }
+
+        self.insert_chunk_type_unchecked(key, data)
+    }
+
+    fn remove(&mut self, key: I) -> FxResult<()> {
+        self.remove_chunk(key)
+    }
+
+    fn remove_many<ITR>(&mut self, keys: ITR) -> FxResult<()>
+    where
+        ITR: IntoIterator<Item = I>,
+    {
+        for i in keys {
+            self.remove(i)?;
+        }
+
+        Ok(())
+    }
+
+    fn push(&mut self, data: C) -> FxResult<()> {
+        if SCHEMA && !self.data_types_check(&data) {
+            return Err(FxError::SchemaMismatch);
+        }
+
+        self.push_chunk_type_unchecked(data)
+    }
+
+    fn extend<ITR>(&mut self, data: ITR) -> FxResult<()>
+    where
+        ITR: IntoIterator<Item = C>,
+    {
+        for d in data {
+            self.push(d)?;
+        }
+
+        Ok(())
+    }
+
+    fn pop(&mut self) -> FxResult<()> {
+        self.pop_chunk()
+    }
+
+    fn into_vec_content(self) -> Vec<C> {
+        self.take_container()
+    }
 }
 
-impl<I, C, T> EclecticCollection<I, C> for T
+impl<const SCHEMA: bool, I, C, T> EclecticCollection<SCHEMA, I, C> for T
 where
-    T: private::InnerEclecticCollection<I, C>,
-    I: Hash,
+    T: private::InnerEclecticCollection<SCHEMA, I, C>,
+    I: Hash + Eq,
     C: Eclectic,
 {
 }

@@ -240,7 +240,7 @@ impl private::InnerEclecticMutChunk for Chunk<ArcArr> {
 
 impl StaticPurport for Vec<ChunkArr> {}
 
-impl private::InnerEclecticCollection<usize, ChunkArr> for Vec<ChunkArr> {
+impl private::InnerEclecticCollection<false, usize, ChunkArr> for Vec<ChunkArr> {
     fn empty() -> Self
     where
         Self: Sized,

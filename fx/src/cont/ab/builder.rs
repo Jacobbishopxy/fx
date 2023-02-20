@@ -44,11 +44,11 @@ where
 // FxEclecticCollectionRowBuilder & FxEclecticCollectionRowBuilderGenerator
 // ================================================================================================
 
-pub trait FxEclecticCollectionRowBuilder<B, R, T, I, C>: Send
+pub trait FxEclecticCollectionRowBuilder<const SCHEMA: bool, B, R, T, I, C>: Send
 where
     B: FxEclecticRowBuilder<R, C>,
-    T: EclecticCollection<I, C>,
-    I: Hash,
+    T: EclecticCollection<SCHEMA, I, C>,
+    I: Hash + Eq,
     C: Eclectic,
 {
     fn new() -> FxResult<Self>
@@ -62,15 +62,15 @@ where
     fn build(self) -> T;
 }
 
-pub trait FxEclecticCollectionRowBuilderGenerator<B, R, T, I, C>
+pub trait FxEclecticCollectionRowBuilderGenerator<const SCHEMA: bool, B, R, T, I, C>
 where
     Self: Sized,
     B: FxEclecticRowBuilder<R, C>,
-    T: EclecticCollection<I, C>,
-    I: Hash,
+    T: EclecticCollection<SCHEMA, I, C>,
+    I: Hash + Eq,
     C: Eclectic,
 {
-    type Builder: FxEclecticCollectionRowBuilder<B, R, T, I, C>;
+    type Builder: FxEclecticCollectionRowBuilder<SCHEMA, B, R, T, I, C>;
 
     fn gen_eclectic_collection_row_builder() -> FxResult<Self::Builder>;
 }
@@ -155,8 +155,15 @@ mod test_builder {
         buffer: Option<UsersChunkingBuild>,
     }
 
-    impl FxEclecticCollectionRowBuilder<UsersChunkingBuild, Users, Vec<ChunkArr>, usize, ChunkArr>
-        for UsersContainerBuild
+    impl
+        FxEclecticCollectionRowBuilder<
+            false,
+            UsersChunkingBuild,
+            Users,
+            Vec<ChunkArr>,
+            usize,
+            ChunkArr,
+        > for UsersContainerBuild
     {
         fn new() -> FxResult<Self>
         where
@@ -197,6 +204,7 @@ mod test_builder {
 
     impl
         FxEclecticCollectionRowBuilderGenerator<
+            false,
             UsersChunkingBuild,
             Users,
             Vec<ChunkArr>,
