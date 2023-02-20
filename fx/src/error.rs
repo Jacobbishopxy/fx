@@ -48,6 +48,9 @@ pub enum FxError {
     #[error("out of the bounds")]
     OutBounds,
 
+    #[error("key not found")]
+    NoKey,
+
     #[error(transparent)]
     StdIO(std::io::Error),
 

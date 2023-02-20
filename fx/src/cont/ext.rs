@@ -4,6 +4,8 @@
 //! brief: Arrow extensions
 
 use std::any::Any;
+use std::collections::HashMap;
+use std::hash::Hash;
 use std::ops::Deref;
 use std::sync::Arc;
 
@@ -298,5 +300,63 @@ impl private::InnerEclecticCollection<false, usize, ChunkArr> for Vec<ChunkArr> 
 
     fn take_container(self) -> Vec<ChunkArr> {
         self
+    }
+}
+
+// ================================================================================================
+// Default implementation for Map<I, Chunk<dyn Array>>
+// ================================================================================================
+
+impl<I> StaticPurport for HashMap<I, ChunkArr> where I: Hash + Eq {}
+
+impl<IDX> private::InnerEclecticCollection<false, IDX, ChunkArr> for HashMap<IDX, ChunkArr>
+where
+    IDX: Hash + Eq,
+{
+    fn empty() -> Self
+    where
+        Self: Sized,
+    {
+        todo!()
+    }
+
+    fn ref_schema(&self) -> Option<&Schema> {
+        todo!()
+    }
+
+    fn ref_container(&self) -> Vec<&ChunkArr> {
+        self.iter().map(|(_, v)| v).collect()
+    }
+
+    fn get_chunk(&self, key: IDX) -> FxResult<&ChunkArr> {
+        self.get(&key).ok_or(FxError::NoKey)
+    }
+
+    fn get_mut_chunk(&mut self, key: IDX) -> FxResult<&mut ChunkArr> {
+        self.get_mut(&key).ok_or(FxError::NoKey)
+    }
+
+    fn insert_chunk_type_unchecked(&mut self, key: IDX, data: ChunkArr) -> FxResult<()> {
+        self.insert(key, data).ok_or(FxError::NoKey)?;
+
+        Ok(())
+    }
+
+    fn remove_chunk(&mut self, key: IDX) -> FxResult<()> {
+        self.remove(&key).ok_or(FxError::NoKey)?;
+
+        Ok(())
+    }
+
+    fn push_chunk_type_unchecked(&mut self, _data: ChunkArr) -> FxResult<()> {
+        todo!()
+    }
+
+    fn pop_chunk(&mut self) -> FxResult<()> {
+        todo!()
+    }
+
+    fn take_container(self) -> Vec<ChunkArr> {
+        self.into_values().collect()
     }
 }
