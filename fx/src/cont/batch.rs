@@ -7,7 +7,7 @@ use arrow2::chunk::Chunk;
 use arrow2::datatypes::{Field, Schema};
 use inherent::inherent;
 
-use crate::ab::{private, Purport};
+use crate::ab::{private, Purport, StaticPurport};
 use crate::types::ArcArr;
 use crate::FxResult;
 
@@ -20,6 +20,8 @@ pub struct FxBatch {
     pub(crate) schema: Schema,
     pub(crate) data: Chunk<ArcArr>,
 }
+
+impl StaticPurport for FxBatch {}
 
 #[inherent]
 impl Purport for FxBatch {

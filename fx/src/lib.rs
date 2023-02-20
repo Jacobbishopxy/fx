@@ -24,7 +24,6 @@ pub use value::*;
 pub use cont::batch::*;
 pub use cont::bundle::*;
 pub use cont::cvt::*;
-pub use cont::grid::*;
 pub use cont::nullopt::*;
 pub use cont::parcel::*;
 pub use cont::table::*;

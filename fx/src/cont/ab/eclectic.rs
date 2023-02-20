@@ -10,10 +10,9 @@ use arrow2::chunk::Chunk;
 use arrow2::compute::concatenate::concatenate;
 use arrow2::datatypes::DataType;
 
+use super::FxSeq;
 use crate::ab::private;
 use crate::{ArcArr, FxError, FxResult};
-
-use super::FxSeq;
 
 // ================================================================================================
 // Eclectic
@@ -194,4 +193,12 @@ where
     {
         self.width() == d.width() && self.data_types() == d.data_types()
     }
+}
+
+impl<I, C, T> EclecticCollection<I, C> for T
+where
+    T: private::InnerEclecticCollection<I, C>,
+    I: Hash,
+    C: Eclectic,
+{
 }

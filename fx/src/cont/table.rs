@@ -6,7 +6,7 @@
 use arrow2::datatypes::Schema;
 use inherent::inherent;
 
-use crate::ab::{private, Congruent, FxSeq, Purport};
+use crate::ab::{private, Congruent, FxSeq, Purport, StaticPurport};
 use crate::FxResult;
 
 // ================================================================================================
@@ -19,6 +19,8 @@ pub struct FxTable<S: FxSeq> {
     schema: Schema,
     data: Vec<S>,
 }
+
+impl<S> StaticPurport for FxTable<S> where S: FxSeq {}
 
 #[inherent]
 impl<S> Purport for FxTable<S>

@@ -3,15 +3,17 @@
 //! date: 2023/02/15 23:04:38 Wednesday
 //! brief: Purport
 
+use arrow2::chunk::Chunk;
+use arrow2::datatypes::{Field, Schema};
+
+use super::FxSeq;
+use crate::ArcArr;
+
 // ================================================================================================
 // Purport
 //
 // Schema related functions
 // ================================================================================================
-
-use arrow2::datatypes::{Field, Schema};
-
-use super::FxSeq;
 
 #[inline]
 fn default_cols(len: usize) -> impl Iterator<Item = String> {
@@ -58,9 +60,7 @@ where
     Schema::from(fields)
 }
 
-pub trait Purport {
-    fn schema(&self) -> &Schema;
-
+pub trait StaticPurport {
     // static methods
 
     fn gen_schema<S>(seq: &[S]) -> Schema
@@ -79,3 +79,13 @@ pub trait Purport {
         gen_schema(seq, filled_cols(seq.len(), names))
     }
 }
+
+pub trait Purport: StaticPurport {
+    fn schema(&self) -> &Schema;
+}
+
+// ================================================================================================
+// Default implementation for Chunk<dyn Array>
+// ================================================================================================
+
+impl StaticPurport for Chunk<ArcArr> {}
