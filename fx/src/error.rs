@@ -45,6 +45,9 @@ pub enum FxError {
     #[error("empty content")]
     EmptyContent,
 
+    #[error("out of the bounds")]
+    OutBounds,
+
     #[error(transparent)]
     StdIO(std::io::Error),
 

@@ -11,9 +11,9 @@ use std::sync::Arc;
 use arrow2::array::TryExtendFromSelf;
 use arrow2::chunk::Chunk;
 use arrow2::compute::concatenate::concatenate;
-use arrow2::datatypes::DataType;
+use arrow2::datatypes::{DataType, Schema};
 
-use crate::ab::{private, FxSeq};
+use crate::ab::{private, FxSeq, StaticPurport};
 use crate::cont::macros::{arr_to_vec, arr_to_vec_p, try_ext_from_slf};
 use crate::types::*;
 use crate::{FxError, FxResult};
@@ -201,7 +201,9 @@ impl FxSeq for ArcVec {
 // Default implementation for Chunk<dyn Array>
 // ================================================================================================
 
-impl private::InnerEclectic for Chunk<ArcArr> {
+impl StaticPurport for ChunkArr {}
+
+impl private::InnerEclectic for ChunkArr {
     type Seq = ArcArr;
 
     fn empty() -> Self
@@ -228,6 +230,73 @@ impl private::InnerEclectic for Chunk<ArcArr> {
 
 impl private::InnerEclecticMutChunk for Chunk<ArcArr> {
     fn mut_chunk(&mut self) -> &mut Chunk<ArcArr> {
+        self
+    }
+}
+
+// ================================================================================================
+// Default implementation for Vec<Chunk<dyn Array>>
+// ================================================================================================
+
+impl StaticPurport for Vec<ChunkArr> {}
+
+impl private::InnerEclecticCollection<usize, ChunkArr> for Vec<ChunkArr> {
+    fn empty() -> Self
+    where
+        Self: Sized,
+    {
+        Vec::new()
+    }
+
+    fn ref_schema(&self) -> Option<&Schema> {
+        None
+    }
+
+    fn ref_container(&self) -> Vec<&ChunkArr> {
+        self.iter().collect()
+    }
+
+    fn get_chunk(&self, key: usize) -> FxResult<&ChunkArr> {
+        self.get(key).ok_or(FxError::OutBounds)
+    }
+
+    fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut ChunkArr> {
+        self.get_mut(key).ok_or(FxError::OutBounds)
+    }
+
+    fn insert_chunk_type_unchecked(&mut self, key: usize, data: ChunkArr) -> FxResult<()> {
+        if key > self.len() {
+            return Err(FxError::OutBounds);
+        }
+
+        self.insert(key, data);
+
+        Ok(())
+    }
+
+    fn remove_chunk(&mut self, key: usize) -> FxResult<()> {
+        if key > self.len() {
+            return Err(FxError::OutBounds);
+        }
+
+        self.remove(key);
+
+        Ok(())
+    }
+
+    fn push_chunk_type_unchecked(&mut self, data: ChunkArr) -> FxResult<()> {
+        self.push(data);
+
+        Ok(())
+    }
+
+    fn pop_chunk(&mut self) -> FxResult<()> {
+        self.pop();
+
+        Ok(())
+    }
+
+    fn take_container(self) -> Vec<ChunkArr> {
         self
     }
 }

@@ -164,7 +164,7 @@ where
     }
 
     fn width(&self) -> usize {
-        self.ref_schema().fields.len()
+        self.ref_schema().map(|s| s.fields.len()).unwrap_or(0)
     }
 
     fn size(&self) -> (usize, usize) {
@@ -177,10 +177,8 @@ where
 
     fn data_types(&self) -> Vec<&DataType> {
         self.ref_schema()
-            .fields
-            .iter()
-            .map(|f| f.data_type())
-            .collect::<Vec<_>>()
+            .map(|s| s.fields.iter().map(|f| f.data_type()).collect::<Vec<_>>())
+            .unwrap_or(Vec::new())
     }
 
     fn data_types_check(&self, c: &C) -> bool {

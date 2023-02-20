@@ -5,10 +5,11 @@
 
 use std::sync::Arc;
 
-use arrow2::array::*;
+use arrow2::{array::*, chunk::Chunk};
 
 pub type ArcArr = Arc<dyn Array>;
 pub type ArcVec = Arc<dyn MutableArray>;
+pub type ChunkArr = Chunk<ArcArr>;
 
 pub(crate) type BA = BooleanArray;
 pub(crate) type PAi8 = PrimitiveArray<i8>;

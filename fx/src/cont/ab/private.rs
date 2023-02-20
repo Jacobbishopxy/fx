@@ -59,7 +59,7 @@ where
     where
         Self: Sized;
 
-    fn ref_schema(&self) -> &Schema;
+    fn ref_schema(&self) -> Option<&Schema>;
 
     fn ref_container(&self) -> Vec<&C>;
 

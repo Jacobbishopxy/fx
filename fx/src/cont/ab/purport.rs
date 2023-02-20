@@ -3,11 +3,9 @@
 //! date: 2023/02/15 23:04:38 Wednesday
 //! brief: Purport
 
-use arrow2::chunk::Chunk;
 use arrow2::datatypes::{Field, Schema};
 
 use super::FxSeq;
-use crate::ArcArr;
 
 // ================================================================================================
 // Purport
@@ -83,9 +81,3 @@ pub trait StaticPurport {
 pub trait Purport: StaticPurport {
     fn schema(&self) -> &Schema;
 }
-
-// ================================================================================================
-// Default implementation for Chunk<dyn Array>
-// ================================================================================================
-
-impl StaticPurport for Chunk<ArcArr> {}
