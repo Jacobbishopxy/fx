@@ -4,9 +4,14 @@
 //! brief: Bundle
 
 use arrow2::datatypes::{Field, Schema};
+use inherent::inherent;
 
-use crate::ab::{private, Purport, StaticPurport};
+use crate::ab::{private, EclecticCollection, Purport, StaticPurport};
 use crate::{ChunkArr, FxError, FxResult};
+
+// ================================================================================================
+// FxBundle
+// ================================================================================================
 
 #[derive(Debug, Clone)]
 pub struct FxBundle {
@@ -16,8 +21,9 @@ pub struct FxBundle {
 
 impl StaticPurport for FxBundle {}
 
+#[inherent]
 impl Purport for FxBundle {
-    fn schema(&self) -> &Schema {
+    pub fn schema(&self) -> &Schema {
         &self.schema
     }
 }
@@ -42,11 +48,11 @@ impl private::InnerEclecticCollection<true, usize, ChunkArr> for FxBundle {
     }
 
     fn get_chunk(&self, key: usize) -> FxResult<&ChunkArr> {
-        self.data.get(key).ok_or(FxError::OutBounds)
+        self.data.get(key)
     }
 
     fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut ChunkArr> {
-        self.data.get_mut(key).ok_or(FxError::OutBounds)
+        self.data.get_mut(key)
     }
 
     fn insert_chunk_type_unchecked(&mut self, key: usize, data: ChunkArr) -> FxResult<()> {
@@ -86,33 +92,63 @@ impl private::InnerEclecticCollection<true, usize, ChunkArr> for FxBundle {
     }
 }
 
+impl FxBundle {
+    pub fn new(data: Vec<ChunkArr>) -> Self {
+        if data.is_empty() {
+            return Self::empty();
+        }
+
+        let schema = Self::gen_schema(data.first().unwrap());
+
+        Self { schema, data }
+    }
+
+    pub fn new_with_names<I, T>(data: Vec<ChunkArr>, names: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: AsRef<str>,
+    {
+        if data.is_empty() {
+            return Self::empty();
+        }
+
+        let schema = Self::gen_schema_with_names(data.first().unwrap(), names);
+
+        Self { schema, data }
+    }
+}
+
 // ================================================================================================
 // Test
 // ================================================================================================
 
 #[cfg(test)]
 mod test_bundle {
-    // use super::*;
+    use super::*;
 
-    // use crate::cont::*;
-    // use crate::{FromSlice, FxArray, FxGrid};
+    use crate::ab::*;
+    use crate::ArcArr;
 
-    // #[test]
-    // fn new_fx_batches() {
-    //     let arrays = vec![
-    //         FxArray::from_slice(&["a", "c", "z"]).into_array(),
-    //         FxArray::from(vec![Some("x"), None, Some("y")]).into_array(),
-    //         FxArray::from_slice(&[true, false, false]).into_array(),
-    //     ];
-    //     let data = FxGrid::new(arrays);
+    #[test]
+    fn new_fx_bundle() {
+        let ca = ChunkArr::new(vec![
+            ArcArr::from_slice(&["a", "c", "z"]),
+            ArcArr::from_slice(&[Some("x"), None, Some("y")]),
+            ArcArr::from_slice(&[true, false, false]),
+        ]);
+        let bdl = FxBundle::new(vec![ca]);
 
-    //     let batches =
-    //         FxBundle::try_new(["c1", "c2", "c3"], data, NullableOptions::indexed_true([2]));
+        println!("{bdl:?}");
 
-    //     assert!(batches.is_ok());
+        let ca = ChunkArr::new(vec![
+            ArcArr::from_slice(&["a", "c", "z"]),
+            ArcArr::from_slice(&[Some("x"), None, Some("y")]),
+            ArcArr::from_slice(&[true, false, false]),
+        ]);
+        let bdl = FxBundle::new_with_names(vec![ca], ["c1", "c2"]);
 
-    //     println!("{:?}", batches.unwrap());
-    // }
+        println!("{bdl:?}");
+    }
 
     // #[test]
     // fn grid_builder_row_wise_proc_macro_success() {

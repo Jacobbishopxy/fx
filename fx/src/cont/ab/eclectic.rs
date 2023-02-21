@@ -160,6 +160,10 @@ where
     I: Hash + Eq,
     C: Eclectic,
 {
+    fn empty() -> Self {
+        private::InnerEclecticCollection::<SCHEMA, I, C>::empty()
+    }
+
     fn length(&self) -> usize {
         self.ref_container().len()
     }
