@@ -16,6 +16,7 @@ pub mod table;
 pub use batch::*;
 pub use bundle::*;
 pub use cvt::*;
+pub use ext::*;
 pub use nullopt::*;
 pub use parcel::*;
 pub use table::*;

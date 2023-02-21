@@ -5,6 +5,7 @@
 
 use std::ops::Deref;
 
+use arrow2::chunk::Chunk;
 use arrow2::compute::concatenate::concatenate;
 
 use fx::ab::FromVec;

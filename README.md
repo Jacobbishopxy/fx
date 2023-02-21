@@ -102,9 +102,11 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 
 ## Todo
 
-- new row builders
+- enhance `fx-macros`: use derived attributes to choose which `Eclectic` & `EclecticContainer`
 
 - test `inherent` crate in `fx-macros` (for builders)
+
+- add new type `Box<dyn Array>` implementation
 
 - declarative macros for each container
 

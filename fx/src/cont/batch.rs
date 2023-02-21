@@ -8,7 +8,7 @@ use arrow2::datatypes::{Field, Schema};
 use inherent::inherent;
 
 use crate::ab::{private, Purport, StaticPurport};
-use crate::types::ArcArr;
+use crate::cont::ArcArr;
 use crate::FxResult;
 
 // ================================================================================================

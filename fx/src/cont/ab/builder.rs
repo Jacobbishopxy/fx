@@ -75,6 +75,7 @@ where
     fn gen_eclectic_collection_row_builder() -> FxResult<Self::Builder>;
 }
 
+// This test mod is a prototype for derived proc-macro.
 #[cfg(test)]
 mod test_builder {
     use crate::{ab::FromVec, ArcArr, ChunkArr};
@@ -89,13 +90,13 @@ mod test_builder {
     }
 
     #[derive(Debug, Default)]
-    struct UsersChunkingBuild {
+    struct UsersEBuild {
         id: Vec<i32>,
         name: Vec<String>,
         check: Vec<Option<bool>>,
     }
 
-    impl FxEclecticRowBuilder<Users, ChunkArr> for UsersChunkingBuild {
+    impl FxEclecticRowBuilder<Users, ChunkArr> for UsersEBuild {
         fn new() -> Self {
             Self::default()
         }
@@ -118,10 +119,10 @@ mod test_builder {
     }
 
     impl FxEclecticRowBuilderGenerator<ChunkArr> for Users {
-        type Builder = UsersChunkingBuild;
+        type Builder = UsersEBuild;
 
         fn gen_eclectic_row_builder() -> Self::Builder {
-            UsersChunkingBuild::new()
+            UsersEBuild::new()
         }
     }
 
@@ -150,20 +151,13 @@ mod test_builder {
     }
 
     #[derive(Debug)]
-    struct UsersContainerBuild {
+    struct UsersCBuild {
         result: Vec<ChunkArr>,
-        buffer: Option<UsersChunkingBuild>,
+        buffer: Option<UsersEBuild>,
     }
 
-    impl
-        FxEclecticCollectionRowBuilder<
-            false,
-            UsersChunkingBuild,
-            Users,
-            Vec<ChunkArr>,
-            usize,
-            ChunkArr,
-        > for UsersContainerBuild
+    impl FxEclecticCollectionRowBuilder<false, UsersEBuild, Users, Vec<ChunkArr>, usize, ChunkArr>
+        for UsersCBuild
     {
         fn new() -> FxResult<Self>
         where
@@ -205,17 +199,17 @@ mod test_builder {
     impl
         FxEclecticCollectionRowBuilderGenerator<
             false,
-            UsersChunkingBuild,
+            UsersEBuild,
             Users,
             Vec<ChunkArr>,
             usize,
             ChunkArr,
         > for Users
     {
-        type Builder = UsersContainerBuild;
+        type Builder = UsersCBuild;
 
         fn gen_eclectic_collection_row_builder() -> FxResult<Self::Builder> {
-            UsersContainerBuild::new()
+            UsersCBuild::new()
         }
     }
 

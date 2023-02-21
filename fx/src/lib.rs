@@ -14,16 +14,17 @@ pub mod io;
 pub mod types;
 pub mod value;
 
+pub use fx_macros::FX;
 use macros::*;
-// pub use fx_macros::FX;
+
 pub use error::*;
-pub use types::*;
 pub use value::*;
 
 // cont
 pub use cont::batch::*;
 pub use cont::bundle::*;
 pub use cont::cvt::*;
+pub use cont::ext::*;
 pub use cont::nullopt::*;
 pub use cont::parcel::*;
 pub use cont::table::*;
@@ -55,4 +56,13 @@ pub mod ab {
     pub trait FromVec<T, D> {
         fn from_vec(vec: Vec<T>) -> D;
     }
+}
+
+// an easier way for using `FX` derived proc-macro, see `tests/fx_macros_test.rs`
+pub mod row_builder {
+    pub use crate::FX;
+
+    pub use crate::ab::*;
+
+    pub use crate::error::FxResult;
 }

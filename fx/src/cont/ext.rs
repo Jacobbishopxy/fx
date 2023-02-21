@@ -10,7 +10,7 @@ use std::ops::Deref;
 use std::sync::Arc;
 
 // use arrow2::array::TryPush;
-use arrow2::array::TryExtendFromSelf;
+use arrow2::array::{Array, MutableArray, TryExtendFromSelf};
 use arrow2::chunk::Chunk;
 use arrow2::compute::concatenate::concatenate;
 use arrow2::datatypes::{DataType, Schema};
@@ -19,6 +19,14 @@ use crate::ab::{private, FxSeq, StaticPurport};
 use crate::cont::macros::{arr_to_vec, arr_to_vec_p, try_ext_from_slf};
 use crate::types::*;
 use crate::{FxError, FxResult};
+
+// ================================================================================================
+// Arrow types reexport
+// ================================================================================================
+
+pub type ArcArr = Arc<dyn Array>;
+pub type ArcVec = Arc<dyn MutableArray>;
+pub type ChunkArr = Chunk<ArcArr>;
 
 // ================================================================================================
 // Arc<Array>

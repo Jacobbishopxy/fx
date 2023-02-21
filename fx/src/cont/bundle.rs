@@ -149,37 +149,4 @@ mod test_bundle {
 
         println!("{bdl:?}");
     }
-
-    // #[test]
-    // fn grid_builder_row_wise_proc_macro_success() {
-    //     use crate::FX;
-
-    //     #[allow(dead_code)]
-    //     #[derive(FX)]
-    //     struct Users {
-    //         id: i32,
-    //         name: String,
-    //         check: Option<bool>,
-    //     }
-
-    //     let r1 = Users {
-    //         id: 1,
-    //         name: "Jacob".to_string(),
-    //         check: Some(true),
-    //     };
-
-    //     let r2 = Users {
-    //         id: 2,
-    //         name: "Mia".to_string(),
-    //         check: None,
-    //     };
-
-    //     let mut bd = Users::gen_container_row_builder().unwrap();
-
-    //     bd.stack(r1).save().unwrap().stack(r2).save().unwrap();
-
-    //     let d = bd.build();
-
-    //     println!("{d:?}");
-    // }
 }

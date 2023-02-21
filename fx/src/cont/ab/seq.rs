@@ -7,7 +7,7 @@ use std::any::Any;
 
 use arrow2::datatypes::DataType;
 
-use crate::types::*;
+use crate::cont::{ArcArr, ArcVec};
 use crate::{FxError, FxResult};
 
 // ================================================================================================
