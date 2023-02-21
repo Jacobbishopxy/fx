@@ -6,9 +6,8 @@
 use arrow2::datatypes::Schema;
 use inherent::inherent;
 
-use crate::{FxError, FxResult};
-
-use super::ab::{private, FxSeq, Purport};
+use crate::ab::{private, Congruent, FxSeq, Purport, StaticPurport};
+use crate::FxResult;
 
 // ================================================================================================
 // FxTable
@@ -20,6 +19,8 @@ pub struct FxTable<S: FxSeq> {
     schema: Schema,
     data: Vec<S>,
 }
+
+impl<S> StaticPurport for FxTable<S> where S: FxSeq {}
 
 #[inherent]
 impl<S> Purport for FxTable<S>
@@ -59,50 +60,10 @@ where
 }
 
 // ================================================================================================
-// Impl private::InnerSheaf for Vec<FxSeq>
-// ================================================================================================
-
-impl<S> private::InnerSheaf for Vec<S>
-where
-    S: FxSeq,
-{
-    type Seq = S;
-
-    fn empty() -> Self
-    where
-        Self: Sized,
-    {
-        Vec::<S>::new()
-    }
-
-    fn ref_sequences(&self) -> &[Self::Seq] {
-        self.as_slice()
-    }
-
-    fn mut_sequences(&mut self) -> &mut [Self::Seq] {
-        self.as_mut_slice()
-    }
-
-    fn set_sequences(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
-        if !self.data_types_match(&arrays) {
-            return Err(FxError::SchemaMismatch);
-        }
-
-        *self = arrays;
-
-        Ok(())
-    }
-
-    fn take_sequences(self) -> Vec<Self::Seq> {
-        self
-    }
-}
-
-// ================================================================================================
 // Impl private::InnerSheaf for FxTable
 // ================================================================================================
 
-impl<S> private::InnerSheaf for FxTable<S>
+impl<S> private::InnerEclectic for FxTable<S>
 where
     S: FxSeq,
 {
@@ -122,15 +83,7 @@ where
         &self.data
     }
 
-    fn mut_sequences(&mut self) -> &mut [Self::Seq] {
-        &mut self.data
-    }
-
-    fn set_sequences(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
-        if !self.data_types_match(&arrays) {
-            return Err(FxError::SchemaMismatch);
-        }
-
+    fn set_sequences_unchecked(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
         self.data = arrays;
 
         Ok(())
@@ -141,6 +94,17 @@ where
     }
 }
 
+impl<S> private::InnerEclecticMutSeq for FxTable<S>
+where
+    S: FxSeq,
+{
+    fn mut_sequences(&mut self) -> &mut [Self::Seq] {
+        &mut self.data
+    }
+}
+
+impl<S> Congruent for FxTable<S> where S: FxSeq {}
+
 // ================================================================================================
 // Test
 // ================================================================================================
@@ -148,13 +112,13 @@ where
 #[cfg(test)]
 mod test_table {
     use super::*;
-
-    use crate::{cont::ab::Sheaf, FxArray, FxVector};
+    use crate::ab::{Eclectic, FromSlice, FromVec};
+    use crate::{ArcArr, ArcVec};
 
     #[test]
-    fn create_new_table_succes() {
-        let a = FxArray::from(vec![None, Some("x")]).into_array();
-        let b = FxArray::from(vec![None, Some(2), None]).into_array();
+    fn create_new_table_success() {
+        let a = ArcArr::from_slice(&[None, Some("x")]);
+        let b = ArcArr::from_slice(&[None, Some(2), None]);
 
         let vaa = vec![a, b];
 
@@ -164,9 +128,9 @@ mod test_table {
     }
 
     #[test]
-    fn create_new_table_name_less_succes() {
-        let a = FxArray::from(vec![None, Some("x")]).into_array();
-        let b = FxArray::from(vec![None, Some(2), None]).into_array();
+    fn create_new_table_name_less_success() {
+        let a = ArcArr::from_vec(vec![None, Some("x")]);
+        let b = ArcArr::from_vec(vec![None, Some(2), None]);
 
         let vaa = vec![a, b];
 
@@ -176,9 +140,9 @@ mod test_table {
     }
 
     #[test]
-    fn create_new_table_name_more_succes() {
-        let a = FxArray::from(vec![None, Some("x")]).into_array();
-        let b = FxArray::from(vec![None, Some(2), None]).into_array();
+    fn create_new_table_name_more_success() {
+        let a = ArcVec::from_slice(&[None, Some("x")]);
+        let b = ArcVec::from_slice(&[None, Some(2), None]);
 
         let vaa = vec![a, b];
 
@@ -189,8 +153,8 @@ mod test_table {
 
     #[test]
     fn test_vec_of_arc_arr() {
-        let a = FxArray::from(vec![None, Some("x")]).into_array();
-        let b = FxArray::from(vec![None, Some(2), None]).into_array();
+        let a = ArcArr::from_vec(vec![None, Some("x")]);
+        let b = ArcArr::from_vec(vec![None, Some(2), None]);
 
         let vaa = vec![a, b];
 
@@ -200,8 +164,8 @@ mod test_table {
 
     #[test]
     fn test_vec_of_arc_vec() {
-        let a = FxVector::from(vec![None, Some(1)]).into_mutable_array();
-        let b = FxVector::from(vec![None, Some("y"), None]).into_mutable_array();
+        let a = ArcVec::from_vec(vec![None, Some(1)]);
+        let b = ArcVec::from_vec(vec![None, Some("y"), None]);
 
         let vam = vec![a, b];
 
@@ -211,8 +175,8 @@ mod test_table {
 
     #[test]
     fn test_table_of_arc_arr() {
-        let a = FxArray::from(vec![None, Some("x")]).into_array();
-        let b = FxArray::from(vec![None, Some(2), None]).into_array();
+        let a = ArcArr::from_vec(vec![None, Some("x")]);
+        let b = ArcArr::from_vec(vec![None, Some(2), None]);
 
         let vaa = vec![a, b];
 
@@ -223,13 +187,28 @@ mod test_table {
 
     #[test]
     fn test_table_of_arc_vec() {
-        let a = FxVector::from(vec![None, Some(1)]).into_mutable_array();
-        let b = FxVector::from(vec![None, Some("y"), None]).into_mutable_array();
+        let a = ArcVec::from_vec(vec![None, Some(1)]);
+        let b = ArcVec::from_vec(vec![None, Some("y"), None]);
 
         let vam = vec![a, b];
 
         let table = FxTable::new_with_names(vam, ["a"]);
 
         println!("{table:?}");
+    }
+
+    #[test]
+    fn test_table_to_chunk() {
+        let a = ArcVec::from_vec(vec![Some(1)]);
+        let b = ArcVec::from_vec(vec![None, Some("y"), None]);
+
+        let vam = vec![a, b];
+
+        let table = FxTable::new_with_names(vam, ["a"]);
+
+        let c = table.take_len_to_chunk(2);
+        assert!(c.is_ok());
+
+        println!("{:?}", c.unwrap());
     }
 }

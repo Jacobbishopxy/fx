@@ -4,7 +4,6 @@
 //! brief:
 
 use crate::macros::*;
-use crate::types::*;
 
 // ================================================================================================
 // Impl
@@ -45,14 +44,8 @@ arc_vec_impl_from_bool!();
 
 #[cfg(test)]
 mod test_ctor {
-    use super::*;
-
-    #[test]
-    fn ba_ctor() {
-        let foo = BA::from(vec![Some(true)]);
-
-        println!("{foo:?}");
-    }
+    use crate::ab::{FromSlice, FromVec};
+    use crate::cont::{ArcArr, ArcVec};
 
     #[test]
     fn arc_arr_from_is_successful() {

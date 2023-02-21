@@ -4,22 +4,19 @@
 //! brief: Containers
 
 pub mod ab;
-pub mod array;
 pub mod batch;
 pub mod bundle;
 pub mod cvt;
-pub mod grid;
+pub mod ext;
+mod macros;
 pub mod nullopt;
 pub mod parcel;
 pub mod table;
-pub mod vector;
 
-pub use array::*;
 pub use batch::*;
 pub use bundle::*;
 pub use cvt::*;
-pub use grid::*;
+pub use ext::*;
 pub use nullopt::*;
 pub use parcel::*;
 pub use table::*;
-pub use vector::*;

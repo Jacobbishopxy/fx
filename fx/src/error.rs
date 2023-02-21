@@ -42,6 +42,15 @@ pub enum FxError {
     #[error("length does not match: ${0} & ${1}")]
     LengthMismatch(usize, usize),
 
+    #[error("empty content")]
+    EmptyContent,
+
+    #[error("out of the bounds")]
+    OutBounds,
+
+    #[error("key not found")]
+    NoKey,
+
     #[error(transparent)]
     StdIO(std::io::Error),
 

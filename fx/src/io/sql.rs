@@ -4,13 +4,13 @@ use std::future::Future;
 use std::str::FromStr;
 
 use futures::future::BoxFuture;
-use futures::TryStreamExt;
+// use futures::TryStreamExt;
 use sqlx::mssql::{MssqlPool, MssqlPoolOptions, MssqlRow};
 use sqlx::mysql::{MySqlPool, MySqlPoolOptions, MySqlRow};
 use sqlx::postgres::{PgPool, PgPoolOptions, PgRow};
 use sqlx::{Database, FromRow, Mssql, MySql, Postgres, Row};
 
-use crate::cont::ab::*;
+// use crate::cont::*;
 use crate::*;
 
 pub type PipeFn<I, O> = fn(I) -> FxResult<O>;
@@ -124,16 +124,16 @@ impl<T: SqlMeta> Connector<T> {
         }
     }
 
-    pub async fn query_grid<'a, D>(&'a self, sql: &'a str) -> FxResult<FxGrid>
-    where
-        D: Send + FxChunkingRowBuilderGenerator<FxGrid>,
-        D: From<T::Row>,
-    {
-        match self.pool_options.as_ref() {
-            Some(p) => p.query_grid::<D>(sql).await,
-            None => Err(FxError::DatabaseConnectionN),
-        }
-    }
+    // pub async fn query_grid<'a, D>(&'a self, sql: &'a str) -> FxResult<FxGrid>
+    // where
+    //     D: Send + FxChunkingRowBuilderGenerator<FxGrid>,
+    //     D: From<T::Row>,
+    // {
+    //     match self.pool_options.as_ref() {
+    //         Some(p) => p.query_grid::<D>(sql).await,
+    //         None => Err(FxError::DatabaseConnectionN),
+    //     }
+    // }
 }
 
 // ================================================================================================
@@ -194,10 +194,10 @@ pub trait SqlMeta: Sized {
         D: Send + Unpin + for<'r> FromRow<'r, <Self::DB as Database>::Row>;
 
     // query with generic param `D` as schema, and return `FxGrid`
-    fn query_grid<'a, D>(&'a self, sql: &'a str) -> BoxFuture<'a, FxResult<FxGrid>>
-    where
-        D: From<Self::Row>,
-        D: Send + FxChunkingRowBuilderGenerator<FxGrid>;
+    // fn query_grid<'a, D>(&'a self, sql: &'a str) -> BoxFuture<'a, FxResult<FxGrid>>
+    // where
+    //     D: From<Self::Row>,
+    //     D: Send + FxChunkingRowBuilderGenerator<FxGrid>;
 
     // execute SQL statement without output
     fn execute<'a>(
@@ -260,152 +260,152 @@ mod test_connector {
         assert!(res.is_ok());
     }
 
-    #[tokio::test]
-    async fn query_as_success() {
-        #[allow(dead_code)]
-        #[derive(sqlx::FromRow, Debug)]
-        struct Users {
-            email: String,
-            nickname: String,
-            hash: String,
-            role: String,
-        }
+    // #[tokio::test]
+    // async fn query_as_success() {
+    //     #[allow(dead_code)]
+    //     #[derive(sqlx::FromRow, Debug)]
+    //     struct Users {
+    //         email: String,
+    //         nickname: String,
+    //         hash: String,
+    //         role: String,
+    //     }
 
-        let mut ct = Connector::<PgPool>::new(URL);
-        ct.connect().await.expect("Connection success");
+    //     let mut ct = Connector::<PgPool>::new(URL);
+    //     ct.connect().await.expect("Connection success");
 
-        let sql = "SELECT * FROM users";
+    //     let sql = "SELECT * FROM users";
 
-        let res = ct.query_as::<Users>(sql).await;
+    //     let res = ct.query_as::<Users>(sql).await;
 
-        println!("{res:?}");
+    //     println!("{res:?}");
 
-        assert!(res.is_ok());
-    }
+    //     assert!(res.is_ok());
+    // }
 
-    #[tokio::test]
-    async fn query_grid() {
-        let pg_pool = PgPoolOptions::new().connect(URL).await.unwrap();
+    // #[tokio::test]
+    // async fn query_grid() {
+    //     let pg_pool = PgPoolOptions::new().connect(URL).await.unwrap();
 
-        let mut v1 = vec![];
-        let mut v2 = vec![];
-        let mut v3 = vec![];
-        let mut v4 = vec![];
+    //     let mut v1 = vec![];
+    //     let mut v2 = vec![];
+    //     let mut v3 = vec![];
+    //     let mut v4 = vec![];
 
-        let mut rows = sqlx::query("SELECT * FROM users").fetch(&pg_pool);
+    //     let mut rows = sqlx::query("SELECT * FROM users").fetch(&pg_pool);
 
-        while let Some(row) = rows.try_next().await.unwrap() {
-            let email: String = row.get(0);
-            let nickname: String = row.get(1);
-            let hash: String = row.get(2);
-            let role: String = row.get(3);
+    //     while let Some(row) = rows.try_next().await.unwrap() {
+    //         let email: String = row.get(0);
+    //         let nickname: String = row.get(1);
+    //         let hash: String = row.get(2);
+    //         let role: String = row.get(3);
 
-            v1.push(email);
-            v2.push(nickname);
-            v3.push(hash);
-            v4.push(role);
-        }
+    //         v1.push(email);
+    //         v2.push(nickname);
+    //         v3.push(hash);
+    //         v4.push(role);
+    //     }
 
-        let dg = FxGrid::try_from(vec![
-            FxArray::from(v1),
-            FxArray::from(v2),
-            FxArray::from(v3),
-            FxArray::from(v4),
-        ])
-        .unwrap();
+    //     let dg = FxGrid::try_from(vec![
+    //         FxArray::from(v1),
+    //         FxArray::from(v2),
+    //         FxArray::from(v3),
+    //         FxArray::from(v4),
+    //     ])
+    //     .unwrap();
 
-        println!("{dg:?}");
-    }
+    //     println!("{dg:?}");
+    // }
 
-    #[tokio::test]
-    async fn query_typed_grid_success() {
-        #[allow(dead_code)]
-        struct Users {
-            id: i32,
-            name: String,
-            check: Option<bool>,
-        }
+    // #[tokio::test]
+    // async fn query_typed_grid_success() {
+    //     #[allow(dead_code)]
+    //     struct Users {
+    //         id: i32,
+    //         name: String,
+    //         check: Option<bool>,
+    //     }
 
-        impl From<PgRow> for Users {
-            fn from(v: PgRow) -> Self {
-                Users {
-                    id: v.get(0),
-                    name: v.get(1),
-                    check: v.get(2),
-                }
-            }
-        }
+    //     impl From<PgRow> for Users {
+    //         fn from(v: PgRow) -> Self {
+    //             Users {
+    //                 id: v.get(0),
+    //                 name: v.get(1),
+    //                 check: v.get(2),
+    //             }
+    //         }
+    //     }
 
-        #[derive(Default)]
-        struct UsersBuild {
-            id: Vec<i32>,
-            name: Vec<String>,
-            check: Vec<Option<bool>>,
-        }
+    //     #[derive(Default)]
+    //     struct UsersBuild {
+    //         id: Vec<i32>,
+    //         name: Vec<String>,
+    //         check: Vec<Option<bool>>,
+    //     }
 
-        impl FxChunkingRowBuilder<Users, FxGrid> for UsersBuild {
-            fn new() -> Self {
-                Self::default()
-            }
+    //     impl FxChunkingRowBuilder<Users, FxGrid> for UsersBuild {
+    //         fn new() -> Self {
+    //             Self::default()
+    //         }
 
-            fn stack(&mut self, row: Users) -> &mut Self {
-                self.id.push(row.id);
-                self.name.push(row.name);
-                self.check.push(row.check);
+    //         fn stack(&mut self, row: Users) -> &mut Self {
+    //             self.id.push(row.id);
+    //             self.name.push(row.name);
+    //             self.check.push(row.check);
 
-                self
-            }
+    //             self
+    //         }
 
-            fn build(self) -> FxResult<FxGrid> {
-                let mut builder = FxGridColWiseBuilder::<3>::new();
+    //         fn build(self) -> FxResult<FxGrid> {
+    //             let mut builder = FxGridColWiseBuilder::<3>::new();
 
-                builder.stack(self.id);
-                builder.stack(self.name);
-                builder.stack(self.check);
+    //             builder.stack(self.id);
+    //             builder.stack(self.name);
+    //             builder.stack(self.check);
 
-                builder.build()
-            }
-        }
+    //             builder.build()
+    //         }
+    //     }
 
-        impl FxChunkingRowBuilderGenerator<FxGrid> for Users {
-            type Builder = UsersBuild;
+    //     impl FxChunkingRowBuilderGenerator<FxGrid> for Users {
+    //         type Builder = UsersBuild;
 
-            fn gen_chunking_row_builder() -> Self::Builder {
-                UsersBuild::new()
-            }
-        }
+    //         fn gen_chunking_row_builder() -> Self::Builder {
+    //             UsersBuild::new()
+    //         }
+    //     }
 
-        let pg_pool = PgPoolOptions::new().connect(URL).await.unwrap();
+    //     let pg_pool = PgPoolOptions::new().connect(URL).await.unwrap();
 
-        let sql = "SELECT * FROM users";
+    //     let sql = "SELECT * FROM users";
 
-        let res = pg_pool.query_grid::<Users>(sql).await;
+    //     let res = pg_pool.query_grid::<Users>(sql).await;
 
-        println!("{res:?}");
+    //     println!("{res:?}");
 
-        assert!(res.is_ok());
-    }
+    //     assert!(res.is_ok());
+    // }
 
-    #[tokio::test]
-    async fn query_auto_derived_grid_success() {
-        use crate::FX;
+    // #[tokio::test]
+    // async fn query_auto_derived_grid_success() {
+    //     use crate::FX;
 
-        #[allow(dead_code)]
-        #[derive(FX)]
-        struct Users {
-            id: i32,
-            name: String,
-            check: Option<bool>,
-        }
+    //     #[allow(dead_code)]
+    //     #[derive(FX)]
+    //     struct Users {
+    //         id: i32,
+    //         name: String,
+    //         check: Option<bool>,
+    //     }
 
-        let pg_pool = PgPoolOptions::new().connect(URL).await.unwrap();
+    //     let pg_pool = PgPoolOptions::new().connect(URL).await.unwrap();
 
-        let sql = "SELECT * FROM users";
+    //     let sql = "SELECT * FROM users";
 
-        let res = pg_pool.query_grid::<Users>(sql).await;
+    //     let res = pg_pool.query_grid::<Users>(sql).await;
 
-        println!("{res:?}");
+    //     println!("{res:?}");
 
-        assert!(res.is_ok());
-    }
+    //     assert!(res.is_ok());
+    // }
 }

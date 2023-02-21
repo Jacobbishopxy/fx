@@ -1,4 +1,5 @@
-//! FX
+//! author: Jacob Xie
+//! date: 2023/02/19 22:11:02 Sunday
 //!
 //! Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix)
 
@@ -7,39 +8,61 @@
 mod macros;
 
 pub mod cont;
+pub mod ctor;
 pub mod error;
 pub mod io;
-mod types;
+pub mod types;
 pub mod value;
 
+pub use fx_macros::FX;
 use macros::*;
 
-pub use cont::array::*;
+pub use error::*;
+pub use value::*;
+
+// cont
 pub use cont::batch::*;
 pub use cont::bundle::*;
 pub use cont::cvt::*;
-pub use cont::grid::*;
+pub use cont::ext::*;
 pub use cont::nullopt::*;
 pub use cont::parcel::*;
 pub use cont::table::*;
-pub use cont::vector::*;
 
-pub use error::*;
-pub use fx_macros::FX;
+// io
 pub use io::arvo::*;
 pub use io::csv::*;
 pub use io::ipc::*;
 pub use io::parquet::*;
 pub use io::sql::*;
 pub use io::FxIO;
-pub use value::*;
 
+// re-export
 pub use arrow2::*;
 
 // ================================================================================================
-// Public traits
+// Crate namespace ab
 // ================================================================================================
 
-pub trait FromSlice<T, D> {
-    fn from_slice(slice: &[T]) -> D;
+// reexport all ab, so that can use all the traits in ab as `use fx::ab::*`
+pub mod ab {
+    pub use crate::cont::ab::*;
+    pub use crate::io::ab::*;
+
+    pub trait FromSlice<T, D> {
+        fn from_slice(slice: &[T]) -> D;
+    }
+
+    pub trait FromVec<T, D> {
+        fn from_vec(vec: Vec<T>) -> D;
+    }
+}
+
+// an easier way for using `FX` derived proc-macro, see `tests/fx_macros_test.rs`
+pub mod row_builder {
+    pub use crate::FX;
+
+    pub use crate::ab::*;
+
+    pub use crate::error::FxResult;
 }

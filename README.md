@@ -11,23 +11,21 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   ├── cont
     │   │   │   ├── ab
     │   │   │   │   ├── builder.rs
-    │   │   │   │   ├── chunking.rs
-    │   │   │   │   ├── container.rs
+    │   │   │   │   ├── congruent.rs
+    │   │   │   │   ├── eclectic.rs
     │   │   │   │   ├── mod.rs
     │   │   │   │   ├── private.rs
     │   │   │   │   ├── purport.rs
-    │   │   │   │   ├── seq.rs
-    │   │   │   │   └── sheaf.rs
-    │   │   │   ├── array.rs
+    │   │   │   │   └── seq.rs
     │   │   │   ├── batch.rs
     │   │   │   ├── bundle.rs
     │   │   │   ├── cvt.rs
-    │   │   │   ├── grid.rs
+    │   │   │   ├── ext.rs
+    │   │   │   ├── macros.rs
     │   │   │   ├── mod.rs
     │   │   │   ├── nullopt.rs
     │   │   │   ├── parcel.rs
-    │   │   │   ├── table.rs
-    │   │   │   └── vector.rs
+    │   │   │   └── table.rs
     │   │   ├── io
     │   │   │   ├── ab
     │   │   │   │   └── mod.rs
@@ -37,6 +35,7 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   │   ├── mod.rs
     │   │   │   ├── parquet.rs
     │   │   │   └── sql.rs
+    │   │   ├── ctor.rs
     │   │   ├── error.rs
     │   │   ├── lib.rs
     │   │   ├── macros.rs
@@ -53,7 +52,23 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     └── README.md
 ```
 
-- `Array`/`Vector`: immutable array (wrapping arrow's `Array`) and mutable vector (wrapping arrow's `MutableArray`)
+### Traits
+
+- `FxSeq`
+
+- `Eclectic`
+
+- `Congruent`
+
+- `Purport`
+
+### Types
+
+- `ArcArr`: `Arc<dyn Array>` implement `FxSeq` trait
+
+- `ArcVec`: `Arc<dyn MutableArray>` implement `FxSeq` trait
+
+### Structs and Enums
 
 - `Grid`/`Batch`: chunked data consists of arrow's `Array`, the latter one has a schema field
 
@@ -87,13 +102,11 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 
 ## Todo
 
-- before replacing `chunking` by `sheaf`, need a new trait to describe lengths have the same length
-
-- cont/ab reduction: replace `chunking` by `sheaf`
-
-- new row builders
+- enhance `fx-macros`: use derived attributes to choose which `Eclectic` & `EclecticContainer`
 
 - test `inherent` crate in `fx-macros` (for builders)
+
+- add new type `Box<dyn Array>` implementation
 
 - declarative macros for each container
 

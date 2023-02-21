@@ -5,11 +5,11 @@
 
 use std::hash::Hash;
 
-use crate::cont::ab::{Chunking, ChunkingContainer};
+use crate::ab::{Eclectic, EclecticCollection};
 use crate::FxResult;
 
 // ================================================================================================
-// FxChunkingRowBuilder & FxChunkingRowBuilderGenerator
+// FxEclecticRowBuilder & FxEclecticRowBuilderGenerator
 //
 // Based on a named struct, generate a new struct with several vector fields, and each of them
 // denotes its original data type (`Option` is supported).
@@ -17,9 +17,9 @@ use crate::FxResult;
 // all the required implementations for a struct who represents a schema.
 // ================================================================================================
 
-pub trait FxChunkingRowBuilder<R, T>: Send
+pub trait FxEclecticRowBuilder<R, T>: Send
 where
-    T: Chunking,
+    T: Eclectic,
 {
     fn new() -> Self
     where
@@ -30,26 +30,26 @@ where
     fn build(self) -> FxResult<T>;
 }
 
-pub trait FxChunkingRowBuilderGenerator<T>
+pub trait FxEclecticRowBuilderGenerator<T>
 where
     Self: Sized,
-    T: Chunking,
+    T: Eclectic,
 {
-    type Builder: FxChunkingRowBuilder<Self, T>;
+    type Builder: FxEclecticRowBuilder<Self, T>;
 
-    fn gen_chunking_row_builder() -> Self::Builder;
+    fn gen_eclectic_row_builder() -> Self::Builder;
 }
 
 // ================================================================================================
-// FxContainerRowBuilder & FxContainerRowBuilderGenerator
+// FxEclecticCollectionRowBuilder & FxEclecticCollectionRowBuilderGenerator
 // ================================================================================================
 
-pub trait FxContainerRowBuilder<B, R, T, I, C>: Send
+pub trait FxEclecticCollectionRowBuilder<const SCHEMA: bool, B, R, T, I, C>: Send
 where
-    B: FxChunkingRowBuilder<R, C>,
-    T: ChunkingContainer<I, C>,
-    I: Hash,
-    C: Chunking,
+    B: FxEclecticRowBuilder<R, C>,
+    T: EclecticCollection<SCHEMA, I, C>,
+    I: Hash + Eq,
+    C: Eclectic,
 {
     fn new() -> FxResult<Self>
     where
@@ -62,24 +62,23 @@ where
     fn build(self) -> T;
 }
 
-pub trait FxContainerRowBuilderGenerator<B, R, T, I, C>
+pub trait FxEclecticCollectionRowBuilderGenerator<const SCHEMA: bool, B, R, T, I, C>
 where
     Self: Sized,
-    B: FxChunkingRowBuilder<R, C>,
-    T: ChunkingContainer<I, C>,
-    I: Hash,
-    C: Chunking,
+    B: FxEclecticRowBuilder<R, C>,
+    T: EclecticCollection<SCHEMA, I, C>,
+    I: Hash + Eq,
+    C: Eclectic,
 {
-    type Builder: FxContainerRowBuilder<B, R, T, I, C>;
+    type Builder: FxEclecticCollectionRowBuilder<SCHEMA, B, R, T, I, C>;
 
-    fn gen_container_row_builder() -> FxResult<Self::Builder>;
+    fn gen_eclectic_collection_row_builder() -> FxResult<Self::Builder>;
 }
 
+// This test mod is a prototype for derived proc-macro.
 #[cfg(test)]
 mod test_builder {
-    use arrow2::datatypes::{DataType, Field};
-
-    use crate::{FxArray, FxBundle, FxGrid};
+    use crate::{ab::FromVec, ArcArr, ChunkArr};
 
     use super::*;
 
@@ -91,13 +90,13 @@ mod test_builder {
     }
 
     #[derive(Debug, Default)]
-    struct UsersChunkingBuild {
+    struct UsersEBuild {
         id: Vec<i32>,
         name: Vec<String>,
         check: Vec<Option<bool>>,
     }
 
-    impl FxChunkingRowBuilder<Users, FxGrid> for UsersChunkingBuild {
+    impl FxEclecticRowBuilder<Users, ChunkArr> for UsersEBuild {
         fn new() -> Self {
             Self::default()
         }
@@ -110,20 +109,20 @@ mod test_builder {
             self
         }
 
-        fn build(self) -> FxResult<FxGrid> {
-            FxGrid::try_from(vec![
-                FxArray::from(self.id),
-                FxArray::from(self.name),
-                FxArray::from(self.check),
-            ])
+        fn build(self) -> FxResult<ChunkArr> {
+            let c1 = ArcArr::from_vec(self.id);
+            let c2 = ArcArr::from_vec(self.name);
+            let c3 = ArcArr::from_vec(self.check);
+
+            Ok(ChunkArr::try_new(vec![c1, c2, c3])?)
         }
     }
 
-    impl FxChunkingRowBuilderGenerator<FxGrid> for Users {
-        type Builder = UsersChunkingBuild;
+    impl FxEclecticRowBuilderGenerator<ChunkArr> for Users {
+        type Builder = UsersEBuild;
 
-        fn gen_chunking_row_builder() -> Self::Builder {
-            UsersChunkingBuild::new()
+        fn gen_eclectic_row_builder() -> Self::Builder {
+            UsersEBuild::new()
         }
     }
 
@@ -142,7 +141,7 @@ mod test_builder {
         };
 
         // 3. generate `FxGrid` from builder
-        let mut bd = Users::gen_chunking_row_builder();
+        let mut bd = Users::gen_eclectic_row_builder();
 
         bd.stack(r1).stack(r2);
 
@@ -152,26 +151,20 @@ mod test_builder {
     }
 
     #[derive(Debug)]
-    struct UsersContainerBuild {
-        result: FxBundle<FxGrid>,
-        buffer: Option<UsersChunkingBuild>,
+    struct UsersCBuild {
+        result: Vec<ChunkArr>,
+        buffer: Option<UsersEBuild>,
     }
 
-    impl FxContainerRowBuilder<UsersChunkingBuild, Users, FxBundle<FxGrid>, usize, FxGrid>
-        for UsersContainerBuild
+    impl FxEclecticCollectionRowBuilder<false, UsersEBuild, Users, Vec<ChunkArr>, usize, ChunkArr>
+        for UsersCBuild
     {
         fn new() -> FxResult<Self>
         where
             Self: Sized,
         {
-            let fields = vec![
-                Field::new("id", DataType::Int32, false),
-                Field::new("name", DataType::Utf8, false),
-                Field::new("check", DataType::Boolean, true),
-            ];
-
-            let result = FxBundle::<FxGrid>::new_empty_by_fields(fields)?;
-            let buffer = Some(Users::gen_chunking_row_builder());
+            let result = Vec::<ChunkArr>::new();
+            let buffer = Some(Users::gen_eclectic_row_builder());
 
             Ok(Self { result, buffer })
         }
@@ -182,7 +175,7 @@ mod test_builder {
                     b.stack(row);
                 }
                 None => {
-                    let mut buffer = Users::gen_chunking_row_builder();
+                    let mut buffer = Users::gen_eclectic_row_builder();
                     buffer.stack(row);
                     self.buffer = Some(buffer);
                 }
@@ -192,24 +185,31 @@ mod test_builder {
         }
 
         fn save(&mut self) -> FxResult<&mut Self> {
-            let grid = self.buffer.take().unwrap().build()?;
-            self.result.push(grid)?;
+            let caa = self.buffer.take().unwrap().build()?;
+            self.result.push(caa);
 
             Ok(self)
         }
 
-        fn build(self) -> FxBundle<FxGrid> {
+        fn build(self) -> Vec<ChunkArr> {
             self.result
         }
     }
 
-    impl FxContainerRowBuilderGenerator<UsersChunkingBuild, Users, FxBundle<FxGrid>, usize, FxGrid>
-        for Users
+    impl
+        FxEclecticCollectionRowBuilderGenerator<
+            false,
+            UsersEBuild,
+            Users,
+            Vec<ChunkArr>,
+            usize,
+            ChunkArr,
+        > for Users
     {
-        type Builder = UsersContainerBuild;
+        type Builder = UsersCBuild;
 
-        fn gen_container_row_builder() -> FxResult<Self::Builder> {
-            UsersContainerBuild::new()
+        fn gen_eclectic_collection_row_builder() -> FxResult<Self::Builder> {
+            UsersCBuild::new()
         }
     }
 
@@ -227,7 +227,7 @@ mod test_builder {
             check: None,
         };
 
-        let mut bd = Users::gen_container_row_builder().unwrap();
+        let mut bd = Users::gen_eclectic_collection_row_builder().unwrap();
 
         bd.stack(r1).save().unwrap().stack(r2).save().unwrap();
 
@@ -241,79 +241,79 @@ mod test_builder {
 #[cfg(test)]
 mod test_schemed_builder {
 
-    use crate::{FxArray, FxBatch, NullableOptions};
+    // use crate::{FxArray, FxBatch, NullableOptions};
 
-    use super::*;
+    // use super::*;
 
-    #[allow(dead_code)]
-    struct Users {
-        id: i32,
-        name: String,
-        check: Option<bool>,
-    }
+    // #[allow(dead_code)]
+    // struct Users {
+    //     id: i32,
+    //     name: String,
+    //     check: Option<bool>,
+    // }
 
-    #[derive(Debug, Default)]
-    struct UsersChunkingBuild {
-        id: Vec<i32>,
-        name: Vec<String>,
-        check: Vec<Option<bool>>,
-    }
+    // #[derive(Debug, Default)]
+    // struct UsersChunkingBuild {
+    //     id: Vec<i32>,
+    //     name: Vec<String>,
+    //     check: Vec<Option<bool>>,
+    // }
 
-    impl FxChunkingRowBuilder<Users, FxBatch> for UsersChunkingBuild {
-        fn new() -> Self {
-            Self::default()
-        }
+    // impl FxChunkingRowBuilder<Users, FxBatch> for UsersChunkingBuild {
+    //     fn new() -> Self {
+    //         Self::default()
+    //     }
 
-        fn stack(&mut self, row: Users) -> &mut Self {
-            self.id.push(row.id);
-            self.name.push(row.name);
-            self.check.push(row.check);
+    //     fn stack(&mut self, row: Users) -> &mut Self {
+    //         self.id.push(row.id);
+    //         self.name.push(row.name);
+    //         self.check.push(row.check);
 
-            self
-        }
+    //         self
+    //     }
 
-        fn build(self) -> FxResult<FxBatch> {
-            FxBatch::try_new(
-                ["id", "name", "check"],
-                vec![
-                    FxArray::from(self.id).into_array(),
-                    FxArray::from(self.name).into_array(),
-                    FxArray::from(self.check).into_array(),
-                ],
-                NullableOptions::indexed_true([2]),
-            )
-        }
-    }
+    //     fn build(self) -> FxResult<FxBatch> {
+    //         FxBatch::try_new(
+    //             ["id", "name", "check"],
+    //             vec![
+    //                 FxArray::from(self.id).into_array(),
+    //                 FxArray::from(self.name).into_array(),
+    //                 FxArray::from(self.check).into_array(),
+    //             ],
+    //             NullableOptions::indexed_true([2]),
+    //         )
+    //     }
+    // }
 
-    impl FxChunkingRowBuilderGenerator<FxBatch> for Users {
-        type Builder = UsersChunkingBuild;
+    // impl FxChunkingRowBuilderGenerator<FxBatch> for Users {
+    //     type Builder = UsersChunkingBuild;
 
-        fn gen_chunking_row_builder() -> Self::Builder {
-            UsersChunkingBuild::new()
-        }
-    }
+    //     fn gen_chunking_row_builder() -> Self::Builder {
+    //         UsersChunkingBuild::new()
+    //     }
+    // }
 
-    #[test]
-    fn chunking_builder_success() {
-        let r1 = Users {
-            id: 1,
-            name: "Jacob".to_string(),
-            check: Some(true),
-        };
+    // #[test]
+    // fn chunking_builder_success() {
+    //     let r1 = Users {
+    //         id: 1,
+    //         name: "Jacob".to_string(),
+    //         check: Some(true),
+    //     };
 
-        let r2 = Users {
-            id: 2,
-            name: "Mia".to_string(),
-            check: None,
-        };
+    //     let r2 = Users {
+    //         id: 2,
+    //         name: "Mia".to_string(),
+    //         check: None,
+    //     };
 
-        // 3. generate `FxGrid` from builder
-        let mut bd = Users::gen_chunking_row_builder();
+    //     // 3. generate `FxGrid` from builder
+    //     let mut bd = Users::gen_chunking_row_builder();
 
-        bd.stack(r1).stack(r2);
+    //     bd.stack(r1).stack(r2);
 
-        let d = bd.build();
+    //     let d = bd.build();
 
-        println!("{d:?}");
-    }
+    //     println!("{d:?}");
+    // }
 }
