@@ -41,7 +41,7 @@
 
 macro_rules! impl_from_x_for_value {
     ($t:ty, $fxv:ident) => {
-        impl From<$t> for $crate::FxValue {
+        impl From<$t> for $crate::value::FxValue {
             fn from(value: $t) -> Self {
                 FxValue::$fxv(value)
             }
@@ -265,7 +265,7 @@ pub(crate) use arc_vec_impl_from_bool;
 
 macro_rules! impl_sql_meta {
     ($db:ident, $row:ident, $db_pool_options:ident, $db_pool:ident) => {
-        impl $crate::SqlMeta for ::sqlx::Pool<$db> {
+        impl $crate::io::SqlMeta for ::sqlx::Pool<$db> {
             type FutSelf<'a> = impl ::std::future::Future<Output = FxResult<Self>> + 'a;
             type FutNil<'a> = impl ::std::future::Future<Output = FxResult<()>> + 'a;
             type DB = $db;
@@ -292,14 +292,14 @@ macro_rules! impl_sql_meta {
             fn query<'a, T: Send + Unpin + 'a>(
                 &'a self,
                 sql: &'a str,
-                pipe: $crate::PipeFn<<Self::DB as ::sqlx::Database>::Row, T>,
-            ) -> ::futures::future::BoxFuture<'a, $crate::FxResult<Vec<T>>> {
+                pipe: $crate::io::PipeFn<<Self::DB as ::sqlx::Database>::Row, T>,
+            ) -> ::futures::future::BoxFuture<'a, $crate::error::FxResult<Vec<T>>> {
                 let q = async move {
                     Ok(::sqlx::query(sql)
                         .try_map(|r| Ok(pipe(r)))
                         .fetch_all(self)
                         .await?)
-                    .and_then(|r| r.into_iter().collect::<$crate::FxResult<Vec<T>>>())
+                    .and_then(|r| r.into_iter().collect::<$crate::error::FxResult<Vec<T>>>())
                 };
                 Box::pin(q)
             }
@@ -307,8 +307,8 @@ macro_rules! impl_sql_meta {
             fn query_one<'a, T: Send + Unpin + 'a>(
                 &'a self,
                 sql: &'a str,
-                pipe: $crate::PipeFn<<Self::DB as ::sqlx::Database>::Row, T>,
-            ) -> ::futures::future::BoxFuture<'a, $crate::FxResult<T>> {
+                pipe: $crate::io::PipeFn<<Self::DB as ::sqlx::Database>::Row, T>,
+            ) -> ::futures::future::BoxFuture<'a, $crate::error::FxResult<T>> {
                 let q = async move {
                     Ok(::sqlx::query(sql)
                         .try_map(|r| Ok(pipe(r)))
@@ -325,7 +325,7 @@ macro_rules! impl_sql_meta {
             >(
                 &'a self,
                 sql: &'a str,
-            ) -> ::futures::future::BoxFuture<'a, $crate::FxResult<Vec<T>>> {
+            ) -> ::futures::future::BoxFuture<'a, $crate::error::FxResult<Vec<T>>> {
                 let q = async move { Ok(::sqlx::query_as::<_, T>(sql).fetch_all(self).await?) };
                 Box::pin(q)
             }
@@ -369,7 +369,7 @@ macro_rules! impl_sql_meta {
                 sql: &'a str,
             ) -> ::futures::future::BoxFuture<
                 'a,
-                $crate::FxResult<<Self::DB as ::sqlx::Database>::QueryResult>,
+                $crate::error::FxResult<<Self::DB as ::sqlx::Database>::QueryResult>,
             > {
                 let q = async move { Ok(::sqlx::query(sql).execute(self).await?) };
                 Box::pin(q)

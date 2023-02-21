@@ -9,7 +9,7 @@ use inherent::inherent;
 
 use crate::ab::{private, Purport, StaticPurport};
 use crate::cont::ArcArr;
-use crate::FxResult;
+use crate::error::FxResult;
 
 // ================================================================================================
 // FxBatch

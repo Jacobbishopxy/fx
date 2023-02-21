@@ -9,7 +9,8 @@ use arrow2::chunk::Chunk;
 use arrow2::datatypes::Schema;
 
 use crate::ab::FxSeq;
-use crate::{ArcArr, FxResult};
+use crate::cont::ArcArr;
+use crate::error::FxResult;
 
 // ================================================================================================
 // InnerEclectic

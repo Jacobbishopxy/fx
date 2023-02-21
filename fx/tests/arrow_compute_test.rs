@@ -9,7 +9,7 @@ use arrow2::chunk::Chunk;
 use arrow2::compute::concatenate::concatenate;
 
 use fx::ab::FromVec;
-use fx::{ArcArr, ChunkArr};
+use fx::cont::{ArcArr, ChunkArr};
 
 #[test]
 fn concat_success() {

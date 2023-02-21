@@ -12,7 +12,8 @@ use arrow2::datatypes::DataType;
 
 use super::FxSeq;
 use crate::ab::private;
-use crate::{ArcArr, FxError, FxResult};
+use crate::cont::ArcArr;
+use crate::error::{FxError, FxResult};
 
 // ================================================================================================
 // Eclectic

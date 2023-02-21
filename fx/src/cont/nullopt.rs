@@ -7,7 +7,7 @@ use std::collections::HashSet;
 
 use arrow2::datatypes::{DataType, Field, Schema};
 
-use crate::{FxError, FxResult};
+use crate::error::{FxError, FxResult};
 
 #[derive(Clone)]
 pub enum NullableOptions {

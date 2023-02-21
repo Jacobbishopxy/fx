@@ -8,7 +8,7 @@ use std::any::Any;
 use arrow2::datatypes::DataType;
 
 use crate::cont::{ArcArr, ArcVec};
-use crate::{FxError, FxResult};
+use crate::error::{FxError, FxResult};
 
 // ================================================================================================
 // Seq

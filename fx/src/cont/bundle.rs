@@ -7,7 +7,8 @@ use arrow2::datatypes::{Field, Schema};
 use inherent::inherent;
 
 use crate::ab::{private, EclecticCollection, Purport, StaticPurport};
-use crate::{ChunkArr, FxError, FxResult};
+use crate::cont::ChunkArr;
+use crate::error::{FxError, FxResult};
 
 // ================================================================================================
 // FxBundle
@@ -127,7 +128,7 @@ mod test_bundle {
     use super::*;
 
     use crate::ab::*;
-    use crate::ArcArr;
+    use crate::cont::ArcArr;
 
     #[test]
     fn new_fx_bundle() {

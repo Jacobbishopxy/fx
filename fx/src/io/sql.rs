@@ -10,8 +10,8 @@ use sqlx::mysql::{MySqlPool, MySqlPoolOptions, MySqlRow};
 use sqlx::postgres::{PgPool, PgPoolOptions, PgRow};
 use sqlx::{Database, FromRow, Mssql, MySql, Postgres, Row};
 
-// use crate::cont::*;
-use crate::*;
+use crate::error::{FxError, FxResult};
+use crate::macros::impl_sql_meta;
 
 pub type PipeFn<I, O> = fn(I) -> FxResult<O>;
 

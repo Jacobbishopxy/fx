@@ -6,7 +6,7 @@
 use std::hash::Hash;
 
 use crate::ab::{Eclectic, EclecticCollection};
-use crate::FxResult;
+use crate::error::FxResult;
 
 // ================================================================================================
 // FxEclecticRowBuilder & FxEclecticRowBuilderGenerator
@@ -78,7 +78,8 @@ where
 // This test mod is a prototype for derived proc-macro.
 #[cfg(test)]
 mod test_builder {
-    use crate::{ab::FromVec, ArcArr, ChunkArr};
+    use crate::ab::FromVec;
+    use crate::cont::{ArcArr, ChunkArr};
 
     use super::*;
 

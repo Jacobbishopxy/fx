@@ -17,8 +17,8 @@ use arrow2::datatypes::{DataType, Schema};
 
 use crate::ab::{private, FxSeq, StaticPurport};
 use crate::cont::macros::{arr_to_vec, arr_to_vec_p, try_ext_from_slf};
+use crate::error::{FxError, FxResult};
 use crate::types::*;
-use crate::{FxError, FxResult};
 
 // ================================================================================================
 // Arrow types reexport

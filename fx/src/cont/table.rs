@@ -7,7 +7,7 @@ use arrow2::datatypes::Schema;
 use inherent::inherent;
 
 use crate::ab::{private, Congruent, FxSeq, Purport, StaticPurport};
-use crate::FxResult;
+use crate::error::FxResult;
 
 // ================================================================================================
 // FxTable
@@ -113,7 +113,7 @@ impl<S> Congruent for FxTable<S> where S: FxSeq {}
 mod test_table {
     use super::*;
     use crate::ab::{Eclectic, FromSlice, FromVec};
-    use crate::{ArcArr, ArcVec};
+    use crate::cont::{ArcArr, ArcVec};
 
     #[test]
     fn create_new_table_success() {

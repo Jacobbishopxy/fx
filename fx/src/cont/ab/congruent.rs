@@ -8,7 +8,8 @@ use std::sync::Arc;
 use arrow2::chunk::Chunk;
 
 use super::{Eclectic, FxSeq};
-use crate::{cont::ArcArr, FxError, FxResult};
+use crate::cont::ArcArr;
+use crate::error::{FxError, FxResult};
 
 // ================================================================================================
 // InnerCongruent
