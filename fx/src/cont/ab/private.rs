@@ -72,8 +72,10 @@ where
 
     fn remove_chunk(&mut self, key: I) -> FxResult<()>;
 
+    // TODO: vec-like behavior, take it out to a new trait
     fn push_chunk_type_unchecked(&mut self, data: C) -> FxResult<()>;
 
+    // TODO: vec-like behavior, take it out to a new trait
     fn pop_chunk(&mut self) -> FxResult<()>;
 
     fn take_container(self) -> Vec<C>;

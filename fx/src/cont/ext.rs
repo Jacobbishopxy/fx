@@ -200,6 +200,49 @@ impl FxSeq for ArcVec {
 }
 
 // ================================================================================================
+// Default implementation for Vec<FxSeq>
+// ================================================================================================
+
+impl<S> StaticPurport for Vec<S> where S: FxSeq {}
+
+impl<S> private::InnerEclectic for Vec<S>
+where
+    S: FxSeq,
+{
+    type Seq = S;
+
+    fn empty() -> Self
+    where
+        Self: Sized,
+    {
+        Vec::<S>::new()
+    }
+
+    fn ref_sequences(&self) -> &[Self::Seq] {
+        self.as_slice()
+    }
+
+    fn set_sequences_unchecked(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
+        *self = arrays;
+
+        Ok(())
+    }
+
+    fn take_sequences(self) -> Vec<Self::Seq> {
+        self
+    }
+}
+
+impl<S> private::InnerEclecticMutSeq for Vec<S>
+where
+    S: FxSeq,
+{
+    fn mut_sequences(&mut self) -> &mut [Self::Seq] {
+        self.as_mut_slice()
+    }
+}
+
+// ================================================================================================
 // Default implementation for Chunk<dyn Array>
 // ================================================================================================
 
@@ -317,11 +360,11 @@ where
     where
         Self: Sized,
     {
-        todo!()
+        HashMap::<IDX, ChunkArr>::new()
     }
 
     fn ref_schema(&self) -> Option<&Schema> {
-        todo!()
+        None
     }
 
     fn ref_container(&self) -> Vec<&ChunkArr> {
@@ -349,11 +392,11 @@ where
     }
 
     fn push_chunk_type_unchecked(&mut self, _data: ChunkArr) -> FxResult<()> {
-        todo!()
+        unimplemented!()
     }
 
     fn pop_chunk(&mut self) -> FxResult<()> {
-        todo!()
+        unimplemented!()
     }
 
     fn take_container(self) -> Vec<ChunkArr> {

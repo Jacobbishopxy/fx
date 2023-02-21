@@ -11,23 +11,21 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   ├── cont
     │   │   │   ├── ab
     │   │   │   │   ├── builder.rs
-    │   │   │   │   ├── chunking.rs
-    │   │   │   │   ├── container.rs
+    │   │   │   │   ├── congruent.rs
+    │   │   │   │   ├── eclectic.rs
     │   │   │   │   ├── mod.rs
     │   │   │   │   ├── private.rs
     │   │   │   │   ├── purport.rs
-    │   │   │   │   ├── seq.rs
-    │   │   │   │   └── sheaf.rs
-    │   │   │   ├── array.rs
+    │   │   │   │   └── seq.rs
     │   │   │   ├── batch.rs
     │   │   │   ├── bundle.rs
     │   │   │   ├── cvt.rs
-    │   │   │   ├── grid.rs
+    │   │   │   ├── ext.rs
+    │   │   │   ├── macros.rs
     │   │   │   ├── mod.rs
     │   │   │   ├── nullopt.rs
     │   │   │   ├── parcel.rs
-    │   │   │   ├── table.rs
-    │   │   │   └── vector.rs
+    │   │   │   └── table.rs
     │   │   ├── io
     │   │   │   ├── ab
     │   │   │   │   └── mod.rs
@@ -37,6 +35,7 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   │   ├── mod.rs
     │   │   │   ├── parquet.rs
     │   │   │   └── sql.rs
+    │   │   ├── ctor.rs
     │   │   ├── error.rs
     │   │   ├── lib.rs
     │   │   ├── macros.rs

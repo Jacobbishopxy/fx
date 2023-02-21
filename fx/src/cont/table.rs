@@ -60,47 +60,6 @@ where
 }
 
 // ================================================================================================
-// Impl private::InnerSheaf for Vec<FxSeq>
-// ================================================================================================
-
-impl<S> private::InnerEclectic for Vec<S>
-where
-    S: FxSeq,
-{
-    type Seq = S;
-
-    fn empty() -> Self
-    where
-        Self: Sized,
-    {
-        Vec::<S>::new()
-    }
-
-    fn ref_sequences(&self) -> &[Self::Seq] {
-        self.as_slice()
-    }
-
-    fn set_sequences_unchecked(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
-        *self = arrays;
-
-        Ok(())
-    }
-
-    fn take_sequences(self) -> Vec<Self::Seq> {
-        self
-    }
-}
-
-impl<S> private::InnerEclecticMutSeq for Vec<S>
-where
-    S: FxSeq,
-{
-    fn mut_sequences(&mut self) -> &mut [Self::Seq] {
-        self.as_mut_slice()
-    }
-}
-
-// ================================================================================================
 // Impl private::InnerSheaf for FxTable
 // ================================================================================================
 

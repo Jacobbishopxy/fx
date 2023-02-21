@@ -5,11 +5,10 @@
 
 use std::ops::Deref;
 
-use arrow2::chunk::Chunk;
 use arrow2::compute::concatenate::concatenate;
 
 use fx::ab::FromVec;
-use fx::types::ArcArr;
+use fx::{ArcArr, ChunkArr};
 
 #[test]
 fn concat_success() {
@@ -18,8 +17,8 @@ fn concat_success() {
     let a2 = ArcArr::from_vec(vec![2u8, 5, 6]);
     let b2 = ArcArr::from_vec(vec![false, false, true]);
 
-    let chunk1 = Chunk::new(vec![a1, b1]);
-    let chunk2 = Chunk::new(vec![a2, b2]);
+    let chunk1 = ChunkArr::new(vec![a1, b1]);
+    let chunk2 = ChunkArr::new(vec![a2, b2]);
     let cct1 = concatenate(&[
         chunk1.get(0).unwrap().deref(),
         chunk2.get(0).unwrap().deref(),
