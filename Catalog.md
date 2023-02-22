@@ -35,7 +35,8 @@
     │   │   ├── types.rs
     │   │   └── value.rs
     │   └── tests
-    │       └── arrow_compute_test.rs
+    │       ├── arrow_compute_test.rs
+    │       └── fx_macros_test.rs
     ├── fx-macros
     │   └── src
     │       ├── dr.rs

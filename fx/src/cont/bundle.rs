@@ -117,6 +117,11 @@ impl FxBundle {
 
         Self { schema, data }
     }
+
+    pub fn empty_with_schema(schema: Schema) -> Self {
+        let data = Vec::new();
+        Self { schema, data }
+    }
 }
 
 // ================================================================================================
