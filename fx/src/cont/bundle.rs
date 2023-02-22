@@ -14,7 +14,7 @@ use crate::error::{FxError, FxResult};
 // FxBundle
 // ================================================================================================
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct FxBundle {
     pub(crate) schema: Schema,
     pub(crate) data: Vec<ChunkArr>,

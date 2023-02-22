@@ -13,11 +13,19 @@ use crate::helper::{get_option_type_name, NamedFields};
 // Constants
 // ================================================================================================
 
-// TODO: update types
-// #[allow(dead_code)]
-// const FX_GRID: &str = "FxGrid";
-// #[allow(dead_code)]
-// const FX_BATCH: &str = "FxBatch";
+// sequence type
+const FX_ARC_ARR: &str = "ArcArr";
+const FX_ARC_VEC: &str = "ArcVec";
+// eclectic type
+const FX_VEC_ARC_ARR: &str = "VecArcArr";
+const FX_VEC_ARC_VEC: &str = "VecArcVec";
+const FX_CHUNK_ARR: &str = "ChunkArr";
+const FX_BATCH: &str = "FxBatch";
+const FX_TABLE: &str = "FxTable";
+// container type
+const FX_VEC_CHUNK: &str = "VecChunk";
+const FX_MAP_CHUNK: &str = "MapChunk";
+const FX_BUNDLE: &str = "FxBundle";
 
 // ================================================================================================
 // Helper Functions
@@ -66,13 +74,37 @@ fn get_gx_attribute(input: &DeriveInput) -> Option<String> {
         })
 }
 
+/// generate seq type by string
+#[allow(dead_code)]
+fn gen_seq_type(s: String) -> TokenStream {
+    match s.as_str() {
+        FX_ARC_ARR => quote! {ArcArr},
+        FX_ARC_VEC => quote! {ArcVec},
+        _ => quote! {ArcArr}, // default to ArcArr
+    }
+}
+
 /// generate eclectic type by string
 #[allow(dead_code)]
 fn gen_eclectic_type(s: String) -> TokenStream {
     match s.as_str() {
-        // FX_GRID => quote! {crate::FxGrid},
-        // FX_BATCH => quote! {crate::FxBatch},
-        _ => quote! {crate::ArcArr}, // default to ArcArr
+        FX_VEC_ARC_ARR => quote! {Vec<ArcArr>},
+        FX_VEC_ARC_VEC => quote! {Vec<ArcVec>},
+        FX_CHUNK_ARR => quote! {ChunkArr},
+        FX_BATCH => quote! {FxBatch},
+        FX_TABLE => quote! {FxTable},
+        _ => quote! {ChunkArr}, // default to ChunkArr
+    }
+}
+
+/// generate container type by string
+#[allow(dead_code)]
+fn gen_container_type(s: String) -> TokenStream {
+    match s.as_str() {
+        FX_VEC_CHUNK => quote! {Vec<ChunkArr>},
+        FX_MAP_CHUNK => quote! {Map<String, ChunkArr>},
+        FX_BUNDLE => quote! {FxBundle},
+        _ => quote! {FxBundle}, // default to FxBundle
     }
 }
 
@@ -207,7 +239,7 @@ fn gen_impl_eclectic(
                 self.#fd.push(row.#fd)
             };
             let bc = quote! {
-                crate::ArcArr::from_vec(self.#fd)
+                ArcArr::from_vec(self.#fd)
             };
 
             (sc, bc)
@@ -215,7 +247,7 @@ fn gen_impl_eclectic(
         .unzip();
 
     quote! {
-        impl crate::ab::FxEclecticRowBuilder<#struct_name,crate::ChunkArr> for #build_name {
+        impl FxEclecticRowBuilder<#struct_name,ChunkArr> for #build_name {
             fn new() -> Self {
                 Self::default()
             }
@@ -226,14 +258,14 @@ fn gen_impl_eclectic(
                 self
             }
 
-            fn build(self) -> crate::FxResult<crate::ChunkArr> {
-                Ok(crate::ChunkArr::try_new(vec![
+            fn build(self) -> FxResult<ChunkArr> {
+                Ok(ChunkArr::try_new(vec![
                     #(#build_ctt),*
                 ])?)
             }
         }
 
-        impl crate::ab::FxEclecticRowBuilderGenerator<crate::ChunkArr> for #struct_name {
+        impl FxEclecticRowBuilderGenerator<ChunkArr> for #struct_name {
             type Builder = #build_name;
 
             fn gen_eclectic_row_builder() -> Self::Builder {
@@ -247,6 +279,7 @@ fn gen_impl_eclectic(
 // Container builder
 // ================================================================================================
 
+#[allow(dead_code)]
 fn gen_container_builder_struct(
     eclectic_build_name: &Ident,
     container_build_name: &Ident,
@@ -254,7 +287,20 @@ fn gen_container_builder_struct(
     quote! {
         #[derive(Default)]
         struct #container_build_name {
-            result: Vec<crate::ChunkArr>,
+            result: Vec<ChunkArr>,
+            buffer: Option<#eclectic_build_name>
+        }
+    }
+}
+
+fn gen_bundle_container_builder_struct(
+    eclectic_build_name: &Ident,
+    container_build_name: &Ident,
+) -> TokenStream {
+    quote! {
+        #[derive(Default)]
+        struct #container_build_name {
+            result: FxBundle,
             buffer: Option<#eclectic_build_name>
         }
     }
@@ -264,24 +310,22 @@ fn gen_impl_container(
     struct_name: &Ident,
     eclectic_build_name: &Ident,
     container_build_name: &Ident,
-    _named_fields: &NamedFields,
+    named_fields: &NamedFields,
 ) -> TokenStream {
-    // TODO: temporary disable, since we are using a non-schema container here
-    // let fields_ctt = named_fields.iter().map(gen_arrow_field).collect::<Vec<_>>();
+    let fields_ctt = named_fields.iter().map(gen_arrow_field).collect::<Vec<_>>();
 
     quote! {
-        impl crate::ab::FxEclecticCollectionRowBuilder<
-            false, #eclectic_build_name, #struct_name, Vec<crate::ChunkArr>, usize, crate::ChunkArr
+        impl FxEclecticCollectionRowBuilder<
+            true, #eclectic_build_name, #struct_name, FxBundle, usize, ChunkArr
         > for #container_build_name
         {
-            fn new() -> crate::FxResult<Self>
+            fn new() -> FxResult<Self>
             where
                 Self: Sized,
             {
-                // let fields = vec![#(#fields_ctt),*];
+                let schema = ::arrow2::datatypes::Schema::from(vec![#(#fields_ctt),*]);
 
-                // let result = crate::FxBundle::<crate::FxGrid>::new_empty_by_fields(fields)?;
-                let result = Vec::<crate::ChunkArr>::new();
+                let result = FxBundle::empty_with_schema(schema);
 
                 let buffer = Some(#struct_name::gen_eclectic_row_builder());
 
@@ -303,24 +347,24 @@ fn gen_impl_container(
                 self
             }
 
-            fn save(&mut self) -> crate::FxResult<&mut Self> {
+            fn save(&mut self) -> FxResult<&mut Self> {
                 let caa = self.buffer.take().unwrap().build()?;
-                self.result.push(caa);
+                self.result.push(caa)?;
 
                 Ok(self)
             }
 
-            fn build(self) -> Vec<crate::ChunkArr> {
+            fn build(self) -> FxBundle {
                 self.result
             }
         }
 
-        impl crate::ab::FxEclecticCollectionRowBuilderGenerator<
-            false, #eclectic_build_name, #struct_name, Vec<crate::ChunkArr>, usize, crate::ChunkArr
+        impl FxEclecticCollectionRowBuilderGenerator<
+            true, #eclectic_build_name, #struct_name, FxBundle, usize, ChunkArr
         > for #struct_name {
             type Builder = #container_build_name;
 
-            fn gen_eclectic_collection_row_builder() -> crate::FxResult<Self::Builder> {
+            fn gen_eclectic_collection_row_builder() -> FxResult<Self::Builder> {
                 #container_build_name::new()
             }
         }
@@ -347,7 +391,8 @@ pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
 
     // auto generated code (container)
     let container_name = gen_container_build_name(&struct_name);
-    let container_builder_struct = gen_container_builder_struct(&eclectic_name, &container_name);
+    let container_builder_struct =
+        gen_bundle_container_builder_struct(&eclectic_name, &container_name);
     let impl_container_row_build =
         gen_impl_container(&struct_name, &eclectic_name, &container_name, &named_fields);
 

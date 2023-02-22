@@ -3,7 +3,7 @@
 //! date: 2023/02/21 20:23:56 Tuesday
 //! brief:
 
-use fx::cont::*;
+use fx::cont::{ArcArr, ChunkArr, FxBundle};
 use fx::row_builder::*;
 
 #[derive(FX)]

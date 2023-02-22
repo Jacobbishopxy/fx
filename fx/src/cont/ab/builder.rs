@@ -276,10 +276,7 @@ mod test_schemed_builder {
             let c2 = ArcArr::from_vec(self.name);
             let c3 = ArcArr::from_vec(self.check);
 
-            Ok(FxBatch::try_new_with_names(
-                vec![c1, c2, c3],
-                ["c1", "c2", "c3"],
-            )?)
+            FxBatch::try_new_with_names(vec![c1, c2, c3], ["c1", "c2", "c3"])
         }
     }
 
