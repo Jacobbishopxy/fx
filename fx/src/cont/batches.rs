@@ -129,14 +129,14 @@ impl FxBatches {
 // ================================================================================================
 
 #[cfg(test)]
-mod test_bundle {
+mod test_batches {
     use super::*;
 
     use crate::ab::*;
     use crate::cont::ArcArr;
 
     #[test]
-    fn new_fx_bundle() {
+    fn new_fx_batches() {
         let ca = ChunkArr::new(vec![
             ArcArr::from_slice(&["a", "c", "z"]),
             ArcArr::from_slice(&[Some("x"), None, Some("y")]),

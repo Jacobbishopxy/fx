@@ -23,7 +23,8 @@ pub(crate) const FX_TABLE: &str = "FxTable";
 // container type
 pub(crate) const FX_VEC_CHUNK: &str = "VecChunk";
 pub(crate) const FX_MAP_CHUNK: &str = "MapChunk";
-pub(crate) const FX_BUNDLE: &str = "FxBatches";
+pub(crate) const FX_BATCHES: &str = "FxBatches";
+pub(crate) const FX_TABLES: &str = "FxTables";
 
 // eclectic type list
 pub(crate) const ECLECTIC_TYPES: &[&str] = &[
@@ -39,7 +40,8 @@ pub(crate) const CONTAINER_TYPES: &[&str] = &[
     //
     FX_VEC_CHUNK,
     FX_MAP_CHUNK,
-    FX_BUNDLE,
+    FX_BATCHES,
+    FX_TABLES,
 ];
 
 // ================================================================================================

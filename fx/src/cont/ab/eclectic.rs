@@ -21,10 +21,6 @@ use crate::error::{FxError, FxResult};
 
 /// A collection consists of several `FxSeq`s, whose inner type can be different
 pub trait Eclectic: private::InnerEclectic + Sized {
-    fn empty() -> Self {
-        private::InnerEclectic::empty()
-    }
-
     fn is_arr(&self) -> bool {
         Self::Seq::is_arr()
     }

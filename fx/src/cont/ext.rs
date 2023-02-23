@@ -209,6 +209,53 @@ impl FxSeq for ArcVec {
 }
 
 // ================================================================================================
+// Default implementation for [FxSeq; W]
+// ================================================================================================
+
+impl<const W: usize, S> StaticPurport for [S; W] where S: FxSeq {}
+
+impl<const W: usize, S> private::InnerEclectic for [S; W]
+where
+    S: FxSeq,
+{
+    type Seq = S;
+
+    fn ref_sequences(&self) -> &[Self::Seq] {
+        self.as_slice()
+    }
+
+    fn set_sequences_unchecked(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
+        for (i, arr) in arrays.into_iter().enumerate() {
+            if i > W {
+                break;
+            }
+
+            self[i] = arr;
+        }
+
+        Ok(())
+    }
+
+    fn take_sequences(self) -> Vec<Self::Seq> {
+        let mut res = Vec::new();
+        for s in self.into_iter() {
+            res.push(s);
+        }
+
+        res
+    }
+}
+
+impl<const W: usize, S> private::InnerEclecticMutSeq for [S; W]
+where
+    S: FxSeq,
+{
+    fn mut_sequences(&mut self) -> &mut [Self::Seq] {
+        self.as_mut_slice()
+    }
+}
+
+// ================================================================================================
 // Default implementation for Vec<FxSeq>
 // ================================================================================================
 
@@ -219,13 +266,6 @@ where
     S: FxSeq,
 {
     type Seq = S;
-
-    fn empty() -> Self
-    where
-        Self: Sized,
-    {
-        Vec::new()
-    }
 
     fn ref_sequences(&self) -> &[Self::Seq] {
         self.as_slice()
@@ -259,13 +299,6 @@ impl StaticPurport for ChunkArr {}
 
 impl private::InnerEclectic for ChunkArr {
     type Seq = ArcArr;
-
-    fn empty() -> Self
-    where
-        Self: Sized,
-    {
-        Chunk::new(Vec::new())
-    }
 
     fn ref_sequences(&self) -> &[Self::Seq] {
         self.arrays()

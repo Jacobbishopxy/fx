@@ -4,7 +4,7 @@
 //! brief: Batch
 
 use arrow2::chunk::Chunk;
-use arrow2::datatypes::{Field, Schema};
+use arrow2::datatypes::Schema;
 use inherent::inherent;
 
 use crate::ab::{private, Purport, StaticPurport};
@@ -34,13 +34,6 @@ impl Purport for FxBatch {
 
 impl private::InnerEclectic for FxBatch {
     type Seq = ArcArr;
-
-    fn empty() -> Self {
-        Self {
-            schema: Schema::from(Vec::<Field>::new()),
-            data: Chunk::new(Vec::new()),
-        }
-    }
 
     fn ref_sequences(&self) -> &[Self::Seq] {
         self.data.arrays()

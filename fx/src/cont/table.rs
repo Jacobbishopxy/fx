@@ -15,15 +15,15 @@ use crate::error::FxResult;
 
 /// A scalable FxSeq container
 #[derive(Debug, Clone)]
-pub struct FxTable<S: FxSeq> {
+pub struct FxTable<const W: usize, S: FxSeq> {
     schema: Schema,
-    data: Vec<S>,
+    data: [S; W],
 }
 
-impl<S> StaticPurport for FxTable<S> where S: FxSeq {}
+impl<const W: usize, S> StaticPurport for FxTable<W, S> where S: FxSeq {}
 
 #[inherent]
-impl<S> Purport for FxTable<S>
+impl<const W: usize, S> Purport for FxTable<W, S>
 where
     S: FxSeq,
 {
@@ -32,18 +32,18 @@ where
     }
 }
 
-impl<S> FxTable<S>
+impl<const W: usize, S> FxTable<W, S>
 where
     S: FxSeq,
 {
-    pub fn new(data: Vec<S>) -> Self {
+    pub fn new(data: [S; W]) -> Self {
         Self {
             schema: Self::gen_schema(&data),
             data,
         }
     }
 
-    pub fn new_with_names<I, T>(data: Vec<S>, names: I) -> Self
+    pub fn new_with_names<I, T>(data: [S; W], names: I) -> Self
     where
         I: IntoIterator<Item = T>,
         T: AsRef<str>,
@@ -54,7 +54,7 @@ where
         }
     }
 
-    pub fn data(&self) -> &Vec<S> {
+    pub fn data(&self) -> &[S; W] {
         &self.data
     }
 }
@@ -63,38 +63,38 @@ where
 // Impl private::InnerSheaf for FxTable
 // ================================================================================================
 
-impl<S> private::InnerEclectic for FxTable<S>
+impl<const W: usize, S> private::InnerEclectic for FxTable<W, S>
 where
     S: FxSeq,
 {
     type Seq = S;
-
-    fn empty() -> Self
-    where
-        Self: Sized,
-    {
-        Self {
-            schema: Schema::default(),
-            data: vec![],
-        }
-    }
 
     fn ref_sequences(&self) -> &[Self::Seq] {
         &self.data
     }
 
     fn set_sequences_unchecked(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()> {
-        self.data = arrays;
+        for (i, arr) in arrays.into_iter().enumerate() {
+            if i > W {
+                break;
+            }
+            self.data[i] = arr;
+        }
 
         Ok(())
     }
 
     fn take_sequences(self) -> Vec<Self::Seq> {
-        self.data
+        let mut res = Vec::new();
+        for s in self.data.into_iter() {
+            res.push(s);
+        }
+
+        res
     }
 }
 
-impl<S> private::InnerEclecticMutSeq for FxTable<S>
+impl<const W: usize, S> private::InnerEclecticMutSeq for FxTable<W, S>
 where
     S: FxSeq,
 {
@@ -103,7 +103,7 @@ where
     }
 }
 
-impl<S> Congruent for FxTable<S> where S: FxSeq {}
+impl<const W: usize, S> Congruent for FxTable<W, S> where S: FxSeq {}
 
 // ================================================================================================
 // Test
@@ -120,7 +120,7 @@ mod test_table {
         let a = ArcArr::from_slice(&[None, Some("x")]);
         let b = ArcArr::from_slice(&[None, Some(2), None]);
 
-        let vaa = vec![a, b];
+        let vaa = [a, b];
 
         let table = FxTable::new(vaa);
 
@@ -132,7 +132,7 @@ mod test_table {
         let a = ArcArr::from_vec(vec![None, Some("x")]);
         let b = ArcArr::from_vec(vec![None, Some(2), None]);
 
-        let vaa = vec![a, b];
+        let vaa = [a, b];
 
         let table = FxTable::new_with_names(vaa, ["1"]);
 
@@ -144,7 +144,7 @@ mod test_table {
         let a = ArcVec::from_slice(&[None, Some("x")]);
         let b = ArcVec::from_slice(&[None, Some(2), None]);
 
-        let vaa = vec![a, b];
+        let vaa = [a, b];
 
         let table = FxTable::new_with_names(vaa, ["1", "2", "3"]);
 
@@ -178,7 +178,7 @@ mod test_table {
         let a = ArcArr::from_vec(vec![None, Some("x")]);
         let b = ArcArr::from_vec(vec![None, Some(2), None]);
 
-        let vaa = vec![a, b];
+        let vaa = [a, b];
 
         let table = FxTable::new(vaa);
 
@@ -190,7 +190,7 @@ mod test_table {
         let a = ArcVec::from_vec(vec![None, Some(1)]);
         let b = ArcVec::from_vec(vec![None, Some("y"), None]);
 
-        let vam = vec![a, b];
+        let vam = [a, b];
 
         let table = FxTable::new_with_names(vam, ["a"]);
 
@@ -202,7 +202,7 @@ mod test_table {
         let a = ArcVec::from_vec(vec![Some(1)]);
         let b = ArcVec::from_vec(vec![None, Some("y"), None]);
 
-        let vam = vec![a, b];
+        let vam = [a, b];
 
         let table = FxTable::new_with_names(vam, ["a"]);
 

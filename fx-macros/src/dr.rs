@@ -50,13 +50,13 @@ fn gen_seq_type(s: &str) -> TokenStream {
 }
 
 /// generate eclectic type by string
-fn gen_eclectic_type(s: &str) -> TokenStream {
+fn gen_eclectic_type(l: usize, s: &str) -> TokenStream {
     match s {
         FX_VEC_ARC_ARR => quote! {Vec<ArcArr>},
         FX_VEC_ARC_VEC => quote! {Vec<ArcVec>},
         FX_CHUNK_ARR => quote! {ChunkArr},
         FX_BATCH => quote! {FxBatch},
-        FX_TABLE => quote! {FxTable::<ArcArr>},
+        FX_TABLE => quote! {FxTable::<#l, ArcArr>},
         _ => quote! {ChunkArr}, // default to ChunkArr
     }
 }
@@ -67,7 +67,7 @@ fn gen_container_type(s: &str) -> TokenStream {
     match s {
         FX_VEC_CHUNK => quote! {Vec<ChunkArr>},
         FX_MAP_CHUNK => quote! {Map<String, ChunkArr>},
-        FX_BUNDLE => quote! {FxBatches},
+        FX_BATCHES => quote! {FxBatches},
         _ => quote! {FxBatches}, // default to FxBatches
     }
 }
@@ -175,7 +175,7 @@ fn gen_impl_from_sql_row(struct_name: &Ident, named_fields: &NamedFields) -> Tok
 fn get_builder_str(opt_attributes: Option<Vec<String>>) -> (String, String) {
     // default types
     let mut eclectic_type = String::from(FX_CHUNK_ARR);
-    let mut container_type = String::from(FX_BUNDLE);
+    let mut container_type = String::from(FX_BATCHES);
 
     if let Some(attrs) = opt_attributes {
         for attr in attrs.iter() {
@@ -228,7 +228,12 @@ fn gen_cct(named_fields: &NamedFields) -> (Vec<String>, Vec<TokenStream>, Vec<To
     (nm, sc, bc)
 }
 
-fn gen_cct2(eclectic_str: &str, build_ctt: Vec<TokenStream>, names: Vec<String>) -> TokenStream {
+fn gen_cct2(
+    l: usize,
+    eclectic_str: &str,
+    build_ctt: Vec<TokenStream>,
+    names: Vec<String>,
+) -> TokenStream {
     match eclectic_str {
         FX_VEC_ARC_ARR => quote! {
             Ok(Vec<ArcArr>::new(vec![ #(#build_ctt),* ]))
@@ -240,7 +245,7 @@ fn gen_cct2(eclectic_str: &str, build_ctt: Vec<TokenStream>, names: Vec<String>)
             FxBatch::try_new_with_names(vec![ #(#build_ctt),* ], [ #(#names),* ])
         },
         FX_TABLE => quote! {
-            Ok(FxTable::<ArcArr>::new_with_names(vec![ #(#build_ctt),* ], [ #(#names),* ]))
+            Ok(FxTable::<#l, ArcArr>::new_with_names([ #(#build_ctt),* ], [ #(#names),* ]))
         },
         _ => quote! {
             Ok(ChunkArr::try_new(vec![ #(#build_ctt),* ])?)
@@ -261,11 +266,12 @@ fn gen_impl_eclectic(
     build_name: &Ident,
     named_fields: &NamedFields,
 ) -> TokenStream {
+    let sl = schema_len(named_fields);
     let (names, stack_ctt, build_ctt) = gen_cct(named_fields);
 
-    let eclectic_type = gen_eclectic_type(eclectic_str);
+    let eclectic_type = gen_eclectic_type(sl, eclectic_str);
 
-    let build_res = gen_cct2(eclectic_str, build_ctt, names);
+    let build_res = gen_cct2(sl, eclectic_str, build_ctt, names);
 
     quote! {
         impl FxEclecticRowBuilder<#struct_name, #eclectic_type> for #build_name {
@@ -313,7 +319,7 @@ fn gen_container_builder_struct(
 }
 
 #[allow(dead_code)]
-fn gen_bundle_container_builder_struct(
+fn gen_batches_container_builder_struct(
     eclectic_build_name: &Ident,
     container_build_name: &Ident,
 ) -> TokenStream {
@@ -425,7 +431,7 @@ pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
     // TODO:
     // let container_name = gen_container_build_name(&struct_name);
     // let container_builder_struct =
-    //     gen_bundle_container_builder_struct(&eclectic_name, &container_name);
+    //     gen_batches_container_builder_struct(&eclectic_name, &container_name);
     // let impl_container_row_build =
     //     gen_impl_container(&struct_name, &eclectic_name, &container_name, &named_fields);
 

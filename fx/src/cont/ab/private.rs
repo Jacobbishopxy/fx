@@ -23,10 +23,6 @@ use crate::error::FxResult;
 pub trait InnerEclectic {
     type Seq: FxSeq; // Arc<Array> or Arc<MutableArray>
 
-    fn empty() -> Self
-    where
-        Self: Sized;
-
     fn ref_sequences(&self) -> &[Self::Seq];
 
     fn set_sequences_unchecked(&mut self, arrays: Vec<Self::Seq>) -> FxResult<()>;

@@ -9,7 +9,6 @@ use syn::{DeriveInput, Field, Ident, Type};
 
 pub(crate) type NamedFields = Punctuated<Field, Comma>;
 
-#[allow(dead_code)]
 pub(crate) fn schema_len(named_fields: &NamedFields) -> usize {
     named_fields.len()
 }
