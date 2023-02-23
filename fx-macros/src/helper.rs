@@ -59,7 +59,7 @@ pub(crate) fn get_option_type_name(ty: &Type) -> (bool, String) {
 }
 
 /// extract attributes from a specified `attr_mark`.
-/// For instance, if chk = Some(FxBundle), then use ChunkArr as Eclectic param in row-builders;
+/// For instance, if chk = Some(FxBatches), then use ChunkArr as Eclectic param in row-builders;
 pub(crate) fn get_attributes(input: &DeriveInput, attr_mark: &str) -> Option<Vec<String>> {
     input
         .attrs

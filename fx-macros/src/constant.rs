@@ -23,7 +23,7 @@ pub(crate) const FX_TABLE: &str = "FxTable";
 // container type
 pub(crate) const FX_VEC_CHUNK: &str = "VecChunk";
 pub(crate) const FX_MAP_CHUNK: &str = "MapChunk";
-pub(crate) const FX_BUNDLE: &str = "FxBundle";
+pub(crate) const FX_BUNDLE: &str = "FxBatches";
 
 // eclectic type list
 pub(crate) const ECLECTIC_TYPES: &[&str] = &[

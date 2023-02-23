@@ -27,6 +27,7 @@ use crate::types::*;
 pub type ArcArr = Arc<dyn Array>;
 pub type ArcVec = Arc<dyn MutableArray>;
 pub type ChunkArr = Chunk<ArcArr>;
+pub type VecChunk = Vec<ChunkArr>;
 
 // ================================================================================================
 // Arc<Array>
@@ -223,7 +224,7 @@ where
     where
         Self: Sized,
     {
-        Vec::<S>::new()
+        Vec::new()
     }
 
     fn ref_sequences(&self) -> &[Self::Seq] {
@@ -291,9 +292,9 @@ impl private::InnerEclecticMutChunk for Chunk<ArcArr> {
 // Default implementation for Vec<Chunk<dyn Array>>
 // ================================================================================================
 
-impl StaticPurport for Vec<ChunkArr> {}
+impl StaticPurport for VecChunk {}
 
-impl private::InnerEclecticCollection<false, usize, ChunkArr> for Vec<ChunkArr> {
+impl private::InnerEclecticCollection<false, usize, ChunkArr> for VecChunk {
     fn empty() -> Self
     where
         Self: Sized,
@@ -349,7 +350,7 @@ impl private::InnerEclecticCollection<false, usize, ChunkArr> for Vec<ChunkArr> 
         Ok(())
     }
 
-    fn take_container(self) -> Vec<ChunkArr> {
+    fn take_container(self) -> VecChunk {
         self
     }
 }
@@ -407,7 +408,7 @@ where
         unimplemented!()
     }
 
-    fn take_container(self) -> Vec<ChunkArr> {
+    fn take_container(self) -> VecChunk {
         self.into_values().collect()
     }
 }

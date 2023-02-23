@@ -5,18 +5,18 @@
 
 pub mod ab;
 pub mod batch;
-pub mod bundle;
+pub mod batches;
 pub mod cvt;
 pub mod ext;
 mod macros;
 pub mod nullopt;
-pub mod parcel;
 pub mod table;
+pub mod tables;
 
 pub use batch::*;
-pub use bundle::*;
+pub use batches::*;
 pub use cvt::*;
 pub use ext::*;
 pub use nullopt::*;
-pub use parcel::*;
 pub use table::*;
+pub use tables::*;

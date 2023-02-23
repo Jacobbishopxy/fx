@@ -67,8 +67,8 @@ fn gen_container_type(s: &str) -> TokenStream {
     match s {
         FX_VEC_CHUNK => quote! {Vec<ChunkArr>},
         FX_MAP_CHUNK => quote! {Map<String, ChunkArr>},
-        FX_BUNDLE => quote! {FxBundle},
-        _ => quote! {FxBundle}, // default to FxBundle
+        FX_BUNDLE => quote! {FxBatches},
+        _ => quote! {FxBatches}, // default to FxBatches
     }
 }
 
@@ -320,12 +320,17 @@ fn gen_bundle_container_builder_struct(
     quote! {
         #[derive(Default)]
         struct #container_build_name {
-            result: FxBundle,
+            result: FxBatches,
             buffer: Option<#eclectic_build_name>
         }
     }
 }
 
+/// impl container
+///
+/// VecChunk
+/// MapChunk
+/// FxBatches
 #[allow(dead_code)]
 fn gen_impl_container(
     struct_name: &Ident,
@@ -337,7 +342,7 @@ fn gen_impl_container(
 
     quote! {
         impl FxEclecticCollectionRowBuilder<
-            true, #eclectic_build_name, #struct_name, FxBundle, usize, ChunkArr
+            true, #eclectic_build_name, #struct_name, FxBatches, usize, ChunkArr
         > for #container_build_name
         {
             fn new() -> FxResult<Self>
@@ -346,7 +351,7 @@ fn gen_impl_container(
             {
                 let schema = ::arrow2::datatypes::Schema::from(vec![#(#fields_ctt),*]);
 
-                let result = FxBundle::empty_with_schema(schema);
+                let result = FxBatches::empty_with_schema(schema);
 
                 let buffer = Some(#struct_name::gen_eclectic_row_builder());
 
@@ -375,13 +380,13 @@ fn gen_impl_container(
                 Ok(self)
             }
 
-            fn build(self) -> FxBundle {
+            fn build(self) -> FxBatches {
                 self.result
             }
         }
 
         impl FxEclecticCollectionRowBuilderGenerator<
-            true, #eclectic_build_name, #struct_name, FxBundle, usize, ChunkArr
+            true, #eclectic_build_name, #struct_name, FxBatches, usize, ChunkArr
         > for #struct_name {
             type Builder = #container_build_name;
 

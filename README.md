@@ -18,14 +18,14 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   │   │   ├── purport.rs
     │   │   │   │   └── seq.rs
     │   │   │   ├── batch.rs
-    │   │   │   ├── bundle.rs
+    │   │   │   ├── batches.rs
     │   │   │   ├── cvt.rs
     │   │   │   ├── ext.rs
     │   │   │   ├── macros.rs
     │   │   │   ├── mod.rs
     │   │   │   ├── nullopt.rs
-    │   │   │   ├── parcel.rs
-    │   │   │   └── table.rs
+    │   │   │   ├── table.rs
+    │   │   │   └── tables.rs
     │   │   ├── io
     │   │   │   ├── ab
     │   │   │   │   └── mod.rs
@@ -46,6 +46,7 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │       └── fx_macros_test.rs
     ├── fx-macros
     │   └── src
+    │       ├── constant.rs
     │       ├── dr.rs
     │       ├── helper.rs
     │       └── lib.rs
@@ -65,19 +66,27 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 
 ### Types
 
-- `ArcArr`: `Arc<dyn Array>` implement `FxSeq` trait
+- `ArcArr`: `Arc<dyn Array>` with `FxSeq` trait implemented
 
-- `ArcVec`: `Arc<dyn MutableArray>` implement `FxSeq` trait
+- `ArcVec`: `Arc<dyn MutableArray>` with `FxSeq` trait implemented
+
+- `Vec<S>`: `Vec<S> where S: FxSeq` with `Eclectic` trait implemented
+
+- `ChunkArr`: `Chunk<Arc<dyn Array>>` with `Eclectic` trait implemented
+
+- `VecChunk`: `Vec<Chunk<Arc<dyn Array>>>` with `EclecticCollection` trait implemented
+
+- `HashMap<I, ChunkArr>`: `HashMap<I, Chunk<Arc<dyn Array>>> where I: Hash + Eq` with `EclecticCollection` trait implemented
 
 ### Structs and Enums
 
-- `Grid`/`Batch`: chunked data consists of arrow's `Array`, the latter one has a schema field
+- `Batch`: chunked data consists of arrow's `Array`, with a schema field
 
-- `Bundle`: vector of `Grid`, with a schema field
+- `Batches`: vector of `ChunkArr`, with a schema field
 
-- `Parcel`: WIP
+- `Table`: vector of `FxSeq`, with a schema field
 
-- `Table`: WIP
+- `Tables`: WIP
 
 ## Dependencies
 

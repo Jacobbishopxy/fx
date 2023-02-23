@@ -11,6 +11,8 @@ use crate::ab::{private, Purport, StaticPurport};
 use crate::cont::ArcArr;
 use crate::error::FxResult;
 
+use super::ChunkArr;
+
 // ================================================================================================
 // FxBatch
 // ================================================================================================
@@ -18,7 +20,7 @@ use crate::error::FxResult;
 #[derive(Debug, Clone)]
 pub struct FxBatch {
     pub(crate) schema: Schema,
-    pub(crate) data: Chunk<ArcArr>,
+    pub(crate) data: ChunkArr,
 }
 
 impl StaticPurport for FxBatch {}
@@ -56,7 +58,7 @@ impl private::InnerEclectic for FxBatch {
 }
 
 impl private::InnerEclecticMutChunk for FxBatch {
-    fn mut_chunk(&mut self) -> &mut Chunk<ArcArr> {
+    fn mut_chunk(&mut self) -> &mut ChunkArr {
         &mut self.data
     }
 }

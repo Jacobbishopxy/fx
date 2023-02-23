@@ -1,7 +1,7 @@
-//! file: bundle.rs
+//! file: batches.rs
 //! author: Jacob Xie
 //! date: 2023/01/20 22:34:35 Friday
-//! brief: Bundle
+//! brief: Batches
 
 use arrow2::datatypes::{Field, Schema};
 use inherent::inherent;
@@ -11,25 +11,25 @@ use crate::cont::ChunkArr;
 use crate::error::{FxError, FxResult};
 
 // ================================================================================================
-// FxBundle
+// FxBatches
 // ================================================================================================
 
 #[derive(Debug, Clone, Default)]
-pub struct FxBundle {
+pub struct FxBatches {
     pub(crate) schema: Schema,
     pub(crate) data: Vec<ChunkArr>,
 }
 
-impl StaticPurport for FxBundle {}
+impl StaticPurport for FxBatches {}
 
 #[inherent]
-impl Purport for FxBundle {
+impl Purport for FxBatches {
     pub fn schema(&self) -> &Schema {
         &self.schema
     }
 }
 
-impl private::InnerEclecticCollection<true, usize, ChunkArr> for FxBundle {
+impl private::InnerEclecticCollection<true, usize, ChunkArr> for FxBatches {
     fn empty() -> Self
     where
         Self: Sized,
@@ -93,7 +93,7 @@ impl private::InnerEclecticCollection<true, usize, ChunkArr> for FxBundle {
     }
 }
 
-impl FxBundle {
+impl FxBatches {
     pub fn new(data: Vec<ChunkArr>) -> Self {
         if data.is_empty() {
             return Self::empty();
@@ -142,7 +142,7 @@ mod test_bundle {
             ArcArr::from_slice(&[Some("x"), None, Some("y")]),
             ArcArr::from_slice(&[true, false, false]),
         ]);
-        let bdl = FxBundle::new(vec![ca]);
+        let bdl = FxBatches::new(vec![ca]);
 
         println!("{bdl:?}");
 
@@ -151,7 +151,7 @@ mod test_bundle {
             ArcArr::from_slice(&[Some("x"), None, Some("y")]),
             ArcArr::from_slice(&[true, false, false]),
         ]);
-        let bdl = FxBundle::new_with_names(vec![ca], ["c1", "c2"]);
+        let bdl = FxBatches::new_with_names(vec![ca], ["c1", "c2"]);
 
         println!("{bdl:?}");
     }
