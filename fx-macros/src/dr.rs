@@ -7,25 +7,8 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::{Data, DeriveInput, Field, Fields, Ident};
 
-use crate::helper::{get_option_type_name, NamedFields};
-
-// ================================================================================================
-// Constants
-// ================================================================================================
-
-// sequence type
-const FX_ARC_ARR: &str = "ArcArr";
-const FX_ARC_VEC: &str = "ArcVec";
-// eclectic type
-const FX_VEC_ARC_ARR: &str = "VecArcArr";
-const FX_VEC_ARC_VEC: &str = "VecArcVec";
-const FX_CHUNK_ARR: &str = "ChunkArr";
-const FX_BATCH: &str = "FxBatch";
-const FX_TABLE: &str = "FxTable";
-// container type
-const FX_VEC_CHUNK: &str = "VecChunk";
-const FX_MAP_CHUNK: &str = "MapChunk";
-const FX_BUNDLE: &str = "FxBundle";
+use crate::constant::*;
+use crate::helper::*;
 
 // ================================================================================================
 // Helper Functions
@@ -55,29 +38,10 @@ fn gen_container_build_name(struct_name: &Ident) -> Ident {
     format_ident!("__{}EcLecticContainerBuild", struct_name)
 }
 
-/// extract the first attribute from `fx`.
-/// For instance, if chk = Some(FxBundle), then use ChunkArr as Eclectic param in row-builders;
-/// otherwise, default to FxGrid
-#[allow(dead_code)]
-fn get_gx_attribute(input: &DeriveInput) -> Option<String> {
-    // test case is in `grid.rs`
-    input
-        .attrs
-        .iter()
-        .find(|a| a.path.segments[0].ident == "fx")
-        .map(|a| match a.parse_meta().unwrap() {
-            syn::Meta::List(syn::MetaList { nested, .. }) => match nested.first().unwrap() {
-                syn::NestedMeta::Meta(m) => m.path().segments.first().unwrap().ident.to_string(),
-                _ => panic!("Unsupported nested"),
-            },
-            _ => panic!("Unsupported attribute form"),
-        })
-}
-
 /// generate seq type by string
 #[allow(dead_code)]
-fn gen_seq_type(s: String) -> TokenStream {
-    match s.as_str() {
+fn gen_seq_type(s: &str) -> TokenStream {
+    match s {
         FX_ARC_ARR => quote! {ArcArr},
         FX_ARC_VEC => quote! {ArcVec},
         _ => quote! {ArcArr}, // default to ArcArr
@@ -85,9 +49,8 @@ fn gen_seq_type(s: String) -> TokenStream {
 }
 
 /// generate eclectic type by string
-#[allow(dead_code)]
-fn gen_eclectic_type(s: String) -> TokenStream {
-    match s.as_str() {
+fn gen_eclectic_type(s: &str) -> TokenStream {
+    match s {
         FX_VEC_ARC_ARR => quote! {Vec<ArcArr>},
         FX_VEC_ARC_VEC => quote! {Vec<ArcVec>},
         FX_CHUNK_ARR => quote! {ChunkArr},
@@ -98,9 +61,8 @@ fn gen_eclectic_type(s: String) -> TokenStream {
 }
 
 /// generate container type by string
-#[allow(dead_code)]
-fn gen_container_type(s: String) -> TokenStream {
-    match s.as_str() {
+fn gen_container_type(s: &str) -> TokenStream {
+    match s {
         FX_VEC_CHUNK => quote! {Vec<ChunkArr>},
         FX_MAP_CHUNK => quote! {Map<String, ChunkArr>},
         FX_BUNDLE => quote! {FxBundle},
@@ -202,6 +164,25 @@ fn gen_impl_from_sql_row(struct_name: &Ident, named_fields: &NamedFields) -> Tok
             }
         }
     }
+}
+
+// ================================================================================================
+// Types selector from Attributes
+// ================================================================================================
+
+fn gen_builder_types(opt_attributes: Option<Vec<String>>) -> (TokenStream, TokenStream) {
+    // default types
+    let mut eclectic_type = quote! {ChunkArr};
+    let mut container_type = quote! {FxBundle};
+
+    if let Some(attrs) = opt_attributes {
+        for attr in attrs.iter() {
+            eclectic_type = gen_eclectic_type(attr);
+            container_type = gen_container_type(attr);
+        }
+    }
+
+    (eclectic_type, container_type)
 }
 
 // ================================================================================================
@@ -381,7 +362,11 @@ pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
     let named_fields = named_fields(input);
 
     // attributes
-    // TODO
+    let option_attr = get_attributes(input, "fx");
+
+    // builders
+    // TODO:
+    let (_e, _c) = gen_builder_types(option_attr);
 
     // auto generated code (eclectic)
     let eclectic_name = gen_eclectic_build_name(&struct_name);

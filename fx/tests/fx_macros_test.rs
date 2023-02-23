@@ -6,15 +6,15 @@
 use fx::cont::{ArcArr, ChunkArr, FxBundle};
 use fx::row_builder::*;
 
-#[derive(FX)]
-struct Users {
-    id: i32,
-    name: String,
-    check: Option<bool>,
-}
-
 #[test]
 fn grid_builder_row_wise_proc_macro_success() {
+    #[derive(FX)]
+    struct Users {
+        id: i32,
+        name: String,
+        check: Option<bool>,
+    }
+
     #[allow(dead_code)]
     let r1 = Users {
         id: 1,

@@ -1,6 +1,11 @@
+//! file: helper.rs
+//! author: Jacob Xie
+//! date: 2023/02/23 20:16:27 Thursday
+//! brief: Helper functions
+
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
-use syn::{Field, Ident, Type};
+use syn::{DeriveInput, Field, Ident, Type};
 
 pub(crate) type NamedFields = Punctuated<Field, Comma>;
 
@@ -51,4 +56,25 @@ fn get_option_type(ty: &Type) -> (bool, Ident) {
 pub(crate) fn get_option_type_name(ty: &Type) -> (bool, String) {
     let (is_option, ident) = get_option_type(ty);
     (is_option, ident.to_string())
+}
+
+/// extract attributes from a specified `attr_mark`.
+/// For instance, if chk = Some(FxBundle), then use ChunkArr as Eclectic param in row-builders;
+pub(crate) fn get_attributes(input: &DeriveInput, attr_mark: &str) -> Option<Vec<String>> {
+    input
+        .attrs
+        .iter()
+        .find(|a| a.path.segments[0].ident == attr_mark)
+        .map(|a| match a.parse_meta().unwrap() {
+            syn::Meta::List(syn::MetaList { nested, .. }) => match nested.first().unwrap() {
+                syn::NestedMeta::Meta(m) => m
+                    .path()
+                    .segments
+                    .iter()
+                    .map(|s| s.ident.to_string())
+                    .collect::<Vec<_>>(),
+                _ => panic!("Unsupported nested"),
+            },
+            _ => panic!("Unsupported attribute form"),
+        })
 }
