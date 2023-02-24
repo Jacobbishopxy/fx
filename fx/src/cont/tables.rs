@@ -7,7 +7,7 @@ use arrow2::datatypes::{Field, Schema};
 use inherent::inherent;
 
 use crate::ab::{private, EclecticCollection, FxSeq, Purport, StaticPurport};
-use crate::error::{FxError, FxResult};
+use crate::error::FxResult;
 
 // ================================================================================================
 // FxTables
@@ -46,47 +46,31 @@ impl<const W: usize, S: FxSeq> private::InnerEclecticCollection<true, usize, [S;
     }
 
     fn ref_container(&self) -> Vec<&[S; W]> {
-        self.data.iter().collect()
+        self.data.ref_container()
     }
 
     fn get_chunk(&self, key: usize) -> FxResult<&[S; W]> {
-        self.data.get(key).ok_or(FxError::OutBounds)
+        self.data.get(key)
     }
 
     fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut [S; W]> {
-        self.data.get_mut(key).ok_or(FxError::OutBounds)
+        self.data.get_mut(key)
     }
 
     fn insert_chunk_type_unchecked(&mut self, key: usize, data: [S; W]) -> FxResult<()> {
-        if key > self.data.len() {
-            return Err(FxError::OutBounds);
-        }
-
-        self.data.insert(key, data);
-
-        Ok(())
+        self.data.insert_chunk_type_unchecked(key, data)
     }
 
     fn remove_chunk(&mut self, key: usize) -> FxResult<()> {
-        if key > self.data.len() {
-            return Err(FxError::OutBounds);
-        }
-
-        self.data.remove(key);
-
-        Ok(())
+        self.data.remove_chunk(key)
     }
 
     fn push_chunk_type_unchecked(&mut self, data: [S; W]) -> FxResult<()> {
-        self.data.push(data);
-
-        Ok(())
+        self.data.push_chunk_type_unchecked(data)
     }
 
     fn pop_chunk(&mut self) -> FxResult<()> {
-        self.data.pop();
-
-        Ok(())
+        self.data.pop_chunk()
     }
 
     fn take_container(self) -> Vec<[S; W]> {

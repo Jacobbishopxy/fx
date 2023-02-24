@@ -8,7 +8,7 @@ use inherent::inherent;
 
 use crate::ab::{private, EclecticCollection, Purport, StaticPurport};
 use crate::cont::ChunkArr;
-use crate::error::{FxError, FxResult};
+use crate::error::FxResult;
 
 // ================================================================================================
 // FxBatches
@@ -45,47 +45,31 @@ impl private::InnerEclecticCollection<true, usize, ChunkArr> for FxBatches {
     }
 
     fn ref_container(&self) -> Vec<&ChunkArr> {
-        self.data.iter().collect()
+        self.data.ref_container()
     }
 
     fn get_chunk(&self, key: usize) -> FxResult<&ChunkArr> {
-        self.data.get(key)
+        self.data.get_chunk(key)
     }
 
     fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut ChunkArr> {
-        self.data.get_mut(key)
+        self.data.get_mut_chunk(key)
     }
 
     fn insert_chunk_type_unchecked(&mut self, key: usize, data: ChunkArr) -> FxResult<()> {
-        if key > self.data.len() {
-            return Err(FxError::OutBounds);
-        }
-
-        self.data.insert(key, data);
-
-        Ok(())
+        self.data.insert_chunk_type_unchecked(key, data)
     }
 
     fn remove_chunk(&mut self, key: usize) -> FxResult<()> {
-        if key > self.data.len() {
-            return Err(FxError::OutBounds);
-        }
-
-        self.data.remove(key);
-
-        Ok(())
+        self.data.remove_chunk(key)
     }
 
     fn push_chunk_type_unchecked(&mut self, data: ChunkArr) -> FxResult<()> {
-        self.data.push(data);
-
-        Ok(())
+        self.data.push_chunk_type_unchecked(data)
     }
 
     fn pop_chunk(&mut self) -> FxResult<()> {
-        self.data.pop();
-
-        Ok(())
+        self.data.pop_chunk()
     }
 
     fn take_container(self) -> Vec<ChunkArr> {

@@ -322,6 +322,75 @@ impl private::InnerEclecticMutChunk for Chunk<ArcArr> {
 }
 
 // ================================================================================================
+// Default implementation for Vec<[FxSeq; W]>
+// ================================================================================================
+
+impl<const W: usize, S: FxSeq> StaticPurport for Vec<[S; W]> {}
+
+impl<const W: usize, S: FxSeq> private::InnerEclecticCollection<false, usize, [S; W]>
+    for Vec<[S; W]>
+{
+    fn empty() -> Self
+    where
+        Self: Sized,
+    {
+        Vec::new()
+    }
+
+    fn ref_schema(&self) -> Option<&Schema> {
+        None
+    }
+
+    fn ref_container(&self) -> Vec<&[S; W]> {
+        self.iter().collect()
+    }
+
+    fn get_chunk(&self, key: usize) -> FxResult<&[S; W]> {
+        self.get(key).ok_or(FxError::OutBounds)
+    }
+
+    fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut [S; W]> {
+        self.get_mut(key).ok_or(FxError::OutBounds)
+    }
+
+    fn insert_chunk_type_unchecked(&mut self, key: usize, data: [S; W]) -> FxResult<()> {
+        if key > self.len() {
+            return Err(FxError::OutBounds);
+        }
+
+        self.insert(key, data);
+
+        Ok(())
+    }
+
+    fn remove_chunk(&mut self, key: usize) -> FxResult<()> {
+        if key > self.len() {
+            return Err(FxError::OutBounds);
+        }
+
+        self.remove(key);
+
+        Ok(())
+    }
+
+    fn push_chunk_type_unchecked(&mut self, data: [S; W]) -> FxResult<()> {
+        self.push(data);
+
+        Ok(())
+    }
+
+    fn pop_chunk(&mut self) -> FxResult<()> {
+        self.pop();
+
+        Ok(())
+    }
+
+    fn take_container(self) -> Vec<[S; W]> {
+        self
+    }
+}
+
+// ================================================================================================
 // Default implementation for Vec<Chunk<dyn Array>>
 // ================================================================================================
 

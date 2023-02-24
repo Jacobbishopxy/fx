@@ -66,6 +66,8 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 
 ### Types
 
+Traits implementation for Rust and Arrow types:
+
 - `ArcArr`: `Arc<dyn Array>` with `FxSeq` trait implemented
 
 - `ArcVec`: `Arc<dyn MutableArray>` with `FxSeq` trait implemented
@@ -74,19 +76,25 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 
 - `ChunkArr`: `Chunk<Arc<dyn Array>>` with `Eclectic` trait implemented
 
+- `Vec<[S; W]>`: `Vec<[S; W]> where S: FxSeq, W: usize` with `EclecticCollection` trait implemented
+
 - `VecChunk`: `Vec<Chunk<Arc<dyn Array>>>` with `EclecticCollection` trait implemented
 
 - `HashMap<I, ChunkArr>`: `HashMap<I, Chunk<Arc<dyn Array>>> where I: Hash + Eq` with `EclecticCollection` trait implemented
 
 ### Structs and Enums
 
+Structs and enums provided by Fx crate:
+
+- `NullableOptions`: indicates fields' nullable status
+
 - `Batch`: chunked data consists of arrow's `Array`, with a schema field
 
 - `Batches`: vector of `ChunkArr`, with a schema field
 
-- `Table`: vector of `FxSeq`, with a schema field
+- `Table`: array of `FxSeq`, with a schema field
 
-- `Tables`: WIP
+- `Tables`: vectorof `Table`, with a chema field
 
 ## Dependencies
 
@@ -113,8 +121,6 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 ## Todo
 
 - enhance `fx-macros`: use derived attributes to choose which `Eclectic` & `EclecticContainer`
-
-- test `inherent` crate in `fx-macros` (for builders)
 
 - add new type `Box<dyn Array>` implementation
 
