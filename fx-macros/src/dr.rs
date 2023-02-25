@@ -375,7 +375,7 @@ fn gen_impl_container(
     );
 
     quote! {
-        impl FxEclecticCollectionRowBuilder<
+        impl FxCollectionRowBuilder<
             #has_schema, #eclectic_build_name, #struct_name, #eclectic_collection, usize, #eclectic_type
         > for #container_build_name
         {
@@ -417,7 +417,7 @@ fn gen_impl_container(
             }
         }
 
-        impl FxEclecticCollectionRowBuilderGenerator<
+        impl FxCollectionRowBuilderGenerator<
             #has_schema, #eclectic_build_name, #struct_name, #eclectic_collection, usize, #eclectic_type
         > for #struct_name {
             type Builder = #container_build_name;
@@ -455,21 +455,21 @@ pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
     );
 
     // auto generated code (container)
-    let container_build_name = gen_container_build_name(&struct_name);
-    let container_builder_struct = gen_collection_builder_struct(
-        &e_type,
-        schema_len,
-        &eclectic_build_name,
-        &container_build_name,
-    );
-    let impl_container_row_build = gen_impl_container(
-        &e_type,
-        schema_len,
-        &struct_name,
-        &eclectic_build_name,
-        &container_build_name,
-        &named_fields,
-    );
+    // let container_build_name = gen_container_build_name(&struct_name);
+    // let container_builder_struct = gen_collection_builder_struct(
+    //     &e_type,
+    //     schema_len,
+    //     &eclectic_build_name,
+    //     &container_build_name,
+    // );
+    // let impl_container_row_build = gen_impl_container(
+    //     &e_type,
+    //     schema_len,
+    //     &struct_name,
+    //     &eclectic_build_name,
+    //     &container_build_name,
+    //     &named_fields,
+    // );
 
     let expanded = quote! {
         //
@@ -482,10 +482,10 @@ pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
         #impl_eclectic_row_build
 
         //
-        #container_builder_struct
+        // #container_builder_struct
 
         //
-        #impl_container_row_build
+        // #impl_container_row_build
     };
 
     expanded

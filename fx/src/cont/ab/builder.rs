@@ -6,7 +6,7 @@
 use std::hash::Hash;
 
 use crate::ab::{Eclectic, EclecticCollection};
-use crate::error::FxResult;
+use crate::error::{FxError, FxResult};
 
 // ================================================================================================
 // FxEclecticRowBuilder & FxEclecticRowBuilderGenerator
@@ -41,11 +41,12 @@ where
 }
 
 // ================================================================================================
-// FxEclecticCollectionRowBuilder & FxEclecticCollectionRowBuilderGenerator
+// Pro FxCollectionRowBuilder FxCollectionRowBuilderGenerator
 // ================================================================================================
 
-pub trait FxEclecticCollectionRowBuilder<const SCHEMA: bool, B, R, T, I, C>: Send
+pub trait FxCollectionRowBuilder<const SCHEMA: bool, B, R, T, I, C>: Send
 where
+    Self: Sized,
     B: FxEclecticRowBuilder<R, C>,
     T: EclecticCollection<SCHEMA, I, C>,
     I: Hash + Eq,
@@ -55,14 +56,45 @@ where
     where
         Self: Sized;
 
-    fn stack(&mut self, row: R) -> &mut Self;
+    fn mut_buffer(&mut self) -> Option<&mut B>;
 
-    fn save(&mut self) -> FxResult<&mut Self>;
+    fn set_buffer(&mut self, buffer: B);
 
-    fn build(self) -> T;
+    fn take_buffer(&mut self) -> Option<B>;
+
+    fn mut_result(&mut self) -> &mut T;
+
+    fn take_result(self) -> T;
+
+    fn stack(&mut self, row: R) -> &mut Self {
+        match self.mut_buffer() {
+            Some(b) => {
+                b.stack(row);
+            }
+            None => {
+                let mut buffer = B::new();
+                buffer.stack(row);
+                self.set_buffer(buffer);
+            }
+        }
+
+        self
+    }
+
+    fn save(&mut self) -> FxResult<&mut Self> {
+        let b = self.take_buffer().ok_or(FxError::EmptyContent)?;
+        let c = b.build()?;
+        self.mut_result().push(c)?;
+
+        Ok(self)
+    }
+
+    fn build(self) -> T {
+        self.take_result()
+    }
 }
 
-pub trait FxEclecticCollectionRowBuilderGenerator<const SCHEMA: bool, B, R, T, I, C>
+pub trait FxCollectionRowBuilderGenerator<const SCHEMA: bool, B, R, T, I, C>
 where
     Self: Sized,
     B: FxEclecticRowBuilder<R, C>,
@@ -70,10 +102,14 @@ where
     I: Hash + Eq,
     C: Eclectic,
 {
-    type Builder: FxEclecticCollectionRowBuilder<SCHEMA, B, R, T, I, C>;
+    type Builder: FxCollectionRowBuilder<SCHEMA, B, R, T, I, C>;
 
-    fn gen_eclectic_collection_row_builder() -> FxResult<Self::Builder>;
+    fn gen_collection_row_builder() -> FxResult<Self::Builder>;
 }
+
+// ================================================================================================
+// Test
+// ================================================================================================
 
 // This test mod is a prototype for derived proc-macro.
 #[cfg(test)]
@@ -156,7 +192,7 @@ mod test_builder {
         buffer: Option<UsersEBuild>,
     }
 
-    impl FxEclecticCollectionRowBuilder<false, UsersEBuild, Users, Vec<ChunkArr>, usize, ChunkArr>
+    impl FxCollectionRowBuilder<false, UsersEBuild, Users, Vec<ChunkArr>, usize, ChunkArr>
         for UsersCBuild
     {
         fn new() -> FxResult<Self>
@@ -169,46 +205,33 @@ mod test_builder {
             Ok(Self { result, buffer })
         }
 
-        fn stack(&mut self, row: Users) -> &mut Self {
-            match self.buffer.as_mut() {
-                Some(b) => {
-                    b.stack(row);
-                }
-                None => {
-                    let mut buffer = Users::gen_eclectic_row_builder();
-                    buffer.stack(row);
-                    self.buffer = Some(buffer);
-                }
-            };
-
-            self
+        fn mut_buffer(&mut self) -> Option<&mut UsersEBuild> {
+            self.buffer.as_mut()
         }
 
-        fn save(&mut self) -> FxResult<&mut Self> {
-            let caa = self.buffer.take().unwrap().build()?;
-            self.result.push(caa);
-
-            Ok(self)
+        fn set_buffer(&mut self, buffer: UsersEBuild) {
+            self.buffer = Some(buffer)
         }
 
-        fn build(self) -> Vec<ChunkArr> {
+        fn take_buffer(&mut self) -> Option<UsersEBuild> {
+            self.buffer.take()
+        }
+
+        fn mut_result(&mut self) -> &mut Vec<ChunkArr> {
+            &mut self.result
+        }
+
+        fn take_result(self) -> Vec<ChunkArr> {
             self.result
         }
     }
 
-    impl
-        FxEclecticCollectionRowBuilderGenerator<
-            false,
-            UsersEBuild,
-            Users,
-            Vec<ChunkArr>,
-            usize,
-            ChunkArr,
-        > for Users
+    impl FxCollectionRowBuilderGenerator<false, UsersEBuild, Users, Vec<ChunkArr>, usize, ChunkArr>
+        for Users
     {
         type Builder = UsersCBuild;
 
-        fn gen_eclectic_collection_row_builder() -> FxResult<Self::Builder> {
+        fn gen_collection_row_builder() -> FxResult<Self::Builder> {
             Self::Builder::new()
         }
     }
@@ -227,7 +250,7 @@ mod test_builder {
             check: None,
         };
 
-        let mut bd = Users::gen_eclectic_collection_row_builder().unwrap();
+        let mut bd = Users::gen_collection_row_builder().unwrap();
 
         bd.stack(r1).save().unwrap().stack(r2).save().unwrap();
 
@@ -373,8 +396,7 @@ mod test_schemed_container_builder {
         buffer: Option<UsersEBuild>,
     }
 
-    impl
-        FxEclecticCollectionRowBuilder<true, UsersEBuild, Users, FxBatches<FxBatch>, usize, FxBatch>
+    impl FxCollectionRowBuilder<true, UsersEBuild, Users, FxBatches<FxBatch>, usize, FxBatch>
         for UsersCSBuild
     {
         fn new() -> FxResult<Self>
@@ -391,35 +413,29 @@ mod test_schemed_container_builder {
             Ok(Self { result, buffer })
         }
 
-        fn stack(&mut self, row: Users) -> &mut Self {
-            match self.buffer.as_mut() {
-                Some(b) => {
-                    b.stack(row);
-                }
-                None => {
-                    let mut buffer = Users::gen_eclectic_row_builder();
-                    buffer.stack(row);
-                    self.buffer = Some(buffer);
-                }
-            };
-
-            self
+        fn mut_buffer(&mut self) -> Option<&mut UsersEBuild> {
+            self.buffer.as_mut()
         }
 
-        fn save(&mut self) -> FxResult<&mut Self> {
-            let caa = self.buffer.take().unwrap().build()?;
-            self.result.push(caa)?;
-
-            Ok(self)
+        fn set_buffer(&mut self, buffer: UsersEBuild) {
+            self.buffer = Some(buffer);
         }
 
-        fn build(self) -> FxBatches<FxBatch> {
+        fn take_buffer(&mut self) -> Option<UsersEBuild> {
+            self.buffer.take()
+        }
+
+        fn mut_result(&mut self) -> &mut FxBatches<FxBatch> {
+            &mut self.result
+        }
+
+        fn take_result(self) -> FxBatches<FxBatch> {
             self.result
         }
     }
 
     impl
-        FxEclecticCollectionRowBuilderGenerator<
+        FxCollectionRowBuilderGenerator<
             true,
             UsersEBuild,
             Users,
@@ -430,7 +446,7 @@ mod test_schemed_container_builder {
     {
         type Builder = UsersCSBuild;
 
-        fn gen_eclectic_collection_row_builder() -> FxResult<Self::Builder> {
+        fn gen_collection_row_builder() -> FxResult<Self::Builder> {
             UsersCSBuild::new()
         }
     }
@@ -449,7 +465,7 @@ mod test_schemed_container_builder {
             check: None,
         };
 
-        let mut bd = Users::gen_eclectic_collection_row_builder().unwrap();
+        let mut bd = Users::gen_collection_row_builder().unwrap();
 
         bd.stack(r1).save().unwrap().stack(r2).save().unwrap();
 

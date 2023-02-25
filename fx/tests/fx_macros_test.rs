@@ -29,18 +29,19 @@ fn builder_row_wise1_proc_macro_success() {
     };
 
     let mut bd1 = Users::gen_eclectic_row_builder();
-    bd1.stack(r1.clone()).stack(r2.clone());
+    // bd1.stack(r1.clone()).stack(r2.clone());
+    bd1.stack(r1).stack(r2);
     // Chunk<Arc<dyn Array>>
     let d = bd1.build();
     println!("{d:?}");
 
-    let mut bd = Users::gen_eclectic_collection_row_builder().unwrap();
-    bd.stack(r1).save().unwrap().stack(r2).save().unwrap();
-    let d = bd.build();
-    println!("{d:?}");
+    // let mut bd = Users::gen_collection_row_builder().unwrap();
+    // bd.stack(r1).save().unwrap().stack(r2).save().unwrap();
+    // let d = bd.build();
+    // println!("{d:?}");
 }
 
-// TODO: decouple `FxEclecticCollectionRowBuilder` from `FxEclecticRowBuilder`
+// TODO: decouple `FxCollectionRowBuilder` from `FxEclecticRowBuilder`
 // #[test]
 // fn builder_row_wise2_proc_macro_success() {
 //     #[derive(FX)]

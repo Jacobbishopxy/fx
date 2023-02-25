@@ -120,7 +120,7 @@ Structs and enums provided by Fx crate:
 
 ## Todo
 
-- decouple `FxEclecticCollectionRowBuilder` from `FxEclecticRowBuilder`
+- decouple `FxCollectionRowBuilder` from `FxEclecticRowBuilder`
 
 - add new type `Box<dyn Array>` implementation
 
