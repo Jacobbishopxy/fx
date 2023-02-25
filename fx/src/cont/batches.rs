@@ -6,37 +6,42 @@
 use arrow2::datatypes::{Field, Schema};
 use inherent::inherent;
 
-use crate::ab::{private, EclecticCollection, Purport, StaticPurport};
-use crate::cont::ChunkArr;
-use crate::error::FxResult;
+use crate::ab::{private, Eclectic, EclecticCollection, Purport, StaticPurport};
+use crate::cont::{ChunkArr, FxBatch};
+use crate::error::{FxError, FxResult};
 
 // ================================================================================================
 // FxBatches
 // ================================================================================================
 
 #[derive(Debug, Clone, Default)]
-pub struct FxBatches {
+pub struct FxBatches<E: Eclectic> {
     pub(crate) schema: Schema,
-    pub(crate) data: Vec<ChunkArr>,
+    pub(crate) data: Vec<E>,
 }
 
-impl StaticPurport for FxBatches {}
+impl<E: Eclectic> StaticPurport for FxBatches<E> {}
 
 #[inherent]
-impl Purport for FxBatches {
+impl<E: Eclectic> Purport for FxBatches<E> {
     pub fn schema(&self) -> &Schema {
         &self.schema
     }
 }
 
-impl private::InnerEclecticCollection<true, usize, ChunkArr> for FxBatches {
+// ================================================================================================
+// EclecticCollection's impl
+// ================================================================================================
+
+// ChunkArr -> FxBatches
+impl<E: Eclectic> private::InnerEclecticCollection<true, usize, E> for FxBatches<E> {
     fn empty() -> Self
     where
         Self: Sized,
     {
         Self {
             schema: Schema::from(Vec::<Field>::new()),
-            data: Vec::<ChunkArr>::new(),
+            data: Vec::<E>::new(),
         }
     }
 
@@ -44,19 +49,19 @@ impl private::InnerEclecticCollection<true, usize, ChunkArr> for FxBatches {
         Some(&self.schema)
     }
 
-    fn ref_container(&self) -> Vec<&ChunkArr> {
+    fn ref_container(&self) -> Vec<&E> {
         self.data.ref_container()
     }
 
-    fn get_chunk(&self, key: usize) -> FxResult<&ChunkArr> {
+    fn get_chunk(&self, key: usize) -> FxResult<&E> {
         self.data.get_chunk(key)
     }
 
-    fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut ChunkArr> {
+    fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut E> {
         self.data.get_mut_chunk(key)
     }
 
-    fn insert_chunk_type_unchecked(&mut self, key: usize, data: ChunkArr) -> FxResult<()> {
+    fn insert_chunk_type_unchecked(&mut self, key: usize, data: E) -> FxResult<()> {
         self.data.insert_chunk_type_unchecked(key, data)
     }
 
@@ -64,7 +69,7 @@ impl private::InnerEclecticCollection<true, usize, ChunkArr> for FxBatches {
         self.data.remove_chunk(key)
     }
 
-    fn push_chunk_type_unchecked(&mut self, data: ChunkArr) -> FxResult<()> {
+    fn push_chunk_type_unchecked(&mut self, data: E) -> FxResult<()> {
         self.data.push_chunk_type_unchecked(data)
     }
 
@@ -72,23 +77,23 @@ impl private::InnerEclecticCollection<true, usize, ChunkArr> for FxBatches {
         self.data.pop_chunk()
     }
 
-    fn take_container(self) -> Vec<ChunkArr> {
+    fn take_container(self) -> Vec<E> {
         self.data
     }
 }
 
-impl FxBatches {
-    pub fn new(data: Vec<ChunkArr>) -> Self {
+impl<E: Eclectic> FxBatches<E> {
+    pub fn new(data: Vec<E>) -> Self {
         if data.is_empty() {
             return Self::empty();
         }
 
-        let schema = Self::gen_schema(data.first().unwrap());
+        let schema = Self::gen_schema(data.first().unwrap().ref_sequences());
 
         Self { schema, data }
     }
 
-    pub fn new_with_names<I, T>(data: Vec<ChunkArr>, names: I) -> Self
+    pub fn new_with_names<I, T>(data: Vec<E>, names: I) -> Self
     where
         I: IntoIterator<Item = T>,
         T: AsRef<str>,
@@ -97,7 +102,7 @@ impl FxBatches {
             return Self::empty();
         }
 
-        let schema = Self::gen_schema_with_names(data.first().unwrap(), names);
+        let schema = Self::gen_schema_with_names(data.first().unwrap().ref_sequences(), names);
 
         Self { schema, data }
     }
@@ -126,17 +131,42 @@ mod test_batches {
             ArcArr::from_slice(&[Some("x"), None, Some("y")]),
             ArcArr::from_slice(&[true, false, false]),
         ]);
-        let bdl = FxBatches::new(vec![ca]);
+        // FxBatches<Chunk<Arc<dyn Array>>>
+        let b = FxBatches::new(vec![ca]);
 
-        println!("{bdl:?}");
+        println!("{b:?}");
 
         let ca = ChunkArr::new(vec![
             ArcArr::from_slice(&["a", "c", "z"]),
             ArcArr::from_slice(&[Some("x"), None, Some("y")]),
             ArcArr::from_slice(&[true, false, false]),
         ]);
-        let bdl = FxBatches::new_with_names(vec![ca], ["c1", "c2"]);
+        // FxBatches<Chunk<Arc<dyn Array>>>
+        let b = FxBatches::new_with_names(vec![ca], ["c1", "c2"]);
 
-        println!("{bdl:?}");
+        println!("{b:?}");
+    }
+
+    #[test]
+    fn new_fx_batches2() {
+        let ca = FxBatch::new(vec![
+            ArcArr::from_slice(&["a", "c", "z"]),
+            ArcArr::from_slice(&[Some("x"), None, Some("y")]),
+            ArcArr::from_slice(&[true, false, false]),
+        ]);
+        // FxBatches<FxBatch>
+        let b = FxBatches::new(vec![ca]);
+
+        println!("{b:?}");
+
+        let ca = FxBatch::new(vec![
+            ArcArr::from_slice(&["a", "c", "z"]),
+            ArcArr::from_slice(&[Some("x"), None, Some("y")]),
+            ArcArr::from_slice(&[true, false, false]),
+        ]);
+        // FxBatches<FxBatch>
+        let b = FxBatches::new_with_names(vec![ca], ["c1", "c2"]);
+
+        println!("{b:?}");
     }
 }

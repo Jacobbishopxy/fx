@@ -120,7 +120,7 @@ Structs and enums provided by Fx crate:
 
 ## Todo
 
-- enhance `fx-macros`: use derived attributes to choose which `Eclectic` & `EclecticContainer`
+- decouple `FxEclecticCollectionRowBuilder` from `FxEclecticRowBuilder`
 
 - add new type `Box<dyn Array>` implementation
 

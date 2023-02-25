@@ -6,7 +6,6 @@
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput};
 
-mod constant;
 mod dr;
 mod helper;
 
@@ -20,7 +19,7 @@ pub fn derive_fx(input: TokenStream) -> TokenStream {
     let stream = impl_fx(&input);
 
     // Debug use:
-    // println!("{}", &stream);
+    println!("{}", &stream);
 
     TokenStream::from(stream)
 }

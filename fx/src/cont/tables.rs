@@ -108,3 +108,36 @@ impl<const W: usize, S: FxSeq> FxTables<W, S> {
         Self { schema, data }
     }
 }
+
+// ================================================================================================
+// Test
+// ================================================================================================
+
+#[cfg(test)]
+mod test_tables {
+    use super::*;
+
+    use crate::ab::*;
+    use crate::cont::ArcArr;
+
+    #[test]
+    fn new_fx_tables() {
+        let ca = [
+            ArcArr::from_slice(&["a", "c", "z"]),
+            ArcArr::from_slice(&[Some("x"), None, Some("y")]),
+            ArcArr::from_slice(&[true, false, false]),
+        ];
+        let t = FxTables::new(vec![ca]);
+
+        println!("{t:?}");
+
+        let ca = [
+            ArcArr::from_slice(&["a", "c", "z"]),
+            ArcArr::from_slice(&[Some("x"), None, Some("y")]),
+            ArcArr::from_slice(&[true, false, false]),
+        ];
+        let t = FxTables::new_with_names(vec![ca], ["c1", "c2"]);
+
+        println!("{t:?}");
+    }
+}

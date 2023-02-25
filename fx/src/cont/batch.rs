@@ -23,6 +23,15 @@ pub struct FxBatch {
     pub(crate) data: ChunkArr,
 }
 
+impl Default for FxBatch {
+    fn default() -> Self {
+        Self {
+            schema: Default::default(),
+            data: ChunkArr::new(Vec::<ArcArr>::new()),
+        }
+    }
+}
+
 impl StaticPurport for FxBatch {}
 
 #[inherent]

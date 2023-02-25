@@ -209,7 +209,7 @@ mod test_builder {
         type Builder = UsersCBuild;
 
         fn gen_eclectic_collection_row_builder() -> FxResult<Self::Builder> {
-            UsersCBuild::new()
+            Self::Builder::new()
         }
     }
 
@@ -318,7 +318,7 @@ mod test_schemed_container_builder {
 
     use arrow2::datatypes::DataType;
 
-    use crate::cont::{ArcArr, ChunkArr, FxBatches, NullableOptions};
+    use crate::cont::{ArcArr, FxBatch, FxBatches, NullableOptions};
     use crate::row_builder::*;
 
     // This part is the same as `test_builder`'s first part.
@@ -337,7 +337,7 @@ mod test_schemed_container_builder {
         check: Vec<Option<bool>>,
     }
 
-    impl FxEclecticRowBuilder<Users, ChunkArr> for UsersEBuild {
+    impl FxEclecticRowBuilder<Users, FxBatch> for UsersEBuild {
         fn new() -> Self {
             Self::default()
         }
@@ -350,16 +350,16 @@ mod test_schemed_container_builder {
             self
         }
 
-        fn build(self) -> FxResult<ChunkArr> {
+        fn build(self) -> FxResult<FxBatch> {
             let c1 = ArcArr::from_vec(self.id);
             let c2 = ArcArr::from_vec(self.name);
             let c3 = ArcArr::from_vec(self.check);
 
-            Ok(ChunkArr::try_new(vec![c1, c2, c3])?)
+            FxBatch::try_new(vec![c1, c2, c3])
         }
     }
 
-    impl FxEclecticRowBuilderGenerator<ChunkArr> for Users {
+    impl FxEclecticRowBuilderGenerator<FxBatch> for Users {
         type Builder = UsersEBuild;
 
         fn gen_eclectic_row_builder() -> Self::Builder {
@@ -369,11 +369,12 @@ mod test_schemed_container_builder {
 
     #[derive(Debug)]
     struct UsersCSBuild {
-        result: FxBatches,
+        result: FxBatches<FxBatch>,
         buffer: Option<UsersEBuild>,
     }
 
-    impl FxEclecticCollectionRowBuilder<true, UsersEBuild, Users, FxBatches, usize, ChunkArr>
+    impl
+        FxEclecticCollectionRowBuilder<true, UsersEBuild, Users, FxBatches<FxBatch>, usize, FxBatch>
         for UsersCSBuild
     {
         fn new() -> FxResult<Self>
@@ -384,7 +385,7 @@ mod test_schemed_container_builder {
                 ["id", "name", "check"],
                 [DataType::Int32, DataType::Utf8, DataType::Boolean],
             )?;
-            let result = FxBatches::empty_with_schema(schema);
+            let result = FxBatches::<FxBatch>::empty_with_schema(schema);
             let buffer = Some(Users::gen_eclectic_row_builder());
 
             Ok(Self { result, buffer })
@@ -412,7 +413,7 @@ mod test_schemed_container_builder {
             Ok(self)
         }
 
-        fn build(self) -> FxBatches {
+        fn build(self) -> FxBatches<FxBatch> {
             self.result
         }
     }
@@ -422,9 +423,9 @@ mod test_schemed_container_builder {
             true,
             UsersEBuild,
             Users,
-            FxBatches,
+            FxBatches<FxBatch>,
             usize,
-            ChunkArr,
+            FxBatch,
         > for Users
     {
         type Builder = UsersCSBuild;

@@ -15,7 +15,7 @@ use arrow2::chunk::Chunk;
 use arrow2::compute::concatenate::concatenate;
 use arrow2::datatypes::{DataType, Schema};
 
-use crate::ab::{private, FxSeq, StaticPurport};
+use crate::ab::{private, Eclectic, FxSeq, StaticPurport};
 use crate::cont::macros::{arr_to_vec, arr_to_vec_p, try_ext_from_slf};
 use crate::error::{FxError, FxResult};
 use crate::types::*;
@@ -322,38 +322,34 @@ impl private::InnerEclecticMutChunk for Chunk<ArcArr> {
 }
 
 // ================================================================================================
-// Default implementation for Vec<[FxSeq; W]>
+// Default implementation for Vec<E> where E: Eclectic
 // ================================================================================================
 
-impl<const W: usize, S: FxSeq> StaticPurport for Vec<[S; W]> {}
-
-impl<const W: usize, S: FxSeq> private::InnerEclecticCollection<false, usize, [S; W]>
-    for Vec<[S; W]>
-{
+impl<E: Eclectic> private::InnerEclecticCollection<false, usize, E> for Vec<E> {
     fn empty() -> Self
     where
         Self: Sized,
     {
-        Vec::new()
+        todo!()
     }
 
     fn ref_schema(&self) -> Option<&Schema> {
         None
     }
 
-    fn ref_container(&self) -> Vec<&[S; W]> {
+    fn ref_container(&self) -> Vec<&E> {
         self.iter().collect()
     }
 
-    fn get_chunk(&self, key: usize) -> FxResult<&[S; W]> {
+    fn get_chunk(&self, key: usize) -> FxResult<&E> {
         self.get(key).ok_or(FxError::OutBounds)
     }
 
-    fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut [S; W]> {
+    fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut E> {
         self.get_mut(key).ok_or(FxError::OutBounds)
     }
 
-    fn insert_chunk_type_unchecked(&mut self, key: usize, data: [S; W]) -> FxResult<()> {
+    fn insert_chunk_type_unchecked(&mut self, key: usize, data: E) -> FxResult<()> {
         if key > self.len() {
             return Err(FxError::OutBounds);
         }
@@ -373,7 +369,7 @@ impl<const W: usize, S: FxSeq> private::InnerEclecticCollection<false, usize, [S
         Ok(())
     }
 
-    fn push_chunk_type_unchecked(&mut self, data: [S; W]) -> FxResult<()> {
+    fn push_chunk_type_unchecked(&mut self, data: E) -> FxResult<()> {
         self.push(data);
 
         Ok(())
@@ -385,74 +381,7 @@ impl<const W: usize, S: FxSeq> private::InnerEclecticCollection<false, usize, [S
         Ok(())
     }
 
-    fn take_container(self) -> Vec<[S; W]> {
-        self
-    }
-}
-
-// ================================================================================================
-// Default implementation for Vec<Chunk<dyn Array>>
-// ================================================================================================
-
-impl StaticPurport for VecChunk {}
-
-impl private::InnerEclecticCollection<false, usize, ChunkArr> for VecChunk {
-    fn empty() -> Self
-    where
-        Self: Sized,
-    {
-        Vec::new()
-    }
-
-    fn ref_schema(&self) -> Option<&Schema> {
-        None
-    }
-
-    fn ref_container(&self) -> Vec<&ChunkArr> {
-        self.iter().collect()
-    }
-
-    fn get_chunk(&self, key: usize) -> FxResult<&ChunkArr> {
-        self.get(key).ok_or(FxError::OutBounds)
-    }
-
-    fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut ChunkArr> {
-        self.get_mut(key).ok_or(FxError::OutBounds)
-    }
-
-    fn insert_chunk_type_unchecked(&mut self, key: usize, data: ChunkArr) -> FxResult<()> {
-        if key > self.len() {
-            return Err(FxError::OutBounds);
-        }
-
-        self.insert(key, data);
-
-        Ok(())
-    }
-
-    fn remove_chunk(&mut self, key: usize) -> FxResult<()> {
-        if key > self.len() {
-            return Err(FxError::OutBounds);
-        }
-
-        self.remove(key);
-
-        Ok(())
-    }
-
-    fn push_chunk_type_unchecked(&mut self, data: ChunkArr) -> FxResult<()> {
-        self.push(data);
-
-        Ok(())
-    }
-
-    fn pop_chunk(&mut self) -> FxResult<()> {
-        self.pop();
-
-        Ok(())
-    }
-
-    fn take_container(self) -> VecChunk {
+    fn take_container(self) -> Vec<E> {
         self
     }
 }

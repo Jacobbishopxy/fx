@@ -77,3 +77,7 @@ pub(crate) fn get_attributes(input: &DeriveInput, attr_mark: &str) -> Option<Vec
             _ => panic!("Unsupported attribute form"),
         })
 }
+
+pub(crate) fn get_first_attribute(input: &DeriveInput, attr_mark: &str) -> Option<String> {
+    get_attributes(input, attr_mark).and_then(|v| v.first().cloned())
+}
