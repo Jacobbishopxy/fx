@@ -4,9 +4,12 @@
 //! brief: Builder
 
 use std::hash::Hash;
+use std::marker::PhantomData;
 
 use crate::ab::{Eclectic, EclecticCollection};
 use crate::error::{FxError, FxResult};
+
+use super::private;
 
 // ================================================================================================
 // FxEclecticRowBuilder & FxEclecticRowBuilderGenerator
@@ -37,7 +40,32 @@ where
 {
     type Builder: FxEclecticRowBuilder<Self, T>;
 
-    fn gen_eclectic_row_builder() -> Self::Builder;
+    // default impl
+    fn gen_eclectic_row_builder() -> Self::Builder {
+        <Self::Builder as FxEclecticRowBuilder<Self, T>>::new()
+    }
+}
+
+// ================================================================================================
+// experimental
+// ================================================================================================
+
+// TODO: replace `FxEclecticRowBuilderGenerator`
+
+pub struct FxERBGenerator<R, T>(PhantomData<R>, PhantomData<T>)
+where
+    T: Eclectic;
+
+impl<R, T> FxERBGenerator<R, T>
+where
+    T: Eclectic,
+{
+    fn gen_builder<B>() -> B
+    where
+        B: FxEclecticRowBuilder<R, T>,
+    {
+        B::new()
+    }
 }
 
 // ================================================================================================
@@ -104,7 +132,9 @@ where
 {
     type Builder: FxCollectionRowBuilder<SCHEMA, B, R, T, I, C>;
 
-    fn gen_collection_row_builder() -> FxResult<Self::Builder>;
+    fn gen_collection_row_builder() -> FxResult<Self::Builder> {
+        <Self::Builder as FxCollectionRowBuilder<SCHEMA, B, R, T, I, C>>::new()
+    }
 }
 
 // ================================================================================================
@@ -385,10 +415,6 @@ mod test_schemed_container_builder {
 
     impl FxEclecticRowBuilderGenerator<ChunkArr> for Users {
         type Builder = UsersEBuild;
-
-        fn gen_eclectic_row_builder() -> Self::Builder {
-            <UsersEBuild as FxEclecticRowBuilder<Users, ChunkArr>>::new()
-        }
     }
 
     // the second impl: FxBatch
@@ -416,10 +442,6 @@ mod test_schemed_container_builder {
 
     impl FxEclecticRowBuilderGenerator<FxBatch> for Users {
         type Builder = UsersEBuild;
-
-        fn gen_eclectic_row_builder() -> Self::Builder {
-            <UsersEBuild as FxEclecticRowBuilder<Users, FxBatch>>::new()
-        }
     }
 
     #[derive(Debug)]
@@ -478,10 +500,6 @@ mod test_schemed_container_builder {
         > for Users
     {
         type Builder = UsersCSBuild;
-
-        fn gen_collection_row_builder() -> FxResult<Self::Builder> {
-            UsersCSBuild::new()
-        }
     }
 
     #[test]
@@ -505,5 +523,118 @@ mod test_schemed_container_builder {
         let d = bd.build();
 
         println!("{d:?}");
+    }
+}
+
+// ================================================================================================
+// experimental
+// ================================================================================================
+
+#[cfg(test)]
+mod test_experimental {
+
+    use std::marker::PhantomData;
+
+    use crate::cont::{ArcArr, ChunkArr, FxBatch};
+    use crate::row_builder::*;
+
+    #[allow(dead_code)]
+    struct Users {
+        id: i32,
+        name: String,
+        check: Option<bool>,
+    }
+
+    #[derive(Debug)]
+    struct UsersEBuild<T: Eclectic> {
+        id: Vec<i32>,
+        name: Vec<String>,
+        check: Vec<Option<bool>>,
+        _e: PhantomData<T>,
+    }
+
+    impl FxEclecticRowBuilder<Users, ChunkArr> for UsersEBuild<ChunkArr> {
+        fn new() -> Self {
+            Self {
+                id: Vec::<i32>::new(),
+                name: Vec::<String>::new(),
+                check: Vec::<Option<bool>>::new(),
+                _e: PhantomData,
+            }
+        }
+
+        fn stack(&mut self, row: Users) -> &mut Self {
+            self.id.push(row.id);
+            self.name.push(row.name);
+            self.check.push(row.check);
+
+            self
+        }
+
+        fn build(self) -> FxResult<ChunkArr> {
+            let c1 = ArcArr::from_vec(self.id);
+            let c2 = ArcArr::from_vec(self.name);
+            let c3 = ArcArr::from_vec(self.check);
+
+            Ok(ChunkArr::try_new(vec![c1, c2, c3])?)
+        }
+    }
+
+    // impl FxEclecticRowBuilderGenerator<ChunkArr> for Users {
+    //     type Builder = UsersEBuild<ChunkArr>;
+    // }
+
+    impl FxEclecticRowBuilder<Users, FxBatch> for UsersEBuild<FxBatch> {
+        fn new() -> Self {
+            Self {
+                id: Vec::<i32>::new(),
+                name: Vec::<String>::new(),
+                check: Vec::<Option<bool>>::new(),
+                _e: PhantomData,
+            }
+        }
+
+        fn stack(&mut self, row: Users) -> &mut Self {
+            self.id.push(row.id);
+            self.name.push(row.name);
+            self.check.push(row.check);
+
+            self
+        }
+
+        fn build(self) -> FxResult<FxBatch> {
+            let c1 = ArcArr::from_vec(self.id);
+            let c2 = ArcArr::from_vec(self.name);
+            let c3 = ArcArr::from_vec(self.check);
+
+            FxBatch::try_new_with_names(vec![c1, c2, c3], ["c1", "c2", "c3"])
+        }
+    }
+
+    // impl FxEclecticRowBuilderGenerator<FxBatch> for Users {
+    //     type Builder = UsersEBuild<FxBatch>;
+    // }
+
+    #[test]
+    fn users_gen_what() {
+        let r1 = Users {
+            id: 1,
+            name: "Jacob".to_string(),
+            check: Some(true),
+        };
+
+        let r2 = Users {
+            id: 2,
+            name: "Mia".to_string(),
+            check: None,
+        };
+
+        let mut foo = FxERBGenerator::<Users, FxBatch>::gen_builder::<UsersEBuild<FxBatch>>();
+
+        foo.stack(r1).stack(r2);
+
+        let res = foo.build();
+
+        println!("{res:?}");
     }
 }

@@ -236,6 +236,10 @@ fn gen_impl_eclectic(
 
     let build_res = gen_bd_res(e_type, schema_len, build_ctt, names);
 
+    // ================================================================================================
+    // TODO
+    // ================================================================================================
+
     quote! {
         impl FxEclecticRowBuilder<#struct_name, #eclectic_type> for #build_name {
             fn new() -> Self {
@@ -385,34 +389,28 @@ fn gen_impl_container(
             {
                 #res
 
-                let buffer = Some(#struct_name::gen_eclectic_row_builder());
+                let buffer = Some(<#struct_name as FxEclecticRowBuilderGenerator<#eclectic_type>>::gen_eclectic_row_builder());
 
                 Ok(Self { result, buffer })
             }
 
-            fn stack(&mut self, row: #struct_name) -> &mut Self {
-                match self.buffer.as_mut() {
-                    Some(b) => {
-                        b.stack(row);
-                    }
-                    None => {
-                        let mut buffer = #struct_name::gen_eclectic_row_builder();
-                        buffer.stack(row);
-                        self.buffer = Some(buffer);
-                    }
-                };
-
-                self
+            fn mut_buffer(&mut self) -> Option<&mut #eclectic_build_name> {
+                self.buffer.as_mut()
             }
 
-            fn save(&mut self) -> FxResult<&mut Self> {
-                let caa = self.buffer.take().unwrap().build()?;
-                #psh
-
-                Ok(self)
+            fn set_buffer(&mut self, buffer: #eclectic_build_name) {
+                self.buffer = Some(buffer);
             }
 
-            fn build(self) -> #eclectic_collection {
+            fn take_buffer(&mut self) -> Option<#eclectic_build_name> {
+                self.buffer.take()
+            }
+
+            fn mut_result(&mut self) -> &mut #eclectic_collection {
+                &mut self.result
+            }
+
+            fn take_result(self) -> #eclectic_collection {
                 self.result
             }
         }
