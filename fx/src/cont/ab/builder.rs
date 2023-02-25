@@ -341,7 +341,7 @@ mod test_schemed_container_builder {
 
     use arrow2::datatypes::DataType;
 
-    use crate::cont::{ArcArr, FxBatch, FxBatches, NullableOptions};
+    use crate::cont::{ArcArr, ChunkArr, FxBatch, FxBatches, NullableOptions};
     use crate::row_builder::*;
 
     // This part is the same as `test_builder`'s first part.
@@ -360,6 +360,38 @@ mod test_schemed_container_builder {
         check: Vec<Option<bool>>,
     }
 
+    // the first impl: ChunkArr
+    impl FxEclecticRowBuilder<Users, ChunkArr> for UsersEBuild {
+        fn new() -> Self {
+            Self::default()
+        }
+
+        fn stack(&mut self, row: Users) -> &mut Self {
+            self.id.push(row.id);
+            self.name.push(row.name);
+            self.check.push(row.check);
+
+            self
+        }
+
+        fn build(self) -> FxResult<ChunkArr> {
+            let c1 = ArcArr::from_vec(self.id);
+            let c2 = ArcArr::from_vec(self.name);
+            let c3 = ArcArr::from_vec(self.check);
+
+            Ok(ChunkArr::try_new(vec![c1, c2, c3])?)
+        }
+    }
+
+    impl FxEclecticRowBuilderGenerator<ChunkArr> for Users {
+        type Builder = UsersEBuild;
+
+        fn gen_eclectic_row_builder() -> Self::Builder {
+            <UsersEBuild as FxEclecticRowBuilder<Users, ChunkArr>>::new()
+        }
+    }
+
+    // the second impl: FxBatch
     impl FxEclecticRowBuilder<Users, FxBatch> for UsersEBuild {
         fn new() -> Self {
             Self::default()
@@ -386,7 +418,7 @@ mod test_schemed_container_builder {
         type Builder = UsersEBuild;
 
         fn gen_eclectic_row_builder() -> Self::Builder {
-            UsersEBuild::new()
+            <UsersEBuild as FxEclecticRowBuilder<Users, FxBatch>>::new()
         }
     }
 
@@ -408,7 +440,8 @@ mod test_schemed_container_builder {
                 [DataType::Int32, DataType::Utf8, DataType::Boolean],
             )?;
             let result = FxBatches::<FxBatch>::empty_with_schema(schema);
-            let buffer = Some(Users::gen_eclectic_row_builder());
+            let buffer =
+                Some(<Users as FxEclecticRowBuilderGenerator<FxBatch>>::gen_eclectic_row_builder());
 
             Ok(Self { result, buffer })
         }
