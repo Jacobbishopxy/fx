@@ -35,10 +35,7 @@ impl<E: Eclectic> Purport for FxBatches<E> {
 
 // ChunkArr -> FxBatches
 impl<E: Eclectic> private::InnerEclecticCollection<true, usize, E> for FxBatches<E> {
-    fn empty() -> Self
-    where
-        Self: Sized,
-    {
+    fn empty() -> Self {
         Self {
             schema: Schema::from(Vec::<Field>::new()),
             data: Vec::<E>::new(),

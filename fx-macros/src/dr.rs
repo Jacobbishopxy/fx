@@ -241,7 +241,7 @@ fn gen_impl_eclectic(
     // ================================================================================================
 
     quote! {
-        impl FxEclecticRowBuilder<#struct_name, #eclectic_type> for #build_name {
+        impl FxEclecticBuilder<#struct_name, #eclectic_type> for #build_name {
             fn new() -> Self {
                 Self::default()
             }
@@ -257,7 +257,7 @@ fn gen_impl_eclectic(
             }
         }
 
-        impl FxEclecticRowBuilderGenerator<#eclectic_type> for #struct_name {
+        impl FxEclecticBuilderGenerator<#eclectic_type> for #struct_name {
             type Builder = #build_name;
 
             fn gen_eclectic_row_builder() -> Self::Builder {
@@ -379,17 +379,14 @@ fn gen_impl_container(
     );
 
     quote! {
-        impl FxCollectionRowBuilder<
+        impl FxCollectionBuilder<
             #has_schema, #eclectic_build_name, #struct_name, #eclectic_collection, usize, #eclectic_type
         > for #container_build_name
         {
-            fn new() -> FxResult<Self>
-            where
-                Self: Sized,
-            {
+            fn new() -> FxResult<Self> {
                 #res
 
-                let buffer = Some(<#struct_name as FxEclecticRowBuilderGenerator<#eclectic_type>>::gen_eclectic_row_builder());
+                let buffer = Some(<#struct_name as FxEclecticBuilderGenerator<#eclectic_type>>::gen_eclectic_row_builder());
 
                 Ok(Self { result, buffer })
             }
@@ -415,7 +412,7 @@ fn gen_impl_container(
             }
         }
 
-        impl FxCollectionRowBuilderGenerator<
+        impl FxCollectionBuilderGenerator<
             #has_schema, #eclectic_build_name, #struct_name, #eclectic_collection, usize, #eclectic_type
         > for #struct_name {
             type Builder = #container_build_name;

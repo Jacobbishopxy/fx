@@ -53,9 +53,7 @@ where
     C: InnerEclectic,
     Self: Sized,
 {
-    fn empty() -> Self
-    where
-        Self: Sized;
+    fn empty() -> Self;
 
     fn ref_schema(&self) -> Option<&Schema>;
 

@@ -7,6 +7,7 @@ use arrow2::datatypes::{Field, Schema};
 use inherent::inherent;
 
 use crate::ab::{private, EclecticCollection, FxSeq, Purport, StaticPurport};
+use crate::cont::FxTable;
 use crate::error::FxResult;
 
 // ================================================================================================
@@ -28,13 +29,11 @@ impl<const W: usize, S: FxSeq> Purport for FxTables<W, S> {
     }
 }
 
+// [S; W] -> Tables
 impl<const W: usize, S: FxSeq> private::InnerEclecticCollection<true, usize, [S; W]>
     for FxTables<W, S>
 {
-    fn empty() -> Self
-    where
-        Self: Sized,
-    {
+    fn empty() -> Self {
         Self {
             schema: Schema::from(Vec::<Field>::new()),
             data: Vec::<[S; W]>::new(),

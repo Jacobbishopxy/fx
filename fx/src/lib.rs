@@ -14,7 +14,7 @@ pub mod io;
 pub mod types;
 pub mod value;
 
-pub use fx_macros::FX;
+// pub use fx_macros::FX;
 
 // re-export
 pub use arrow2::*;
@@ -39,7 +39,7 @@ pub mod ab {
 
 // an easier way for using `FX` derived proc-macro, see `tests/fx_macros_test.rs`
 pub mod row_builder {
-    pub use crate::FX;
+    // pub use crate::FX;
 
     pub use crate::ab::*;
 
