@@ -43,10 +43,10 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   └── value.rs
     │   └── tests
     │       ├── arrow_compute_test.rs
+    │       ├── fx_builder_test.rs
     │       └── fx_macros_test.rs
     ├── fx-macros
     │   └── src
-    │       ├── constant.rs
     │       ├── dr.rs
     │       ├── helper.rs
     │       └── lib.rs
@@ -119,8 +119,6 @@ Structs and enums provided by Fx crate:
 - To get a tree view of this project, run `cargo make --makefile fx.toml tree`
 
 ## Todo
-
-- decouple `FxEclecticCollectionRowBuilder` from `FxEclecticRowBuilder`
 
 - add new type `Box<dyn Array>` implementation
 

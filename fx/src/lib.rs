@@ -14,6 +14,7 @@ pub mod io;
 pub mod types;
 pub mod value;
 
+// derived proc-macro
 pub use fx_macros::FX;
 
 // re-export

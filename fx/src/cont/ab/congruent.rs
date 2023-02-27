@@ -17,11 +17,8 @@ use crate::error::{FxError, FxResult};
 // A genetic purpose of Chunk
 // ================================================================================================
 
-pub trait Congruent: Eclectic {
-    fn take_longest_to_chunk(self) -> FxResult<Chunk<ArcArr>>
-    where
-        Self: Sized,
-    {
+pub trait Congruent: Eclectic + Sized {
+    fn take_longest_to_chunk(self) -> FxResult<Chunk<ArcArr>> {
         let len = self.max_len().ok_or(FxError::EmptyContent)?;
 
         let vec_arc_arr = self
@@ -43,10 +40,7 @@ pub trait Congruent: Eclectic {
         Ok(Chunk::try_new(vec_arc_arr)?)
     }
 
-    fn take_shortest_to_chunk(self) -> FxResult<Chunk<ArcArr>>
-    where
-        Self: Sized,
-    {
+    fn take_shortest_to_chunk(self) -> FxResult<Chunk<ArcArr>> {
         let len = self.min_len().ok_or(FxError::EmptyContent)?;
 
         let vec_arc_arr = self
@@ -63,10 +57,7 @@ pub trait Congruent: Eclectic {
         Ok(Chunk::try_new(vec_arc_arr)?)
     }
 
-    fn take_len_to_chunk(self, len: usize) -> FxResult<Chunk<ArcArr>>
-    where
-        Self: Sized,
-    {
+    fn take_len_to_chunk(self, len: usize) -> FxResult<Chunk<ArcArr>> {
         let vec_arc_arr = self
             .take_sequences()
             .into_iter()

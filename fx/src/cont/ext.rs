@@ -326,11 +326,8 @@ impl private::InnerEclecticMutChunk for Chunk<ArcArr> {
 // ================================================================================================
 
 impl<E: Eclectic> private::InnerEclecticCollection<false, usize, E> for Vec<E> {
-    fn empty() -> Self
-    where
-        Self: Sized,
-    {
-        todo!()
+    fn empty() -> Self {
+        Vec::<E>::new()
     }
 
     fn ref_schema(&self) -> Option<&Schema> {
@@ -396,10 +393,7 @@ impl<IDX> private::InnerEclecticCollection<false, IDX, ChunkArr> for HashMap<IDX
 where
     IDX: Hash + Eq,
 {
-    fn empty() -> Self
-    where
-        Self: Sized,
-    {
+    fn empty() -> Self {
         HashMap::<IDX, ChunkArr>::new()
     }
 

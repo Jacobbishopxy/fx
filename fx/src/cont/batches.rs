@@ -7,8 +7,7 @@ use arrow2::datatypes::{Field, Schema};
 use inherent::inherent;
 
 use crate::ab::{private, Eclectic, EclecticCollection, Purport, StaticPurport};
-use crate::cont::{ChunkArr, FxBatch};
-use crate::error::{FxError, FxResult};
+use crate::error::FxResult;
 
 // ================================================================================================
 // FxBatches
@@ -35,10 +34,7 @@ impl<E: Eclectic> Purport for FxBatches<E> {
 
 // ChunkArr -> FxBatches
 impl<E: Eclectic> private::InnerEclecticCollection<true, usize, E> for FxBatches<E> {
-    fn empty() -> Self
-    where
-        Self: Sized,
-    {
+    fn empty() -> Self {
         Self {
             schema: Schema::from(Vec::<Field>::new()),
             data: Vec::<E>::new(),
@@ -122,7 +118,7 @@ mod test_batches {
     use super::*;
 
     use crate::ab::*;
-    use crate::cont::ArcArr;
+    use crate::cont::{ArcArr, ChunkArr, FxBatch};
 
     #[test]
     fn new_fx_batches() {
