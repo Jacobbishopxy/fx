@@ -250,7 +250,7 @@ fn gen_bd_res(
             Ok(ChunkArr::try_new(vec![ #(#build_ctt)* ])?)
         },
         ARRAA => quote! {
-            Ok([ #(#build_ctt),* ])
+            Ok([ #(#build_ctt)* ])
         },
         BATCH => quote! {
             FxBatch::try_new_with_names(vec![ #(#build_ctt)* ], [ #(#names),* ])
@@ -337,6 +337,44 @@ fn gen_impl_eclectic(
     }
 }
 
+fn gen_multiple_impl_eclectic(
+    e_type: &str,
+    schema_len: usize,
+    struct_name: &Ident,
+    build_name: &Ident,
+    named_fields: &NamedFields,
+) -> TokenStream {
+    let impls = match e_type {
+        CHUNK => {
+            vec![
+                // no schema
+                gen_impl_eclectic(CHUNK, schema_len, struct_name, build_name, named_fields),
+            ]
+        }
+        BATCH => {
+            vec![
+                // no schema (for collection generator)
+                gen_impl_eclectic(CHUNK, schema_len, struct_name, build_name, named_fields),
+                // schema
+                gen_impl_eclectic(BATCH, schema_len, struct_name, build_name, named_fields),
+            ]
+        }
+        TABLE => {
+            vec![
+                // no schema (for collection generator)
+                gen_impl_eclectic(ARRAA, schema_len, struct_name, build_name, named_fields),
+                // schema
+                gen_impl_eclectic(TABLE, schema_len, struct_name, build_name, named_fields),
+            ]
+        }
+        _ => panic!("Unsupported type"),
+    };
+
+    quote! {
+        #(#impls)*
+    }
+}
+
 // ================================================================================================
 // Container builder
 // ================================================================================================
@@ -365,9 +403,9 @@ fn gen_collection_builder_struct(
         TABLE => quote! {
             #[derive(Default)]
             struct #container_build_name {
-            result: FxTables::<#schema_len, ArcArr>,
-            buffer: Option<#eclectic_build_name>
-        }
+                result: FxTables::<#schema_len, ArcArr>,
+                buffer: Option<#eclectic_build_name>
+            }
         },
         _ => panic!("Unsupported type"),
     }
@@ -511,7 +549,7 @@ pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
     let eclectic_build_name = gen_eclectic_build_name(&struct_name);
     let impl_from_sql_row = gen_impl_from_sql_row(&struct_name, &named_fields);
     let eclectic_builder_struct = gen_eclectic_builder_struct(&eclectic_build_name, &named_fields);
-    let impl_eclectic_row_build = gen_impl_eclectic(
+    let impl_eclectic_row_build = gen_multiple_impl_eclectic(
         &e_type,
         schema_len,
         &struct_name,

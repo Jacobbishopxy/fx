@@ -35,7 +35,7 @@ fn builder_row_wise1_proc_macro_success() {
 
 #[test]
 fn builder_row_wise2_proc_macro_success() {
-    #[derive(FX)]
+    #[derive(FX, Clone)]
     #[fx(table)]
     struct Users {
         id: i32,
@@ -57,8 +57,14 @@ fn builder_row_wise2_proc_macro_success() {
     };
 
     let mut bd1 = Users::gen_table_builder();
-    bd1.stack(r1).stack(r2);
-    // FxTable<Arc<dyn Array>>
-    let d = bd1.build();
-    println!("{d:?}");
+    bd1.stack(r1.clone()).stack(r2.clone());
+    let d1 = bd1.build(); // FxTable<Arc<dyn Array>>
+    assert!(d1.is_ok());
+    println!("{:?}", d1.unwrap());
+
+    let mut bd2 = Users::gen_arraa_builder();
+    bd2.stack(r1).stack(r2);
+    let d2 = bd2.build();
+    assert!(d2.is_ok());
+    println!("{:?}", d2.unwrap());
 }
