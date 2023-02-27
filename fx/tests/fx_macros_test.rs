@@ -43,7 +43,6 @@ fn builder_row_wise2_proc_macro_success() {
         check: Option<bool>,
     }
 
-    #[allow(dead_code)]
     let r1 = Users {
         id: 1,
         name: "Jacob".to_string(),
