@@ -7,7 +7,6 @@ use arrow2::datatypes::{Field, Schema};
 use inherent::inherent;
 
 use crate::ab::{private, EclecticCollection, FxSeq, Purport, StaticPurport};
-use crate::cont::FxTable;
 use crate::error::FxResult;
 
 // ================================================================================================

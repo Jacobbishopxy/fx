@@ -7,8 +7,7 @@ use arrow2::datatypes::{Field, Schema};
 use inherent::inherent;
 
 use crate::ab::{private, Eclectic, EclecticCollection, Purport, StaticPurport};
-use crate::cont::{ChunkArr, FxBatch};
-use crate::error::{FxError, FxResult};
+use crate::error::FxResult;
 
 // ================================================================================================
 // FxBatches
@@ -119,7 +118,7 @@ mod test_batches {
     use super::*;
 
     use crate::ab::*;
-    use crate::cont::ArcArr;
+    use crate::cont::{ArcArr, ChunkArr, FxBatch};
 
     #[test]
     fn new_fx_batches() {

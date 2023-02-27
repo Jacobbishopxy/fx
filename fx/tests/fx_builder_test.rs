@@ -307,6 +307,7 @@ mod multiple_schemed_builder {
     use super::*;
 
     // This part is the same as `test_builder`'s first part.
+    #[derive(Clone)]
     struct Users {
         id: i32,
         name: String,
@@ -377,12 +378,119 @@ mod multiple_schemed_builder {
             let c2 = ArcArr::from_vec(self.name);
             let c3 = ArcArr::from_vec(self.check);
 
-            FxBatch::try_new(vec![c1, c2, c3])
+            FxBatch::try_new_with_names(vec![c1, c2, c3], ["id", "name", "check"])
         }
     }
 
     impl FxBatchBuilderGenerator for Users {
         type BatchBuilder = UsersEBuild<FxBatch>;
+    }
+
+    // the third impl: [ArcArr; 3]
+    impl FxEclecticBuilder<Users, [ArcArr; 3]> for UsersEBuild<[ArcArr; 3]> {
+        fn new() -> Self {
+            Self {
+                id: Vec::new(),
+                name: Vec::new(),
+                check: Vec::new(),
+                _e: PhantomData,
+            }
+        }
+
+        fn stack(&mut self, row: Users) -> &mut Self {
+            self.id.push(row.id);
+            self.name.push(row.name);
+            self.check.push(row.check);
+
+            self
+        }
+
+        fn build(self) -> FxResult<[ArcArr; 3]> {
+            let c1 = ArcArr::from_vec(self.id);
+            let c2 = ArcArr::from_vec(self.name);
+            let c3 = ArcArr::from_vec(self.check);
+
+            Ok([c1, c2, c3])
+        }
+    }
+
+    impl FxArraaBuilderGenerator<3> for Users {
+        type ArraaBuilder = UsersEBuild<[ArcArr; 3]>;
+    }
+
+    // the fourth impl: FxTable<3, ArcArr>
+    impl FxEclecticBuilder<Users, FxTable<3, ArcArr>> for UsersEBuild<FxTable<3, ArcArr>> {
+        fn new() -> Self {
+            Self {
+                id: Vec::new(),
+                name: Vec::new(),
+                check: Vec::new(),
+                _e: PhantomData,
+            }
+        }
+
+        fn stack(&mut self, row: Users) -> &mut Self {
+            self.id.push(row.id);
+            self.name.push(row.name);
+            self.check.push(row.check);
+
+            self
+        }
+
+        fn build(self) -> FxResult<FxTable<3, ArcArr>> {
+            let c1 = ArcArr::from_vec(self.id);
+            let c2 = ArcArr::from_vec(self.name);
+            let c3 = ArcArr::from_vec(self.check);
+
+            Ok(FxTable::new_with_names(
+                [c1, c2, c3],
+                ["id", "name", "check"],
+            ))
+        }
+    }
+
+    impl FxTableBuilderGenerator<3> for Users {
+        type TableBuilder = UsersEBuild<FxTable<3, ArcArr>>;
+    }
+
+    #[test]
+    fn multiple_builders() {
+        let r1 = Users {
+            id: 1,
+            name: "Jacob".to_string(),
+            check: Some(true),
+        };
+
+        let r2 = Users {
+            id: 2,
+            name: "Mia".to_string(),
+            check: None,
+        };
+
+        let mut arraa_builder = Users::gen_arraa_builder();
+        let mut chunk_builder = Users::gen_chunk_builder();
+        let mut batch_builder = Users::gen_batch_builder();
+        let mut table_builder = Users::gen_table_builder();
+
+        arraa_builder.stack(r1.clone()).stack(r2.clone());
+        let arraa = arraa_builder.build();
+        assert!(arraa.is_ok());
+        println!("{:?}", arraa.unwrap());
+
+        chunk_builder.stack(r1.clone()).stack(r2.clone());
+        let chunk = chunk_builder.build();
+        assert!(chunk.is_ok());
+        println!("{:?}", chunk.unwrap());
+
+        batch_builder.stack(r1.clone()).stack(r2.clone());
+        let batch = batch_builder.build();
+        assert!(batch.is_ok());
+        println!("{:?}", batch.unwrap());
+
+        table_builder.stack(r1).stack(r2);
+        let table = table_builder.build();
+        assert!(table.is_ok());
+        println!("{:?}", table.unwrap());
     }
 
     #[derive(Debug)]

@@ -2,15 +2,16 @@
 //! author: Jacob Xie
 //! date: 2023/01/31 14:14:43 Tuesday
 //! brief: Builder
+//!
+//! By deriving `Fx` proc-macro on a struct, builder traits are used in the sense of auto generating
+//! `Eclectic` or `EclecticCollection`.
+//! Please check [tests/fx_builder_test.rs] for manual implement.
 
 use std::hash::Hash;
-use std::marker::PhantomData;
 
 use crate::ab::{Eclectic, EclecticCollection};
 use crate::cont::{ArcArr, ChunkArr, FxBatch, FxBatches, FxTable, FxTables};
 use crate::error::{FxError, FxResult};
-
-use super::private;
 
 // ================================================================================================
 // FxEclecticBuilder
@@ -47,11 +48,11 @@ pub trait FxChunkBuilderGenerator: Sized {
 }
 
 // -> [ArcArr; W]
-pub trait FxArrBuilderGenerator: Sized {
-    type ArrBuilder<const W: usize>: FxEclecticBuilder<Self, [ArcArr; W]>;
+pub trait FxArraaBuilderGenerator<const W: usize>: Sized {
+    type ArraaBuilder: FxEclecticBuilder<Self, [ArcArr; W]>;
 
-    fn gen_arr_builder<const W: usize>() -> Self::ArrBuilder<W> {
-        Self::ArrBuilder::new()
+    fn gen_arraa_builder() -> Self::ArraaBuilder {
+        Self::ArraaBuilder::new()
     }
 }
 
@@ -65,10 +66,10 @@ pub trait FxBatchBuilderGenerator: Sized {
 }
 
 // -> FxTable<W, ArcArr>
-pub trait FxTableBuilderGenerator: Sized {
-    type TableBuilder<const W: usize>: FxEclecticBuilder<Self, FxTable<W, ArcArr>>;
+pub trait FxTableBuilderGenerator<const W: usize>: Sized {
+    type TableBuilder: FxEclecticBuilder<Self, FxTable<W, ArcArr>>;
 
-    fn gen_table_builder<const W: usize>() -> Self::TableBuilder<W> {
+    fn gen_table_builder() -> Self::TableBuilder {
         Self::TableBuilder::new()
     }
 }
@@ -205,19 +206,19 @@ pub trait FxTableBatchesBuilderGenerator: Sized {
 }
 
 // [ArcArr; W] -> Tables
-pub trait FxTablesBuilderGenerator: Sized {
-    type ArrBuilder<const W: usize>: FxEclecticBuilder<Self, [ArcArr; W]>;
+pub trait FxTablesBuilderGenerator<const W: usize>: Sized {
+    type ArraaBuilder: FxEclecticBuilder<Self, [ArcArr; W]>;
 
-    type TablesBuilder<const W: usize>: FxCollectionBuilder<
+    type TablesBuilder: FxCollectionBuilder<
         true,
-        Self::ArrBuilder<W>,
+        Self::ArraaBuilder,
         Self,
         FxTables<W, ArcArr>,
         usize,
         [ArcArr; W],
     >;
 
-    fn gen_tables_builder<const W: usize>() -> FxResult<Self::TablesBuilder<W>> {
+    fn gen_tables_builder() -> FxResult<Self::TablesBuilder> {
         Self::TablesBuilder::new()
     }
 }
