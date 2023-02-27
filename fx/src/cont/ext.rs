@@ -16,7 +16,7 @@ use arrow2::compute::concatenate::concatenate;
 use arrow2::datatypes::{DataType, Schema};
 
 use crate::ab::{private, Eclectic, FxSeq, StaticPurport};
-use crate::cont::macros::{arr_to_vec, arr_to_vec_p, try_ext_from_slf};
+use crate::cont::macros::*;
 use crate::error::{FxError, FxResult};
 use crate::types::*;
 
@@ -25,12 +25,14 @@ use crate::types::*;
 // ================================================================================================
 
 pub type ArcArr = Arc<dyn Array>;
+pub type BoxArr = Box<dyn Array>;
 pub type ArcVec = Arc<dyn MutableArray>;
+pub type BoxVec = Box<dyn MutableArray>;
 pub type ChunkArr = Chunk<ArcArr>;
 pub type VecChunk = Vec<ChunkArr>;
 
 // ================================================================================================
-// Arc<Array>
+// Arc<dyn Array>
 // ================================================================================================
 
 impl FxSeq for ArcArr {
@@ -88,24 +90,46 @@ impl FxSeq for ArcArr {
         self.get_nulls().and_then(|e| e.get(idx).copied())
     }
 
-    fn to_array(self) -> FxResult<ArcArr> {
+    fn to_arc_array(self) -> FxResult<ArcArr> {
         Ok(self)
     }
 
-    fn to_vector(self) -> FxResult<ArcVec> {
+    fn to_box_array(self) -> FxResult<BoxArr> {
+        Ok(self.to_boxed())
+    }
+
+    fn to_arc_vector(self) -> FxResult<ArcVec> {
         match &self.data_type() {
-            DataType::Boolean => arr_to_vec!(self, BA, MB),
-            DataType::Int8 => arr_to_vec_p!(self, PAi8, MPAi8),
-            DataType::Int16 => arr_to_vec_p!(self, PAi16, MPAi16),
-            DataType::Int32 => arr_to_vec_p!(self, PAi32, MPAi32),
-            DataType::Int64 => arr_to_vec_p!(self, PAi64, MPAi64),
-            DataType::UInt8 => arr_to_vec_p!(self, PAu8, MPAu8),
-            DataType::UInt16 => arr_to_vec_p!(self, PAu16, MPAu16),
-            DataType::UInt32 => arr_to_vec_p!(self, PAu32, MPAu32),
-            DataType::UInt64 => arr_to_vec_p!(self, PAu64, MPAu64),
-            DataType::Float32 => arr_to_vec_p!(self, PAf32, MPAf32),
-            DataType::Float64 => arr_to_vec_p!(self, PAf64, MPAf64),
-            DataType::Utf8 => arr_to_vec!(self, UA, MU),
+            DataType::Boolean => arc_arr_to_vec!(self, BA, MB),
+            DataType::Int8 => arc_arr_to_vec_p!(self, PAi8, MPAi8),
+            DataType::Int16 => arc_arr_to_vec_p!(self, PAi16, MPAi16),
+            DataType::Int32 => arc_arr_to_vec_p!(self, PAi32, MPAi32),
+            DataType::Int64 => arc_arr_to_vec_p!(self, PAi64, MPAi64),
+            DataType::UInt8 => arc_arr_to_vec_p!(self, PAu8, MPAu8),
+            DataType::UInt16 => arc_arr_to_vec_p!(self, PAu16, MPAu16),
+            DataType::UInt32 => arc_arr_to_vec_p!(self, PAu32, MPAu32),
+            DataType::UInt64 => arc_arr_to_vec_p!(self, PAu64, MPAu64),
+            DataType::Float32 => arc_arr_to_vec_p!(self, PAf32, MPAf32),
+            DataType::Float64 => arc_arr_to_vec_p!(self, PAf64, MPAf64),
+            DataType::Utf8 => arc_arr_to_vec!(self, UA, MU),
+            _ => Err(FxError::FailedToConvert),
+        }
+    }
+
+    fn to_box_vector(self) -> FxResult<BoxVec> {
+        match &self.data_type() {
+            DataType::Boolean => box_arr_to_vec!(self, BA, MB),
+            DataType::Int8 => box_arr_to_vec_p!(self, PAi8, MPAi8),
+            DataType::Int16 => box_arr_to_vec_p!(self, PAi16, MPAi16),
+            DataType::Int32 => box_arr_to_vec_p!(self, PAi32, MPAi32),
+            DataType::Int64 => box_arr_to_vec_p!(self, PAi64, MPAi64),
+            DataType::UInt8 => box_arr_to_vec_p!(self, PAu8, MPAu8),
+            DataType::UInt16 => box_arr_to_vec_p!(self, PAu16, MPAu16),
+            DataType::UInt32 => box_arr_to_vec_p!(self, PAu32, MPAu32),
+            DataType::UInt64 => box_arr_to_vec_p!(self, PAu64, MPAu64),
+            DataType::Float32 => box_arr_to_vec_p!(self, PAf32, MPAf32),
+            DataType::Float64 => box_arr_to_vec_p!(self, PAf64, MPAf64),
+            DataType::Utf8 => box_arr_to_vec!(self, UA, MU),
             _ => Err(FxError::FailedToConvert),
         }
     }
@@ -119,7 +143,118 @@ impl FxSeq for ArcArr {
 }
 
 // ================================================================================================
-// Arc<MutableArray>
+// Box<dyn Array>
+// ================================================================================================
+
+impl FxSeq for BoxArr {
+    fn new_nulls(data_type: DataType, length: usize) -> Self {
+        match data_type {
+            DataType::Boolean => BA::new_null(data_type, length).boxed(),
+            DataType::Int8 => PAi8::new_null(data_type, length).boxed(),
+            DataType::Int16 => PAi16::new_null(data_type, length).boxed(),
+            DataType::Int32 => PAi32::new_null(data_type, length).boxed(),
+            DataType::Int64 => PAi64::new_null(data_type, length).boxed(),
+            DataType::UInt8 => PAu8::new_null(data_type, length).boxed(),
+            DataType::UInt16 => PAu16::new_null(data_type, length).boxed(),
+            DataType::UInt32 => PAu32::new_null(data_type, length).boxed(),
+            DataType::UInt64 => PAu64::new_null(data_type, length).boxed(),
+            DataType::Float32 => PAf32::new_null(data_type, length).boxed(),
+            DataType::Float64 => PAf64::new_null(data_type, length).boxed(),
+            DataType::Utf8 => UA::new_null(data_type, length).boxed(),
+            _ => unimplemented!(),
+        }
+    }
+
+    fn is_arr() -> bool {
+        true
+    }
+
+    fn is_vec() -> bool {
+        false
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        (**self).as_any()
+    }
+
+    fn as_any_mut(&mut self) -> Option<&mut dyn Any> {
+        Some((**self).as_any_mut())
+    }
+
+    fn len(&self) -> usize {
+        (**self).len()
+    }
+
+    fn is_empty(&self) -> bool {
+        (**self).is_empty()
+    }
+
+    fn data_type(&self) -> &DataType {
+        (**self).data_type()
+    }
+
+    fn get_nulls(&self) -> Option<Vec<bool>> {
+        self.validity().as_ref().map(|bm| bm.iter().collect())
+    }
+
+    fn is_null(&self, idx: usize) -> Option<bool> {
+        self.get_nulls().and_then(|e| e.get(idx).copied())
+    }
+
+    fn to_arc_array(self) -> FxResult<ArcArr> {
+        Ok(Arc::from(self))
+    }
+
+    fn to_box_array(self) -> FxResult<BoxArr> {
+        Ok(self)
+    }
+
+    fn to_arc_vector(self) -> FxResult<ArcVec> {
+        match &self.data_type() {
+            DataType::Boolean => arc_arr_to_vec!(self, BA, MB),
+            DataType::Int8 => arc_arr_to_vec_p!(self, PAi8, MPAi8),
+            DataType::Int16 => arc_arr_to_vec_p!(self, PAi16, MPAi16),
+            DataType::Int32 => arc_arr_to_vec_p!(self, PAi32, MPAi32),
+            DataType::Int64 => arc_arr_to_vec_p!(self, PAi64, MPAi64),
+            DataType::UInt8 => arc_arr_to_vec_p!(self, PAu8, MPAu8),
+            DataType::UInt16 => arc_arr_to_vec_p!(self, PAu16, MPAu16),
+            DataType::UInt32 => arc_arr_to_vec_p!(self, PAu32, MPAu32),
+            DataType::UInt64 => arc_arr_to_vec_p!(self, PAu64, MPAu64),
+            DataType::Float32 => arc_arr_to_vec_p!(self, PAf32, MPAf32),
+            DataType::Float64 => arc_arr_to_vec_p!(self, PAf64, MPAf64),
+            DataType::Utf8 => arc_arr_to_vec!(self, UA, MU),
+            _ => Err(FxError::FailedToConvert),
+        }
+    }
+
+    fn to_box_vector(self) -> FxResult<BoxVec> {
+        match &self.data_type() {
+            DataType::Boolean => box_arr_to_vec!(self, BA, MB),
+            DataType::Int8 => box_arr_to_vec_p!(self, PAi8, MPAi8),
+            DataType::Int16 => box_arr_to_vec_p!(self, PAi16, MPAi16),
+            DataType::Int32 => box_arr_to_vec_p!(self, PAi32, MPAi32),
+            DataType::Int64 => box_arr_to_vec_p!(self, PAi64, MPAi64),
+            DataType::UInt8 => box_arr_to_vec_p!(self, PAu8, MPAu8),
+            DataType::UInt16 => box_arr_to_vec_p!(self, PAu16, MPAu16),
+            DataType::UInt32 => box_arr_to_vec_p!(self, PAu32, MPAu32),
+            DataType::UInt64 => box_arr_to_vec_p!(self, PAu64, MPAu64),
+            DataType::Float32 => box_arr_to_vec_p!(self, PAf32, MPAf32),
+            DataType::Float64 => box_arr_to_vec_p!(self, PAf64, MPAf64),
+            DataType::Utf8 => box_arr_to_vec!(self, UA, MU),
+            _ => Err(FxError::FailedToConvert),
+        }
+    }
+
+    fn extend(&mut self, s: &Self) -> FxResult<&mut Self> {
+        let ct = concatenate(&[self.as_ref(), s.deref()])?;
+        *self = ct;
+
+        Ok(self)
+    }
+}
+
+// ================================================================================================
+// Arc<dyn MutableArray>
 // ================================================================================================
 
 impl FxSeq for ArcVec {
@@ -177,7 +312,7 @@ impl FxSeq for ArcVec {
         self.get_nulls().and_then(|e| e.get(idx).copied())
     }
 
-    fn to_array(mut self) -> FxResult<ArcArr> {
+    fn to_arc_array(mut self) -> FxResult<ArcArr> {
         let res = Arc::get_mut(&mut self)
             .ok_or(FxError::FailedToConvert)?
             .as_arc();
@@ -185,12 +320,119 @@ impl FxSeq for ArcVec {
         Ok(res)
     }
 
-    fn to_vector(self) -> FxResult<ArcVec> {
+    fn to_box_array(mut self) -> FxResult<BoxArr> {
+        let res = Arc::get_mut(&mut self)
+            .ok_or(FxError::FailedToConvert)?
+            .as_box();
+
+        Ok(res)
+    }
+
+    fn to_arc_vector(self) -> FxResult<ArcVec> {
         Ok(self)
+    }
+
+    fn to_box_vector(self) -> FxResult<BoxVec> {
+        self.to_box_array()?.to_box_vector()
     }
 
     fn extend(&mut self, s: &Self) -> FxResult<&mut Self> {
         match &self.data_type() {
+            DataType::Boolean => try_ext_from_slf!(self, s, MB),
+            DataType::Int8 => try_ext_from_slf!(self, s, MPAi8),
+            DataType::Int16 => try_ext_from_slf!(self, s, MPAi16),
+            DataType::Int32 => try_ext_from_slf!(self, s, MPAi32),
+            DataType::Int64 => try_ext_from_slf!(self, s, MPAi64),
+            DataType::UInt8 => try_ext_from_slf!(self, s, MPAu8),
+            DataType::UInt16 => try_ext_from_slf!(self, s, MPAu16),
+            DataType::UInt32 => try_ext_from_slf!(self, s, MPAu32),
+            DataType::UInt64 => try_ext_from_slf!(self, s, MPAu64),
+            DataType::Float32 => try_ext_from_slf!(self, s, MPAf32),
+            DataType::Float64 => try_ext_from_slf!(self, s, MPAf64),
+            DataType::Utf8 => try_ext_from_slf!(self, s, MU),
+            _ => Err(FxError::FailedToConvert),
+        }
+    }
+}
+
+// ================================================================================================
+// Box<dyn MutableArray>
+// ================================================================================================
+
+impl FxSeq for BoxVec {
+    fn new_nulls(data_type: DataType, length: usize) -> Self {
+        match data_type {
+            DataType::Boolean => Box::new(MB::from(vec![None; length])),
+            DataType::Int8 => Box::new(MPAi8::from(vec![None; length])),
+            DataType::Int16 => Box::new(MPAi16::from(vec![None; length])),
+            DataType::Int32 => Box::new(MPAi32::from(vec![None; length])),
+            DataType::Int64 => Box::new(MPAi64::from(vec![None; length])),
+            DataType::UInt8 => Box::new(MPAu8::from(vec![None; length])),
+            DataType::UInt16 => Box::new(MPAu16::from(vec![None; length])),
+            DataType::UInt32 => Box::new(MPAu32::from(vec![None; length])),
+            DataType::UInt64 => Box::new(MPAu64::from(vec![None; length])),
+            DataType::Float32 => Box::new(MPAf32::from(vec![None; length])),
+            DataType::Float64 => Box::new(MPAf64::from(vec![None; length])),
+            DataType::Utf8 => Box::new(MU::from(vec![Option::<&str>::None; length])),
+            _ => unimplemented!(),
+        }
+    }
+
+    fn is_arr() -> bool {
+        false
+    }
+
+    fn is_vec() -> bool {
+        true
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        (**self).as_any()
+    }
+
+    fn as_any_mut(&mut self) -> Option<&mut dyn Any> {
+        Some((**self).as_mut_any())
+    }
+
+    fn len(&self) -> usize {
+        (**self).len()
+    }
+
+    fn is_empty(&self) -> bool {
+        (**self).is_empty()
+    }
+
+    fn data_type(&self) -> &DataType {
+        (**self).data_type()
+    }
+
+    fn get_nulls(&self) -> Option<Vec<bool>> {
+        self.validity().as_ref().map(|bm| bm.iter().collect())
+    }
+
+    fn is_null(&self, idx: usize) -> Option<bool> {
+        self.get_nulls().and_then(|e| e.get(idx).copied())
+    }
+
+    fn to_arc_array(mut self) -> FxResult<ArcArr> {
+        let res = self.as_arc();
+        Ok(res)
+    }
+
+    fn to_box_array(mut self) -> FxResult<BoxArr> {
+        Ok(self.as_box())
+    }
+
+    fn to_arc_vector(self) -> FxResult<ArcVec> {
+        Ok(Arc::from(self))
+    }
+
+    fn to_box_vector(self) -> FxResult<BoxVec> {
+        Ok(self)
+    }
+
+    fn extend(&mut self, s: &Self) -> FxResult<&mut Self> {
+        match (**self).data_type() {
             DataType::Boolean => try_ext_from_slf!(self, s, MB),
             DataType::Int8 => try_ext_from_slf!(self, s, MPAi8),
             DataType::Int16 => try_ext_from_slf!(self, s, MPAi16),

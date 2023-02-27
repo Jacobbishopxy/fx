@@ -7,7 +7,7 @@ use std::any::Any;
 
 use arrow2::datatypes::DataType;
 
-use crate::cont::{ArcArr, ArcVec};
+use crate::cont::{ArcArr, ArcVec, BoxArr, BoxVec};
 use crate::error::{FxError, FxResult};
 
 // ================================================================================================
@@ -15,7 +15,7 @@ use crate::error::{FxError, FxResult};
 // ================================================================================================
 
 pub trait FxSeq {
-    fn new_nulls(data_type: DataType, len: usize) -> Self;
+    fn new_nulls(data_type: DataType, length: usize) -> Self;
 
     fn is_arr() -> bool;
 
@@ -54,9 +54,13 @@ pub trait FxSeq {
 
     fn is_null(&self, idx: usize) -> Option<bool>;
 
-    fn to_array(self) -> FxResult<ArcArr>;
+    fn to_arc_array(self) -> FxResult<ArcArr>;
 
-    fn to_vector(self) -> FxResult<ArcVec>;
+    fn to_box_array(self) -> FxResult<BoxArr>;
+
+    fn to_arc_vector(self) -> FxResult<ArcVec>;
+
+    fn to_box_vector(self) -> FxResult<BoxVec>;
 
     // fn set_value<T>(&mut self, index: usize, value: T);
 

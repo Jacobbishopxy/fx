@@ -60,6 +60,8 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 
 - `Eclectic`
 
+- `EclecticCollection`
+
 - `Congruent`
 
 - `Purport`
@@ -70,7 +72,11 @@ Traits implementation for Rust and Arrow types:
 
 - `ArcArr`: `Arc<dyn Array>` with `FxSeq` trait implemented
 
+- `BoxArr`: `Box<dyn Array>` with `FxSeq` trait implemented
+
 - `ArcVec`: `Arc<dyn MutableArray>` with `FxSeq` trait implemented
+
+- `BoxVec`: `Box<dyn MutableArray>` with `FxSeq` trait implemented
 
 - `Vec<S>`: `Vec<S> where S: FxSeq` with `Eclectic` trait implemented
 
@@ -90,11 +96,11 @@ Structs and enums provided by Fx crate:
 
 - `Batch`: chunked data consists of arrow's `Array`, with a schema field
 
-- `Batches`: vector of `ChunkArr`, with a schema field
+- `Batches`: vector of all who implemented `Eclectic` trait, with a schema field
 
 - `Table`: array of `FxSeq`, with a schema field
 
-- `Tables`: vectorof `Table`, with a chema field
+- `Tables`: vector of `FxSeq` arrays, with a schema field
 
 ## Dependencies
 
@@ -120,8 +126,8 @@ Structs and enums provided by Fx crate:
 
 ## Todo
 
-- add new type `Box<dyn Array>` implementation
+- Better conversion among ArcArr/BoxArr/ArcVec/BoxVec
 
-- declarative macros for each container
+- Iterator for ArcArr/BoxArr/ArcVec/BoxVec
 
 - Let I/O satisfies all containers

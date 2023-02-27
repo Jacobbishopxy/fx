@@ -25,7 +25,7 @@ pub trait Congruent: Eclectic + Sized {
             .take_sequences()
             .into_iter()
             .map(|s| {
-                s.to_array().and_then(|mut arr| {
+                s.to_arc_array().and_then(|mut arr| {
                     let missing = len - arr.len();
                     // fill missing by None
                     if missing > 0 {
@@ -47,7 +47,7 @@ pub trait Congruent: Eclectic + Sized {
             .take_sequences()
             .into_iter()
             .map(|s| {
-                s.to_array().map(|arr| {
+                s.to_arc_array().map(|arr| {
                     // no panic, Box<dyn Array>
                     Arc::from(arr.slice(0, len))
                 })
@@ -62,7 +62,7 @@ pub trait Congruent: Eclectic + Sized {
             .take_sequences()
             .into_iter()
             .map(|s| {
-                s.to_array().and_then(|mut arr| {
+                s.to_arc_array().and_then(|mut arr| {
                     let al = arr.len();
                     // case: missing
                     if len > al {

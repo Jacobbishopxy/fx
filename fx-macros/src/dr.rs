@@ -593,19 +593,14 @@ pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
     );
 
     let expanded = quote! {
-        //
         #impl_from_sql_row
 
-        //
         #eclectic_builder_struct
 
-        //
         #impl_eclectic_row_build
 
-        //
         #container_builder_struct
 
-        //
         #impl_container_row_build
     };
 
