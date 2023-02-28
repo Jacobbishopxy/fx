@@ -56,15 +56,15 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 
 ### Traits
 
-- `FxSeq`
+- `FxSeq`: common behavior of various sequences type: `Array` and `MutableArray`
 
-- `Eclectic`
+- `Eclectic`: common behavior of a collection of `FxSeq`
 
-- `EclecticCollection`
+- `EclecticCollection`: common behavior of the `Eclectic` types
 
-- `Congruent`
+- `Congruent`: common behavior of the `Chunk`
 
-- `Purport`
+- `Purport`: common behavior of the schema
 
 ### Types
 
@@ -78,15 +78,15 @@ Traits implementation for Rust and Arrow types:
 
 - `BoxVec`: `Box<dyn MutableArray>` with `FxSeq` trait implemented
 
+- `[S; W]`: `[S; W] where S: FxSeq, W: usize` with `Eclectic` trait implemented
+
 - `Vec<S>`: `Vec<S> where S: FxSeq` with `Eclectic` trait implemented
 
 - `ChunkArr`: `Chunk<Arc<dyn Array>>` with `Eclectic` trait implemented
 
-- `Vec<[S; W]>`: `Vec<[S; W]> where S: FxSeq, W: usize` with `EclecticCollection` trait implemented
+- `Vec<E>`: `Vec<E> where E: Eclectic` with `EclecticCollection` trait implemented
 
-- `VecChunk`: `Vec<Chunk<Arc<dyn Array>>>` with `EclecticCollection` trait implemented
-
-- `HashMap<I, ChunkArr>`: `HashMap<I, Chunk<Arc<dyn Array>>> where I: Hash + Eq` with `EclecticCollection` trait implemented
+- `HashMap<I, E>`: `HashMap<I, E> where I: Hash + Eq, E: Eclectic` with `EclecticCollection` trait implemented
 
 ### Structs and Enums
 

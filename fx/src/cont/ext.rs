@@ -557,8 +557,8 @@ impl private::InnerEclectic for ChunkArr {
     }
 }
 
-impl private::InnerEclecticMutChunk for Chunk<ArcArr> {
-    fn mut_chunk(&mut self) -> &mut Chunk<ArcArr> {
+impl private::InnerEclecticMutChunk for ChunkArr {
+    fn mut_chunk(&mut self) -> &mut ChunkArr {
         self
     }
 }
@@ -629,33 +629,39 @@ impl<E: Eclectic> private::InnerEclecticCollection<false, usize, E> for Vec<E> {
 // Default implementation for Map<I, Chunk<dyn Array>>
 // ================================================================================================
 
-impl<I> StaticPurport for HashMap<I, ChunkArr> where I: Hash + Eq {}
+impl<I, E> StaticPurport for HashMap<I, E>
+where
+    I: Hash + Eq,
+    E: Eclectic,
+{
+}
 
-impl<IDX> private::InnerEclecticCollection<false, IDX, ChunkArr> for HashMap<IDX, ChunkArr>
+impl<IDX, E> private::InnerEclecticCollection<false, IDX, E> for HashMap<IDX, E>
 where
     IDX: Hash + Eq,
+    E: Eclectic,
 {
     fn empty() -> Self {
-        HashMap::<IDX, ChunkArr>::new()
+        HashMap::<IDX, E>::new()
     }
 
     fn ref_schema(&self) -> Option<&Schema> {
         None
     }
 
-    fn ref_container(&self) -> Vec<&ChunkArr> {
+    fn ref_container(&self) -> Vec<&E> {
         self.iter().map(|(_, v)| v).collect()
     }
 
-    fn get_chunk(&self, key: IDX) -> FxResult<&ChunkArr> {
+    fn get_chunk(&self, key: IDX) -> FxResult<&E> {
         self.get(&key).ok_or(FxError::NoKey)
     }
 
-    fn get_mut_chunk(&mut self, key: IDX) -> FxResult<&mut ChunkArr> {
+    fn get_mut_chunk(&mut self, key: IDX) -> FxResult<&mut E> {
         self.get_mut(&key).ok_or(FxError::NoKey)
     }
 
-    fn insert_chunk_type_unchecked(&mut self, key: IDX, data: ChunkArr) -> FxResult<()> {
+    fn insert_chunk_type_unchecked(&mut self, key: IDX, data: E) -> FxResult<()> {
         self.insert(key, data).ok_or(FxError::NoKey)?;
 
         Ok(())
@@ -667,7 +673,7 @@ where
         Ok(())
     }
 
-    fn push_chunk_type_unchecked(&mut self, _data: ChunkArr) -> FxResult<()> {
+    fn push_chunk_type_unchecked(&mut self, _data: E) -> FxResult<()> {
         unimplemented!()
     }
 
@@ -675,7 +681,7 @@ where
         unimplemented!()
     }
 
-    fn take_container(self) -> VecChunk {
+    fn take_container(self) -> Vec<E> {
         self.into_values().collect()
     }
 }
