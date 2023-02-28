@@ -7,7 +7,7 @@ use fx::cont::*;
 use fx::row_builder::*;
 
 #[test]
-fn builder_row_wise1_proc_macro_success() {
+fn fx_default_builder_success() {
     #[derive(FX, Clone)]
     struct Users {
         id: i32,
@@ -34,7 +34,7 @@ fn builder_row_wise1_proc_macro_success() {
 }
 
 #[test]
-fn builder_row_wise2_proc_macro_success() {
+fn fx_table_builder_success() {
     #[derive(FX, Clone)]
     #[fx(table)]
     struct Users {
@@ -66,4 +66,33 @@ fn builder_row_wise2_proc_macro_success() {
     let d2 = bd2.build();
     assert!(d2.is_ok());
     println!("{:?}", d2.unwrap());
+}
+
+#[test]
+fn fx_fall_to_default_success() {
+    #[derive(FX, Clone)]
+    #[fx(wrong_attr)]
+    struct Users {
+        id: i32,
+        name: String,
+        check: Option<bool>,
+    }
+
+    let r1 = Users {
+        id: 1,
+        name: "Jacob".to_string(),
+        check: Some(true),
+    };
+
+    let r2 = Users {
+        id: 2,
+        name: "Mia".to_string(),
+        check: None,
+    };
+
+    let mut bd = Users::gen_batch_builder();
+    bd.stack(r1).stack(r2);
+    let res = bd.build();
+    assert!(res.is_ok());
+    println!("{:?}", res.unwrap());
 }

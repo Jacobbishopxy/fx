@@ -31,11 +31,22 @@ const ARRAA: &str = "arraa"; // [Arc<dyn Array>; W]. 'arraa' denotes (Array of A
 const BATCH: &str = "batch"; // FxBatch
 const TABLE: &str = "table"; // FxTable<W; Arc<dyn Array>>
 
+const FX_OPTIONS: [&str; 3] = [CHUNK, BATCH, TABLE];
+
 // Note: Array is a trait provided by [arrow](https://github.com/jorgecarleitao/arrow2)
 
 // ================================================================================================
 // Helper Functions
 // ================================================================================================
+
+/// filter useless attribute
+fn filter_attributes(opt_attr: String) -> Option<String> {
+    if FX_OPTIONS.contains(&opt_attr.as_str()) {
+        Some(opt_attr)
+    } else {
+        None
+    }
+}
 
 /// turn ast into `Punctuated<Field, Comma>`, and filter out any type that is not a Rust struct
 fn named_fields(ast: &DeriveInput) -> NamedFields {
@@ -561,7 +572,9 @@ pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
     let schema_len = schema_len(&named_fields);
 
     // get the first attribute from "fx", default to BATCH
-    let e_type = get_first_attribute(input, "fx").unwrap_or(BATCH.to_owned());
+    let e_type = get_first_attribute(input, "fx")
+        .and_then(filter_attributes)
+        .unwrap_or(BATCH.to_owned());
 
     // auto generated code (eclectic)
     let eclectic_build_name = gen_eclectic_build_name(&struct_name);
