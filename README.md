@@ -126,7 +126,9 @@ Structs and enums provided by Fx crate:
 
 ## Todo
 
-- `empty_with_schema` functions for each `Eclectic` type
+- `empty_with_schema` functions for each `Eclectic` type (perhaps a new trait who denotes "constructor")
+
+- `io::parquet` needs parallel read/write and flexible data param, i.e. `impl FxBatchBuilderGenerator`
 
 - Better conversion among ArcArr/BoxArr/ArcVec/BoxVec
 

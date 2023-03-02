@@ -10,6 +10,7 @@ use inherent::inherent;
 use crate::ab::{private, Purport, StaticPurport};
 use crate::cont::ArcArr;
 use crate::error::FxResult;
+use crate::row_builder::FxSeq;
 
 use super::ChunkArr;
 
@@ -97,11 +98,15 @@ impl FxBatch {
         })
     }
 
-    // TODO
-    // pub fn empty_with_schema(schema: Schema) -> Self {
-    //     let data = ChunkArr::new(vec![]);
-    //     Self { schema, data }
-    // }
+    pub fn empty_with_schema(schema: Schema) -> Self {
+        let arrays = schema
+            .fields
+            .iter()
+            .map(|f| ArcArr::new_zero_len(f.data_type.clone()))
+            .collect::<Vec<_>>();
+        let data = ChunkArr::new(arrays);
+        Self { schema, data }
+    }
 }
 
 // ================================================================================================

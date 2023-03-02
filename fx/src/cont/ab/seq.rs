@@ -17,6 +17,8 @@ use crate::error::{FxError, FxResult};
 pub trait FxSeq {
     fn new_nulls(data_type: DataType, length: usize) -> Self;
 
+    fn new_zero_len(data_type: DataType) -> Self;
+
     fn is_arr() -> bool;
 
     fn is_vec() -> bool;

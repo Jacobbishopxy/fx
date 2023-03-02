@@ -105,6 +105,8 @@ impl FxIO {
 #[cfg(test)]
 mod test_parquet {
 
+    use arrow2::datatypes::{DataType, Field, Schema};
+
     use crate::ab::FromSlice;
     use crate::cont::{ArcArr, FxBatch};
 
@@ -119,6 +121,7 @@ mod test_parquet {
         let c = ArcArr::from_slice(&[Some("a"), Some("b"), Some("c")]);
 
         let data = FxBatch::new_with_names(vec![a, b, c], ["c1", "c2", "c3"]);
+        println!("{:?}", data.schema());
 
         let mut file = std::fs::File::create(FILE_PARQUET).unwrap();
 
@@ -130,21 +133,20 @@ mod test_parquet {
         .expect("write success");
     }
 
-    // #[test]
-    // fn parquet_read_success() {
-    //     // let schema =
-    //     let mut grid = FxBatch::empty_with_schema();
+    #[test]
+    fn parquet_read_success() {
+        let schema = Schema::from(vec![
+            Field::new("c1", DataType::Int32, true),
+            Field::new("c2", DataType::Float64, true),
+            Field::new("c1", DataType::Utf8, false),
+        ]);
+        let mut batch = FxBatch::empty_with_schema(schema);
 
-    //     let mut file = std::fs::File::open(FILE_PARQUET).unwrap();
+        let mut file = std::fs::File::open(FILE_PARQUET).unwrap();
 
-    //     FxIO::read_parquet(&mut grid, &mut file).unwrap();
+        let res = FxIO::read_parquet(&mut batch, &mut file);
+        assert!(res.is_ok());
 
-    //     let data_types = grid
-    //         .0
-    //         .arrays()
-    //         .iter()
-    //         .map(|a| a.data_type())
-    //         .collect::<Vec<_>>();
-    //     println!("{data_types:?}");
-    // }
+        println!("{batch:?}");
+    }
 }

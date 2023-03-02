@@ -33,11 +33,11 @@ where
         .collect::<Vec<_>>();
     let (ns_size, cl_size) = (ns.len(), cols.size_hint().0);
 
-    // if names' length is shorter than data's length, then use defual `cols` to fill the empties
+    // if names' length is shorter than data's length, then use default `cols` to fill the empties
     if ns_size < cl_size {
         ns.extend(cols.skip(ns_size).collect::<Vec<_>>())
     }
-    // another situation is when names' lenght is greater than data's length, whereas the following
+    // another situation is when names' length is greater than data's length, whereas the following
     // `data.iter().zip(names)` would only iterate through the shortest iterator. Hence, there is
     // no need to handle the rest of situations (greater or equal).
 

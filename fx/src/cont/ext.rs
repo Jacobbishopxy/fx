@@ -54,6 +54,10 @@ impl FxSeq for ArcArr {
         }
     }
 
+    fn new_zero_len(data_type: DataType) -> Self {
+        Self::new_nulls(data_type, 0)
+    }
+
     fn is_arr() -> bool {
         true
     }
@@ -163,6 +167,10 @@ impl FxSeq for BoxArr {
             DataType::Utf8 => UA::new_null(data_type, length).boxed(),
             _ => unimplemented!(),
         }
+    }
+
+    fn new_zero_len(data_type: DataType) -> Self {
+        Self::new_nulls(data_type, 0)
     }
 
     fn is_arr() -> bool {
@@ -276,6 +284,10 @@ impl FxSeq for ArcVec {
         }
     }
 
+    fn new_zero_len(data_type: DataType) -> Self {
+        Self::new_nulls(data_type, 0)
+    }
+
     fn is_arr() -> bool {
         false
     }
@@ -376,6 +388,10 @@ impl FxSeq for BoxVec {
             DataType::Utf8 => Box::new(MU::from(vec![Option::<&str>::None; length])),
             _ => unimplemented!(),
         }
+    }
+
+    fn new_zero_len(data_type: DataType) -> Self {
+        Self::new_nulls(data_type, 0)
     }
 
     fn is_arr() -> bool {
