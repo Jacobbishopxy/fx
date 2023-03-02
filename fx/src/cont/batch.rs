@@ -96,6 +96,12 @@ impl FxBatch {
             data: Chunk::try_new(data)?,
         })
     }
+
+    // TODO
+    // pub fn empty_with_schema(schema: Schema) -> Self {
+    //     let data = ChunkArr::new(vec![]);
+    //     Self { schema, data }
+    // }
 }
 
 // ================================================================================================

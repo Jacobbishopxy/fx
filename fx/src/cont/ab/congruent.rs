@@ -81,3 +81,5 @@ pub trait Congruent: Eclectic + Sized {
         Ok(Chunk::try_new(vec_arc_arr)?)
     }
 }
+
+impl<T> Congruent for T where T: Eclectic + Sized {}

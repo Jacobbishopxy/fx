@@ -6,7 +6,7 @@
 use arrow2::datatypes::Schema;
 use inherent::inherent;
 
-use crate::ab::{private, Congruent, FxSeq, Purport, StaticPurport};
+use crate::ab::{private, FxSeq, Purport, StaticPurport};
 use crate::error::FxResult;
 
 // ================================================================================================
@@ -103,8 +103,6 @@ where
     }
 }
 
-impl<const W: usize, S> Congruent for FxTable<W, S> where S: FxSeq {}
-
 // ================================================================================================
 // Test
 // ================================================================================================
@@ -112,7 +110,7 @@ impl<const W: usize, S> Congruent for FxTable<W, S> where S: FxSeq {}
 #[cfg(test)]
 mod test_table {
     use super::*;
-    use crate::ab::{Eclectic, FromSlice, FromVec};
+    use crate::ab::{Congruent, Eclectic, FromSlice, FromVec};
     use crate::cont::{ArcArr, ArcVec};
 
     #[test]

@@ -3,136 +3,148 @@
 //! date: 2023/01/18 20:12:29 Wednesday
 //! brief: Parquet I/O
 
-// use std::io::{Read, Seek, Write};
-// use std::sync::Arc;
+use std::io::{Read, Seek, Write};
+use std::sync::Arc;
 
-// use arrow2::array::*;
-// use arrow2::chunk::Chunk;
-// use arrow2::datatypes::Schema;
-// use arrow2::io::parquet::read as parquet_read;
-// use arrow2::io::parquet::write as parquet_write;
+use arrow2::io::parquet::read as parquet_read;
+use arrow2::io::parquet::write as parquet_write;
 
-// use crate::{FxGrid, FxIO, FxResult};
+use super::FxIO;
+use crate::ab::{Congruent, Eclectic, EclecticMutChunk, Purport};
+use crate::error::FxResult;
 
-// // TODO generic FxGrid
+// ================================================================================================
+// Parquet
+// ================================================================================================
 
-// impl FxIO {
-//     pub fn write_parquet<W: Write>(
-//         data: &FxGrid,
-//         writer: &mut W,
-//         schema: &Schema,
-//         compression: parquet_write::CompressionOptions,
-//     ) -> FxResult<()> {
-//         let options = parquet_write::WriteOptions {
-//             write_statistics: true,
-//             compression,
-//             version: parquet_write::Version::V2,
-//             data_pagesize_limit: None,
-//         };
+impl FxIO {
+    // single threaded
+    pub fn write_parquet<W: Write, D: Eclectic + Purport + Congruent>(
+        data: D,
+        writer: &mut W,
+        compression: parquet_write::CompressionOptions,
+    ) -> FxResult<()> {
+        let options = parquet_write::WriteOptions {
+            write_statistics: true,
+            compression,
+            version: parquet_write::Version::V2,
+            data_pagesize_limit: None,
+        };
 
-//         let iter = vec![Ok(data.0.clone())];
+        let schema = data.schema().clone();
 
-//         let encodings = schema
-//             .fields
-//             .iter()
-//             .map(|f| parquet_write::transverse(f.data_type(), |_| parquet_write::Encoding::Plain))
-//             .collect();
+        let encodings = data
+            .schema()
+            .fields
+            .iter()
+            .map(|f| parquet_write::transverse(f.data_type(), |_| parquet_write::Encoding::Plain))
+            .collect::<Vec<_>>();
 
-//         let row_groups =
-//             parquet_write::RowGroupIterator::try_new(iter.into_iter(), schema, options, encodings)?;
+        let iter = vec![Ok(data.take_shortest_to_chunk()?)];
 
-//         let mut fw = parquet_write::FileWriter::try_new(writer, schema.clone(), options)?;
+        let row_groups = parquet_write::RowGroupIterator::try_new(
+            iter.into_iter(),
+            &schema,
+            options,
+            encodings,
+        )?;
 
-//         for group in row_groups {
-//             fw.write(group?)?;
-//         }
+        let mut fw = parquet_write::FileWriter::try_new(writer, schema.clone(), options)?;
 
-//         let _size = fw.end(None)?;
+        for group in row_groups {
+            fw.write(group?)?;
+        }
 
-//         Ok(())
-//     }
+        let _size = fw.end(None)?;
 
-//     pub fn read_parquet<R: Read + Seek>(data: &mut FxGrid, reader: &mut R) -> FxResult<()> {
-//         let metadata = parquet_read::read_metadata(reader)?;
+        Ok(())
+    }
 
-//         let schema = parquet_read::infer_schema(&metadata)?;
+    pub fn read_parquet<R: Read + Seek, D: Eclectic + Purport + EclecticMutChunk>(
+        data: &mut D,
+        reader: &mut R,
+    ) -> FxResult<()> {
+        let metadata = parquet_read::read_metadata(reader)?;
 
-//         for field in &schema.fields {
-//             let _statistics = parquet_read::statistics::deserialize(field, &metadata.row_groups)?;
-//         }
+        let schema = parquet_read::infer_schema(&metadata)?;
 
-//         let row_groups = metadata.row_groups;
+        for field in &schema.fields {
+            let _statistics = parquet_read::statistics::deserialize(field, &metadata.row_groups)?;
+        }
 
-//         let chunks = parquet_read::FileReader::new(
-//             reader,
-//             row_groups,
-//             schema,
-//             Some(1024 * 8 * 8),
-//             None,
-//             None,
-//         );
+        let row_groups = metadata.row_groups;
 
-//         for maybe_chunk in chunks {
-//             let vec_arc_dyn_arr = maybe_chunk?
-//                 .into_arrays()
-//                 .into_iter()
-//                 .map(Arc::<dyn Array>::from)
-//                 .collect::<Vec<_>>();
+        let chunks = parquet_read::FileReader::new(
+            reader,
+            row_groups,
+            schema,
+            Some(1024 * 8 * 8),
+            None,
+            None,
+        );
 
-//             data.0 = Chunk::new(vec_arc_dyn_arr);
-//         }
+        // TODO: simplify
+        for maybe_chunk in chunks {
+            let chunk = maybe_chunk?
+                .into_arrays()
+                .into_iter()
+                .map(Arc::from)
+                .collect::<Vec<_>>();
 
-//         Ok(())
-//     }
-// }
+            data.try_extent(&chunk)?;
+        }
 
-// // ================================================================================================
-// // Test
-// // ================================================================================================
+        Ok(())
+    }
+}
 
-// #[cfg(test)]
-// mod test_parquet {
+// ================================================================================================
+// Test
+// ================================================================================================
 
-//     use crate::cont::Chunking;
+#[cfg(test)]
+mod test_parquet {
 
-//     use super::*;
+    use crate::ab::FromSlice;
+    use crate::cont::{ArcArr, FxBatch};
 
-//     const FILE_PARQUET: &str = "./cache/test.parquet";
+    use super::*;
 
-//     #[test]
-//     fn parquet_write_success() {
-//         let a = Int32Array::from([Some(1), None, Some(3)]).arced();
-//         let b = Float32Array::from([Some(2.1), None, Some(6.2)]).arced();
-//         let c = Utf8Array::<i32>::from([Some("a"), Some("b"), Some("c")]).arced();
+    const FILE_PARQUET: &str = "./cache/test.parquet";
 
-//         let grid = FxGrid::new(vec![a, b, c]);
-//         let schema = grid.gen_schema(&["c1", "c2", "c3"]).unwrap();
+    #[test]
+    fn parquet_write_success() {
+        let a = ArcArr::from_slice(&[Some(1), None, Some(3)]);
+        let b = ArcArr::from_slice(&[Some(2.1), None, Some(6.2)]);
+        let c = ArcArr::from_slice(&[Some("a"), Some("b"), Some("c")]);
 
-//         let mut file = std::fs::File::create(FILE_PARQUET).unwrap();
+        let data = FxBatch::new_with_names(vec![a, b, c], ["c1", "c2", "c3"]);
 
-//         FxIO::write_parquet(
-//             &grid,
-//             &mut file,
-//             &schema,
-//             parquet_write::CompressionOptions::Uncompressed,
-//         )
-//         .expect("write success");
-//     }
+        let mut file = std::fs::File::create(FILE_PARQUET).unwrap();
 
-//     #[test]
-//     fn parquet_read_success() {
-//         let mut grid = FxGrid::empty();
+        FxIO::write_parquet(
+            data,
+            &mut file,
+            parquet_write::CompressionOptions::Uncompressed,
+        )
+        .expect("write success");
+    }
 
-//         let mut file = std::fs::File::open(FILE_PARQUET).unwrap();
+    // #[test]
+    // fn parquet_read_success() {
+    //     // let schema =
+    //     let mut grid = FxBatch::empty_with_schema();
 
-//         FxIO::read_parquet(&mut grid, &mut file).unwrap();
+    //     let mut file = std::fs::File::open(FILE_PARQUET).unwrap();
 
-//         let data_types = grid
-//             .0
-//             .arrays()
-//             .iter()
-//             .map(|a| a.data_type())
-//             .collect::<Vec<_>>();
-//         println!("{data_types:?}");
-//     }
-// }
+    //     FxIO::read_parquet(&mut grid, &mut file).unwrap();
+
+    //     let data_types = grid
+    //         .0
+    //         .arrays()
+    //         .iter()
+    //         .map(|a| a.data_type())
+    //         .collect::<Vec<_>>();
+    //     println!("{data_types:?}");
+    // }
+}

@@ -94,11 +94,11 @@ Structs and enums provided by Fx crate:
 
 - `NullableOptions`: indicates fields' nullable status
 
-- `Batch`: chunked data consists of arrow's `Array`, with a schema field
+- `Batch`: chunked data consists of arrow's `Array`, with `Eclectic` impled and carrying a schema field
 
 - `Batches`: vector of all who implemented `Eclectic` trait, with a schema field
 
-- `Table`: array of `FxSeq`, with a schema field
+- `Table`: array of `FxSeq`, with `Eclectic` impled and carrying a schema field
 
 - `Tables`: vector of `FxSeq` arrays, with a schema field
 
@@ -125,6 +125,8 @@ Structs and enums provided by Fx crate:
 - To get a tree view of this project, run `cargo make --makefile fx.toml tree`
 
 ## Todo
+
+- `empty_with_schema` functions for each `Eclectic` type
 
 - Better conversion among ArcArr/BoxArr/ArcVec/BoxVec
 
