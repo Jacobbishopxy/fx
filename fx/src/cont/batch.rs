@@ -24,14 +24,9 @@ pub struct FxBatch {
     pub(crate) data: ChunkArr,
 }
 
-impl Default for FxBatch {
-    fn default() -> Self {
-        Self {
-            schema: Default::default(),
-            data: ChunkArr::new(Vec::<ArcArr>::new()),
-        }
-    }
-}
+// ================================================================================================
+// impl Purport
+// ================================================================================================
 
 impl StaticPurport for FxBatch {}
 
@@ -41,6 +36,10 @@ impl Purport for FxBatch {
         &self.schema
     }
 }
+
+// ================================================================================================
+// impl Eclectic & EclecticMut
+// ================================================================================================
 
 impl private::InnerEclectic for FxBatch {
     type Seq = ArcArr;
@@ -65,6 +64,10 @@ impl private::InnerEclecticMutChunk for FxBatch {
         &mut self.data
     }
 }
+
+// ================================================================================================
+// Batch methods
+// ================================================================================================
 
 impl FxBatch {
     // watch out panic if data's length are not the same
@@ -106,6 +109,10 @@ impl FxBatch {
             .collect::<Vec<_>>();
         let data = ChunkArr::new(arrays);
         Self { schema, data }
+    }
+
+    pub fn data(&self) -> &ChunkArr {
+        &self.data
     }
 }
 

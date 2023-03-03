@@ -29,7 +29,7 @@ fn fx_default_builder_success() {
 
     let mut bd1 = Users::gen_batch_builder();
     bd1.stack(r1).stack(r2);
-    let d = bd1.build(); // Chunk<Arc<dyn Array>>
+    let d = bd1.build(); // FxBatch
     println!("{d:?}");
 }
 
@@ -57,13 +57,13 @@ fn fx_table_builder_success() {
 
     let mut bd1 = Users::gen_table_builder();
     bd1.stack(r1.clone()).stack(r2.clone());
-    let d1 = bd1.build(); // FxTable<Arc<dyn Array>>
+    let d1 = bd1.build(); // FxTable<Arc<dyn Array>, 3>
     assert!(d1.is_ok());
     println!("{:?}", d1.unwrap());
 
     let mut bd2 = Users::gen_arraa_builder();
     bd2.stack(r1).stack(r2);
-    let d2 = bd2.build();
+    let d2 = bd2.build(); // [Arc<dyn Aarry>; 3]
     assert!(d2.is_ok());
     println!("{:?}", d2.unwrap());
 }
@@ -92,7 +92,7 @@ fn fx_fall_to_default_success() {
 
     let mut bd = Users::gen_batch_builder();
     bd.stack(r1).stack(r2);
-    let res = bd.build();
+    let res = bd.build(); // FxBatch
     assert!(res.is_ok());
     println!("{:?}", res.unwrap());
 }

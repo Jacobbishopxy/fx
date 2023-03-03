@@ -4,6 +4,7 @@
 //! Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix)
 
 #![feature(type_alias_impl_trait)]
+#![feature(trait_alias)]
 
 mod macros;
 

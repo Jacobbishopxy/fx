@@ -3,11 +3,11 @@
 //! date: 2023/02/14 17:25:37 Tuesday
 //! brief: Table
 
-use arrow2::datatypes::Schema;
+use arrow2::datatypes::{DataType, Schema};
 use inherent::inherent;
 
 use crate::ab::{private, FxSeq, Purport, StaticPurport};
-use crate::error::FxResult;
+use crate::error::{FxError, FxResult};
 
 // ================================================================================================
 // FxTable
@@ -19,6 +19,10 @@ pub struct FxTable<const W: usize, S: FxSeq> {
     schema: Schema,
     data: [S; W],
 }
+
+// ================================================================================================
+// impl Purport
+// ================================================================================================
 
 impl<const W: usize, S> StaticPurport for FxTable<W, S> where S: FxSeq {}
 
@@ -32,35 +36,8 @@ where
     }
 }
 
-impl<const W: usize, S> FxTable<W, S>
-where
-    S: FxSeq,
-{
-    pub fn new(data: [S; W]) -> Self {
-        Self {
-            schema: Self::gen_schema(&data),
-            data,
-        }
-    }
-
-    pub fn new_with_names<I, T>(data: [S; W], names: I) -> Self
-    where
-        I: IntoIterator<Item = T>,
-        T: AsRef<str>,
-    {
-        Self {
-            schema: Self::gen_schema_with_names(&data, names),
-            data,
-        }
-    }
-
-    pub fn data(&self) -> &[S; W] {
-        &self.data
-    }
-}
-
 // ================================================================================================
-// Impl private::InnerSheaf for FxTable
+// impl Eclectic & EclecticMut
 // ================================================================================================
 
 impl<const W: usize, S> private::InnerEclectic for FxTable<W, S>
@@ -100,6 +77,51 @@ where
 {
     fn mut_sequences(&mut self) -> &mut [Self::Seq] {
         &mut self.data
+    }
+}
+
+// ================================================================================================
+// Table methods
+// ================================================================================================
+
+impl<const W: usize, S> FxTable<W, S>
+where
+    S: FxSeq,
+{
+    pub fn new(data: [S; W]) -> Self {
+        Self {
+            schema: Self::gen_schema(&data),
+            data,
+        }
+    }
+
+    pub fn new_with_names<I, T>(data: [S; W], names: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: AsRef<str>,
+    {
+        Self {
+            schema: Self::gen_schema_with_names(&data, names),
+            data,
+        }
+    }
+
+    pub fn try_empty_with_schema(schema: Schema) -> FxResult<Self> {
+        if schema.fields.len() != W {
+            return Err(FxError::LengthMismatch(schema.fields.len(), W));
+        }
+
+        let mut data = [(); W].map(|_| S::new_zero_len(DataType::Null));
+
+        for (idx, f) in schema.fields.iter().enumerate() {
+            data[idx] = S::new_zero_len(f.data_type.clone())
+        }
+
+        Ok(Self { schema, data })
+    }
+
+    pub fn data(&self) -> &[S; W] {
+        &self.data
     }
 }
 
