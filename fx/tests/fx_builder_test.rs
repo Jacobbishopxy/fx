@@ -418,8 +418,8 @@ mod multiple_schemed_builder {
         type ArraaBuilder = UsersEBuild<[ArcArr; 3]>;
     }
 
-    // the fourth impl: FxTable<3, ArcArr>
-    impl FxEclecticBuilder<Users, FxTable<3, ArcArr>> for UsersEBuild<FxTable<3, ArcArr>> {
+    // the fourth impl: FxBundle<3, ArcArr>
+    impl FxEclecticBuilder<Users, FxBundle<3, ArcArr>> for UsersEBuild<FxBundle<3, ArcArr>> {
         fn new() -> Self {
             Self {
                 id: Vec::new(),
@@ -437,20 +437,20 @@ mod multiple_schemed_builder {
             self
         }
 
-        fn build(self) -> FxResult<FxTable<3, ArcArr>> {
+        fn build(self) -> FxResult<FxBundle<3, ArcArr>> {
             let c1 = ArcArr::from_vec(self.id);
             let c2 = ArcArr::from_vec(self.name);
             let c3 = ArcArr::from_vec(self.check);
 
-            Ok(FxTable::new_with_names(
+            Ok(FxBundle::new_with_names(
                 [c1, c2, c3],
                 ["id", "name", "check"],
             ))
         }
     }
 
-    impl FxTableBuilderGenerator<3> for Users {
-        type TableBuilder = UsersEBuild<FxTable<3, ArcArr>>;
+    impl FxBundleBuilderGenerator<3> for Users {
+        type BundleBuilder = UsersEBuild<FxBundle<3, ArcArr>>;
     }
 
     #[test]
@@ -470,7 +470,7 @@ mod multiple_schemed_builder {
         let mut arraa_builder = Users::gen_arraa_builder();
         let mut chunk_builder = Users::gen_chunk_builder();
         let mut batch_builder = Users::gen_batch_builder();
-        let mut table_builder = Users::gen_table_builder();
+        let mut bundle_builder = Users::gen_bundle_builder();
 
         arraa_builder.stack(r1.clone()).stack(r2.clone());
         let arraa = arraa_builder.build();
@@ -487,10 +487,10 @@ mod multiple_schemed_builder {
         assert!(batch.is_ok());
         println!("{:?}", batch.unwrap());
 
-        table_builder.stack(r1).stack(r2);
-        let table = table_builder.build();
-        assert!(table.is_ok());
-        println!("{:?}", table.unwrap());
+        bundle_builder.stack(r1).stack(r2);
+        let bundle = bundle_builder.build();
+        assert!(bundle.is_ok());
+        println!("{:?}", bundle.unwrap());
     }
 
     #[derive(Debug)]

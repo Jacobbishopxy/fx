@@ -29,7 +29,6 @@ pub type BoxArr = Box<dyn Array>;
 pub type ArcVec = Arc<dyn MutableArray>;
 pub type BoxVec = Box<dyn MutableArray>;
 pub type ChunkArr = Chunk<ArcArr>;
-pub type VecChunk = Vec<ChunkArr>;
 
 // ================================================================================================
 // Arc<dyn Array>

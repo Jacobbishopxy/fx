@@ -10,7 +10,7 @@
 use std::hash::Hash;
 
 use crate::ab::{Eclectic, EclecticCollection};
-use crate::cont::{ArcArr, ChunkArr, FxBatch, FxBatches, FxTable, FxTables};
+use crate::cont::{ArcArr, ChunkArr, FxBatch, FxBatches, FxBundle, FxBundles};
 use crate::error::{FxError, FxResult};
 
 // ================================================================================================
@@ -19,7 +19,7 @@ use crate::error::{FxError, FxResult};
 // 1. FxChunkBuilderGenerator:  -> ChunkArr
 // 2. FxArrBuilderGenerator:    -> [ArcArr; W]
 // 3. FxBatchBuilderGenerator:  -> FxBatch
-// 4. FxTableBuilderGenerator:  -> FxTable<W, ArcArr>
+// 4. FxBundleBuilderGenerator:  -> FxBundle<W, ArcArr>
 //
 // Based on a named struct, generate a new struct with several vector fields, and each of them
 // denotes its original data type (`Option` is supported).
@@ -65,12 +65,12 @@ pub trait FxBatchBuilderGenerator: Sized {
     }
 }
 
-// -> FxTable<W, ArcArr>
-pub trait FxTableBuilderGenerator<const W: usize>: Sized {
-    type TableBuilder: FxEclecticBuilder<Self, FxTable<W, ArcArr>>;
+// -> FxBundle<W, ArcArr>
+pub trait FxBundleBuilderGenerator<const W: usize>: Sized {
+    type BundleBuilder: FxEclecticBuilder<Self, FxBundle<W, ArcArr>>;
 
-    fn gen_table_builder() -> Self::TableBuilder {
-        Self::TableBuilder::new()
+    fn gen_bundle_builder() -> Self::BundleBuilder {
+        Self::BundleBuilder::new()
     }
 }
 
@@ -80,8 +80,8 @@ pub trait FxTableBuilderGenerator<const W: usize>: Sized {
 // 1. FxChunksBuilderGenerator:         ChunkArr -> Vec<ChunkArr>
 // 2. FxChunkBatchesBuilderGenerator:   ChunkArr -> Batches
 // 3. FxBatchBatchesBuilderGenerator:   Batch -> Batches
-// 4. FxTableBatchesBuilderGenerator:   Table -> Batches
-// 5. FxTablesBuilderGenerator:         [ArcArr; W] -> Tables
+// 4. FxBundleBatchesBuilderGenerator:   Table -> Batches
+// 5. FxBundlesBuilderGenerator:         [ArcArr; W] -> Tables
 // ================================================================================================
 
 pub trait FxCollectionBuilder<const SCHEMA: bool, B, R, T, I, C>: Sized + Send
@@ -188,16 +188,16 @@ pub trait FxBatchBatchesBuilderGenerator: Sized {
 }
 
 // Table -> Batches
-pub trait FxTableBatchesBuilderGenerator: Sized {
-    type TableBuilder<const W: usize>: FxEclecticBuilder<Self, FxTable<W, ArcArr>>;
+pub trait FxBundleBatchesBuilderGenerator: Sized {
+    type BundleBuilder<const W: usize>: FxEclecticBuilder<Self, FxBundle<W, ArcArr>>;
 
     type BatchesBuilder<const W: usize>: FxCollectionBuilder<
         true,
-        Self::TableBuilder<W>,
+        Self::BundleBuilder<W>,
         Self,
-        FxBatches<FxTable<W, ArcArr>>,
+        FxBatches<FxBundle<W, ArcArr>>,
         usize,
-        FxTable<W, ArcArr>,
+        FxBundle<W, ArcArr>,
     >;
 
     fn gen_table_batches_builder<const W: usize>() -> FxResult<Self::BatchesBuilder<W>> {
@@ -206,20 +206,20 @@ pub trait FxTableBatchesBuilderGenerator: Sized {
 }
 
 // [ArcArr; W] -> Tables
-pub trait FxTablesBuilderGenerator<const W: usize>: Sized {
+pub trait FxBundlesBuilderGenerator<const W: usize>: Sized {
     type ArraaBuilder: FxEclecticBuilder<Self, [ArcArr; W]>;
 
-    type TablesBuilder: FxCollectionBuilder<
+    type BundlesBuilder: FxCollectionBuilder<
         true,
         Self::ArraaBuilder,
         Self,
-        FxTables<W, ArcArr>,
+        FxBundles<W, ArcArr>,
         usize,
         [ArcArr; W],
     >;
 
-    fn gen_tables_builder() -> FxResult<Self::TablesBuilder> {
-        Self::TablesBuilder::new()
+    fn gen_tables_builder() -> FxResult<Self::BundlesBuilder> {
+        Self::BundlesBuilder::new()
     }
 }
 

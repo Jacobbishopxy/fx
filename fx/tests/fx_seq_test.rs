@@ -18,4 +18,14 @@ fn downcast_test() {
     for i in bool_arr {
         println!("{:?}", i);
     }
+
+    let arc_vec_bool = ArcVec::from_slice(&[true, false, true]);
+
+    println!("{:?}", arc_vec_bool.data_type());
+
+    let bool_vec = arc_vec_bool.as_typed::<MutableBooleanArray>().unwrap();
+
+    for i in bool_vec {
+        println!("{:?}", i);
+    }
 }

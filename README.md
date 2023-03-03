@@ -19,13 +19,13 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   │   │   └── seq.rs
     │   │   │   ├── batch.rs
     │   │   │   ├── batches.rs
+    │   │   │   ├── bundle.rs
+    │   │   │   ├── bundles.rs
     │   │   │   ├── cvt.rs
     │   │   │   ├── ext.rs
     │   │   │   ├── macros.rs
     │   │   │   ├── mod.rs
-    │   │   │   ├── nullopt.rs
-    │   │   │   ├── table.rs
-    │   │   │   └── tables.rs
+    │   │   │   └── nullopt.rs
     │   │   ├── io
     │   │   │   ├── ab
     │   │   │   │   └── mod.rs
@@ -44,7 +44,9 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   └── tests
     │       ├── arrow_compute_test.rs
     │       ├── fx_builder_test.rs
-    │       └── fx_macros_test.rs
+    │       ├── fx_iter_test.rs
+    │       ├── fx_macros_test.rs
+    │       └── fx_seq_test.rs
     ├── fx-macros
     │   └── src
     │       ├── dr.rs
@@ -98,9 +100,9 @@ Structs and enums provided by Fx crate:
 
 - `Batches`: vector of all who implemented `Eclectic` trait, with a schema field
 
-- `Table`: array of `FxSeq`, with `Eclectic` impled and carrying a schema field
+- `Bundle`: array of `FxSeq`, with `Eclectic` impled and carrying a schema field
 
-- `Tables`: vector of `FxSeq` arrays, with a schema field
+- `Bundles`: vector of `FxSeq` arrays, with a schema field
 
 ## Dependencies
 

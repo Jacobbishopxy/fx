@@ -1,4 +1,4 @@
-//! file: table.rs
+//! file: bundle.rs
 //! author: Jacob Xie
 //! date: 2023/02/14 17:25:37 Tuesday
 //! brief: Table
@@ -10,12 +10,12 @@ use crate::ab::{private, FxSeq, Purport, StaticPurport};
 use crate::error::{FxError, FxResult};
 
 // ================================================================================================
-// FxTable
+// FxBundle
 // ================================================================================================
 
 /// A scalable FxSeq container
 #[derive(Debug, Clone)]
-pub struct FxTable<const W: usize, S: FxSeq> {
+pub struct FxBundle<const W: usize, S: FxSeq> {
     schema: Schema,
     data: [S; W],
 }
@@ -24,10 +24,10 @@ pub struct FxTable<const W: usize, S: FxSeq> {
 // impl Purport
 // ================================================================================================
 
-impl<const W: usize, S> StaticPurport for FxTable<W, S> where S: FxSeq {}
+impl<const W: usize, S> StaticPurport for FxBundle<W, S> where S: FxSeq {}
 
 #[inherent]
-impl<const W: usize, S> Purport for FxTable<W, S>
+impl<const W: usize, S> Purport for FxBundle<W, S>
 where
     S: FxSeq,
 {
@@ -40,7 +40,7 @@ where
 // impl Eclectic & EclecticMut
 // ================================================================================================
 
-impl<const W: usize, S> private::InnerEclectic for FxTable<W, S>
+impl<const W: usize, S> private::InnerEclectic for FxBundle<W, S>
 where
     S: FxSeq,
 {
@@ -71,7 +71,7 @@ where
     }
 }
 
-impl<const W: usize, S> private::InnerEclecticMutSeq for FxTable<W, S>
+impl<const W: usize, S> private::InnerEclecticMutSeq for FxBundle<W, S>
 where
     S: FxSeq,
 {
@@ -84,7 +84,7 @@ where
 // Table methods
 // ================================================================================================
 
-impl<const W: usize, S> FxTable<W, S>
+impl<const W: usize, S> FxBundle<W, S>
 where
     S: FxSeq,
 {
@@ -142,9 +142,9 @@ mod test_table {
 
         let vaa = [a, b];
 
-        let table = FxTable::new(vaa);
+        let bundle = FxBundle::new(vaa);
 
-        println!("{table:?}",);
+        println!("{bundle:?}",);
     }
 
     #[test]
@@ -154,9 +154,9 @@ mod test_table {
 
         let vaa = [a, b];
 
-        let table = FxTable::new_with_names(vaa, ["1"]);
+        let bundle = FxBundle::new_with_names(vaa, ["1"]);
 
-        println!("{table:?}",);
+        println!("{bundle:?}",);
     }
 
     #[test]
@@ -166,9 +166,9 @@ mod test_table {
 
         let vaa = [a, b];
 
-        let table = FxTable::new_with_names(vaa, ["1", "2", "3"]);
+        let bundle = FxBundle::new_with_names(vaa, ["1", "2", "3"]);
 
-        println!("{table:?}",);
+        println!("{bundle:?}",);
     }
 
     #[test]
@@ -200,9 +200,9 @@ mod test_table {
 
         let vaa = [a, b];
 
-        let table = FxTable::new(vaa);
+        let bundle = FxBundle::new(vaa);
 
-        println!("{table:?}");
+        println!("{bundle:?}");
     }
 
     #[test]
@@ -212,9 +212,9 @@ mod test_table {
 
         let vam = [a, b];
 
-        let table = FxTable::new_with_names(vam, ["a"]);
+        let bundle = FxBundle::new_with_names(vam, ["a"]);
 
-        println!("{table:?}");
+        println!("{bundle:?}");
     }
 
     #[test]
@@ -224,9 +224,9 @@ mod test_table {
 
         let vam = [a, b];
 
-        let table = FxTable::new_with_names(vam, ["a"]);
+        let bundle = FxBundle::new_with_names(vam, ["a"]);
 
-        let c = table.take_len_to_chunk(2);
+        let c = bundle.take_len_to_chunk(2);
         assert!(c.is_ok());
 
         println!("{:?}", c.unwrap());

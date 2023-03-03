@@ -12,13 +12,13 @@
     │   │   │   │   └── seq.rs
     │   │   │   ├── batch.rs
     │   │   │   ├── batches.rs
+    │   │   │   ├── bundle.rs
+    │   │   │   ├── bundles.rs
     │   │   │   ├── cvt.rs
     │   │   │   ├── ext.rs
     │   │   │   ├── macros.rs
     │   │   │   ├── mod.rs
-    │   │   │   ├── nullopt.rs
-    │   │   │   ├── table.rs
-    │   │   │   └── tables.rs
+    │   │   │   └── nullopt.rs
     │   │   ├── io
     │   │   │   ├── ab
     │   │   │   │   └── mod.rs
@@ -37,7 +37,9 @@
     │   └── tests
     │       ├── arrow_compute_test.rs
     │       ├── fx_builder_test.rs
-    │       └── fx_macros_test.rs
+    │       ├── fx_iter_test.rs
+    │       ├── fx_macros_test.rs
+    │       └── fx_seq_test.rs
     ├── fx-macros
     │   └── src
     │       ├── dr.rs

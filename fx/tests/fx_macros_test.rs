@@ -34,9 +34,9 @@ fn fx_default_builder_success() {
 }
 
 #[test]
-fn fx_table_builder_success() {
+fn fx_bundle_builder_success() {
     #[derive(FX, Clone)]
-    #[fx(table)]
+    #[fx(bundle)]
     struct Users {
         id: i32,
         name: String,
@@ -55,9 +55,9 @@ fn fx_table_builder_success() {
         check: None,
     };
 
-    let mut bd1 = Users::gen_table_builder();
+    let mut bd1 = Users::gen_bundle_builder();
     bd1.stack(r1.clone()).stack(r2.clone());
-    let d1 = bd1.build(); // FxTable<Arc<dyn Array>, 3>
+    let d1 = bd1.build(); // FxBundle<Arc<dyn Array>, 3>
     assert!(d1.is_ok());
     println!("{:?}", d1.unwrap());
 

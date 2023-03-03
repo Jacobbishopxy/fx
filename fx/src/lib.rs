@@ -25,15 +25,6 @@ pub use arrow2::*;
 // Crate namespace ab
 // ================================================================================================
 
-// an easier way for using `FX` derived proc-macro, see `tests/fx_macros_test.rs`
-pub mod row_builder {
-    pub use crate::FX;
-
-    pub use crate::cont::ab::*;
-
-    pub use crate::error::FxResult;
-}
-
 // reexport all ab, so that can use all the traits in ab as `use fx::ab::*`
 pub mod ab {
     pub use crate::cont::ab::*;
@@ -46,4 +37,19 @@ pub mod ab {
     pub trait FromVec<T, D> {
         fn from_vec(vec: Vec<T>) -> D;
     }
+}
+
+// ================================================================================================
+// Crate namespace row_builder
+// ================================================================================================
+
+// an easier way for using `FX` derived proc-macro, see `tests/fx_macros_test.rs`
+pub mod row_builder {
+    pub use crate::FX;
+
+    pub use crate::cont::ab::*;
+
+    pub use crate::error::FxResult;
+
+    pub use super::ab::{FromSlice, FromVec};
 }

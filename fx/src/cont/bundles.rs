@@ -10,19 +10,19 @@ use crate::ab::{private, EclecticCollection, FxSeq, Purport, StaticPurport};
 use crate::error::FxResult;
 
 // ================================================================================================
-// FxTables
+// FxBundles
 // ================================================================================================
 
 #[derive(Debug, Clone, Default)]
-pub struct FxTables<const W: usize, S: FxSeq> {
+pub struct FxBundles<const W: usize, S: FxSeq> {
     pub(crate) schema: Schema,
     pub(crate) data: Vec<[S; W]>,
 }
 
-impl<const W: usize, S: FxSeq> StaticPurport for FxTables<W, S> {}
+impl<const W: usize, S: FxSeq> StaticPurport for FxBundles<W, S> {}
 
 #[inherent]
-impl<const W: usize, S: FxSeq> Purport for FxTables<W, S> {
+impl<const W: usize, S: FxSeq> Purport for FxBundles<W, S> {
     pub fn schema(&self) -> &Schema {
         &self.schema
     }
@@ -30,7 +30,7 @@ impl<const W: usize, S: FxSeq> Purport for FxTables<W, S> {
 
 // [S; W] -> Tables
 impl<const W: usize, S: FxSeq> private::InnerEclecticCollection<true, usize, [S; W]>
-    for FxTables<W, S>
+    for FxBundles<W, S>
 {
     fn empty() -> Self {
         Self {
@@ -76,7 +76,7 @@ impl<const W: usize, S: FxSeq> private::InnerEclecticCollection<true, usize, [S;
     }
 }
 
-impl<const W: usize, S: FxSeq> FxTables<W, S> {
+impl<const W: usize, S: FxSeq> FxBundles<W, S> {
     pub fn new(data: Vec<[S; W]>) -> Self {
         if data.is_empty() {
             return Self::empty();
@@ -125,7 +125,7 @@ mod test_tables {
             ArcArr::from_slice(&[Some("x"), None, Some("y")]),
             ArcArr::from_slice(&[true, false, false]),
         ];
-        let t = FxTables::new(vec![ca]);
+        let t = FxBundles::new(vec![ca]);
 
         println!("{t:?}");
 
@@ -134,7 +134,7 @@ mod test_tables {
             ArcArr::from_slice(&[Some("x"), None, Some("y")]),
             ArcArr::from_slice(&[true, false, false]),
         ];
-        let t = FxTables::new_with_names(vec![ca], ["c1", "c2"]);
+        let t = FxBundles::new_with_names(vec![ca], ["c1", "c2"]);
 
         println!("{t:?}");
     }

@@ -10,9 +10,9 @@
 //! We can choose one from below (default "batch"):
 //! 1. "chunk": `ChunkArr` as the Eclectic type, and `Vec<ChunkArr>` as the EclecticCollection type;
 //! 2. "batch": `FxBatch` as the Eclectic type, and `FxBatchs<ChunkArr>` as the EclecticCollection type;
-//! 3. "table": `FxTable` as the Eclectic type, and `FxTables` as the EclecticCollection type.
+//! 3. "bundle": `FxBundle` as the Eclectic type, and `FxBundles` as the EclecticCollection type.
 //!
-//! Note that `ARRAA` works for constructing `FxTable` and `FxTables`, and since we already have "chunk"
+//! Note that `ARRAA` works for constructing `FxBundle` and `FxBundles`, and since we already have "chunk"
 //! option, which behaves pretty much the same as the "arraa" and has a stronger restriction (same length),
 //! there is no need to provide an extra "arraa" builder.
 
@@ -29,9 +29,9 @@ use crate::helper::*;
 const CHUNK: &str = "chunk"; // Chunk<Arc<dyn Array>>
 const ARRAA: &str = "arraa"; // [Arc<dyn Array>; W]. 'arraa' denotes (Array of ArcArr)
 const BATCH: &str = "batch"; // FxBatch
-const TABLE: &str = "table"; // FxTable<W; Arc<dyn Array>>
+const BUNDLE: &str = "bundle"; // FxBundle<W; Arc<dyn Array>>
 
-const FX_OPTIONS: [&str; 3] = [CHUNK, BATCH, TABLE];
+const FX_OPTIONS: [&str; 3] = [CHUNK, BATCH, BUNDLE];
 
 // Note: Array is a trait provided by [arrow](https://github.com/jorgecarleitao/arrow2)
 
@@ -78,7 +78,7 @@ fn gen_eclectic_type(schema_len: usize, s: &str) -> TokenStream {
         CHUNK => quote! {ChunkArr},
         ARRAA => quote! {[ArcArr; #schema_len]},
         BATCH => quote! {FxBatch},
-        TABLE => quote! {FxTable::<#schema_len, ArcArr>},
+        BUNDLE => quote! {FxBundle::<#schema_len, ArcArr>},
         _ => quote! {FxBatch}, // default to FxBatch
     }
 }
@@ -89,7 +89,7 @@ fn gen_container_type(schema_len: usize, s: &str) -> TokenStream {
     match s {
         CHUNK => quote! {Vec<ChunkArr>},
         BATCH => quote! {FxBatches::<ChunkArr>},
-        TABLE => quote! {FxTables::<#schema_len, ArcArr>},
+        BUNDLE => quote! {FxBundles::<#schema_len, ArcArr>},
         _ => quote! {FxBatches::<ChunkArr>}, // default to FxBatches
     }
 }
@@ -265,8 +265,8 @@ fn gen_bd_res(
         BATCH => quote! {
             FxBatch::try_new_with_names(vec![ #(#build_ctt)* ], [ #(#names),* ])
         },
-        TABLE => quote! {
-            Ok(FxTable::<#schema_len, ArcArr>::new_with_names([ #(#build_ctt)* ], [ #(#names),* ]))
+        BUNDLE => quote! {
+            Ok(FxBundle::<#schema_len, ArcArr>::new_with_names([ #(#build_ctt)* ], [ #(#names),* ]))
         },
         _ => panic!("Unsupported type"),
     }
@@ -295,9 +295,9 @@ fn gen_impl_ebg(
                 type BatchBuilder = #build_name<FxBatch>;
             }
         },
-        TABLE => quote! {
-            impl FxTableBuilderGenerator<#schema_len> for #struct_name {
-                type TableBuilder = #build_name<FxTable<#schema_len, ArcArr>>;
+        BUNDLE => quote! {
+            impl FxBundleBuilderGenerator<#schema_len> for #struct_name {
+                type BundleBuilder = #build_name<FxBundle<#schema_len, ArcArr>>;
             }
         },
         _ => panic!("Unsupported type"),
@@ -308,7 +308,7 @@ fn gen_impl_ebg(
 ///
 /// - ChunkArr
 /// - FxBatch
-/// - FxTable
+/// - FxBundle
 fn gen_impl_eclectic(
     e_type: &str,
     schema_len: usize,
@@ -369,12 +369,12 @@ fn gen_multiple_impl_eclectic(
                 gen_impl_eclectic(BATCH, schema_len, struct_name, build_name, named_fields),
             ]
         }
-        TABLE => {
+        BUNDLE => {
             vec![
                 // no schema (for collection generator)
                 gen_impl_eclectic(ARRAA, schema_len, struct_name, build_name, named_fields),
                 // schema
-                gen_impl_eclectic(TABLE, schema_len, struct_name, build_name, named_fields),
+                gen_impl_eclectic(BUNDLE, schema_len, struct_name, build_name, named_fields),
             ]
         }
         _ => panic!("Unsupported type"),
@@ -408,9 +408,9 @@ fn gen_collection_builder_struct(
                 buffer: Option<#eclectic_build_name<ChunkArr>>
             }
         },
-        TABLE => quote! {
+        BUNDLE => quote! {
             struct #container_build_name {
-                result: FxTables::<#schema_len, ArcArr>,
+                result: FxBundles::<#schema_len, ArcArr>,
                 buffer: Option<#eclectic_build_name<[ArcArr; #schema_len]>>
             }
         },
@@ -453,13 +453,13 @@ fn gen_collection_type(
                 let buffer = Some(#struct_name::gen_chunk_builder());
             },
         ),
-        TABLE => (
+        BUNDLE => (
             true,
             quote! { [ArcArr; #schema_len] },
-            quote! { FxTables::<#schema_len, ArcArr> },
+            quote! { FxBundles::<#schema_len, ArcArr> },
             quote! {
                 let schema = ::arrow2::datatypes::Schema::from(vec![#(#fields_ctt),*]);
-                let result = FxTables::<#schema_len, ArcArr>::empty_with_schema(schema);
+                let result = FxBundles::<#schema_len, ArcArr>::empty_with_schema(schema);
                 let buffer = Some(#struct_name::gen_arraa_builder());
             },
         ),
@@ -490,11 +490,11 @@ fn gen_impl_cbg(
                 type BatchesBuilder = #collection_build_name;
             }
         },
-        TABLE => quote! {
-            impl FxTablesBuilderGenerator<#schema_len> for #struct_name {
+        BUNDLE => quote! {
+            impl FxBundlesBuilderGenerator<#schema_len> for #struct_name {
                 type ArraaBuilder = #eclectic_build_name<[ArcArr; #schema_len]>;
 
-                type TablesBuilder = #collection_build_name;
+                type BundlesBuilder = #collection_build_name;
             }
         },
         _ => panic!("Unsupported type"),
@@ -505,7 +505,7 @@ fn gen_impl_cbg(
 ///
 /// VecChunk
 /// FxBatches
-/// FxTables
+/// FxBundles
 fn gen_impl_container(
     e_type: &str,
     schema_len: usize,
