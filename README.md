@@ -134,4 +134,10 @@ Structs and enums provided by Fx crate:
 
 - Iterator for ArcArr/BoxArr/ArcVec/BoxVec
 
+- Type support: `ListArray`/`MutableListArray` & `FixedSizeListArray`/`MutableFixedSizeListArray`
+
+- Type support: `StructArray`/`MutableStructArray`
+
+- Type support: `BinaryArray`/`MutableBinaryArray`
+
 - Let I/O satisfies all containers

@@ -111,10 +111,10 @@ where
             return Err(FxError::LengthMismatch(schema.fields.len(), W));
         }
 
-        let mut data = [(); W].map(|_| S::new_zero_len(DataType::Null));
+        let mut data = [(); W].map(|_| S::new_empty(DataType::Null));
 
         for (idx, f) in schema.fields.iter().enumerate() {
-            data[idx] = S::new_zero_len(f.data_type.clone())
+            data[idx] = S::new_empty(f.data_type.clone())
         }
 
         Ok(Self { schema, data })

@@ -105,7 +105,7 @@ impl FxBatch {
         let arrays = schema
             .fields
             .iter()
-            .map(|f| ArcArr::new_zero_len(f.data_type.clone()))
+            .map(|f| ArcArr::new_empty(f.data_type.clone()))
             .collect::<Vec<_>>();
         let data = ChunkArr::new(arrays);
         Self { schema, data }

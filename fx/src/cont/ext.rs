@@ -54,7 +54,7 @@ impl FxSeq for ArcArr {
         }
     }
 
-    fn new_zero_len(data_type: DataType) -> Self {
+    fn new_empty(data_type: DataType) -> Self {
         Self::new_nulls(data_type, 0)
     }
 
@@ -104,36 +104,36 @@ impl FxSeq for ArcArr {
 
     fn to_arc_vector(self) -> FxResult<ArcVec> {
         match &self.data_type() {
-            DataType::Boolean => arc_arr_to_vec!(self, BA, MB),
-            DataType::Int8 => arc_arr_to_vec_p!(self, PAi8, MPAi8),
-            DataType::Int16 => arc_arr_to_vec_p!(self, PAi16, MPAi16),
-            DataType::Int32 => arc_arr_to_vec_p!(self, PAi32, MPAi32),
-            DataType::Int64 => arc_arr_to_vec_p!(self, PAi64, MPAi64),
-            DataType::UInt8 => arc_arr_to_vec_p!(self, PAu8, MPAu8),
-            DataType::UInt16 => arc_arr_to_vec_p!(self, PAu16, MPAu16),
-            DataType::UInt32 => arc_arr_to_vec_p!(self, PAu32, MPAu32),
-            DataType::UInt64 => arc_arr_to_vec_p!(self, PAu64, MPAu64),
-            DataType::Float32 => arc_arr_to_vec_p!(self, PAf32, MPAf32),
-            DataType::Float64 => arc_arr_to_vec_p!(self, PAf64, MPAf64),
-            DataType::Utf8 => arc_arr_to_vec!(self, UA, MU),
+            DataType::Boolean => arc_arr_to_vec!(self, BA, BV),
+            DataType::Int8 => arc_arr_to_vec_p!(self, PAi8, PVi8),
+            DataType::Int16 => arc_arr_to_vec_p!(self, PAi16, PVi16),
+            DataType::Int32 => arc_arr_to_vec_p!(self, PAi32, PVi32),
+            DataType::Int64 => arc_arr_to_vec_p!(self, PAi64, PVi64),
+            DataType::UInt8 => arc_arr_to_vec_p!(self, PAu8, PVu8),
+            DataType::UInt16 => arc_arr_to_vec_p!(self, PAu16, PVu16),
+            DataType::UInt32 => arc_arr_to_vec_p!(self, PAu32, PVu32),
+            DataType::UInt64 => arc_arr_to_vec_p!(self, PAu64, PVu64),
+            DataType::Float32 => arc_arr_to_vec_p!(self, PAf32, PVf32),
+            DataType::Float64 => arc_arr_to_vec_p!(self, PAf64, PVf64),
+            DataType::Utf8 => arc_arr_to_vec!(self, UA, UV),
             _ => Err(FxError::FailedToConvert),
         }
     }
 
     fn to_box_vector(self) -> FxResult<BoxVec> {
         match &self.data_type() {
-            DataType::Boolean => box_arr_to_vec!(self, BA, MB),
-            DataType::Int8 => box_arr_to_vec_p!(self, PAi8, MPAi8),
-            DataType::Int16 => box_arr_to_vec_p!(self, PAi16, MPAi16),
-            DataType::Int32 => box_arr_to_vec_p!(self, PAi32, MPAi32),
-            DataType::Int64 => box_arr_to_vec_p!(self, PAi64, MPAi64),
-            DataType::UInt8 => box_arr_to_vec_p!(self, PAu8, MPAu8),
-            DataType::UInt16 => box_arr_to_vec_p!(self, PAu16, MPAu16),
-            DataType::UInt32 => box_arr_to_vec_p!(self, PAu32, MPAu32),
-            DataType::UInt64 => box_arr_to_vec_p!(self, PAu64, MPAu64),
-            DataType::Float32 => box_arr_to_vec_p!(self, PAf32, MPAf32),
-            DataType::Float64 => box_arr_to_vec_p!(self, PAf64, MPAf64),
-            DataType::Utf8 => box_arr_to_vec!(self, UA, MU),
+            DataType::Boolean => box_arr_to_vec!(self, BA, BV),
+            DataType::Int8 => box_arr_to_vec_p!(self, PAi8, PVi8),
+            DataType::Int16 => box_arr_to_vec_p!(self, PAi16, PVi16),
+            DataType::Int32 => box_arr_to_vec_p!(self, PAi32, PVi32),
+            DataType::Int64 => box_arr_to_vec_p!(self, PAi64, PVi64),
+            DataType::UInt8 => box_arr_to_vec_p!(self, PAu8, PVu8),
+            DataType::UInt16 => box_arr_to_vec_p!(self, PAu16, PVu16),
+            DataType::UInt32 => box_arr_to_vec_p!(self, PAu32, PVu32),
+            DataType::UInt64 => box_arr_to_vec_p!(self, PAu64, PVu64),
+            DataType::Float32 => box_arr_to_vec_p!(self, PAf32, PVf32),
+            DataType::Float64 => box_arr_to_vec_p!(self, PAf64, PVf64),
+            DataType::Utf8 => box_arr_to_vec!(self, UA, UV),
             _ => Err(FxError::FailedToConvert),
         }
     }
@@ -169,7 +169,7 @@ impl FxSeq for BoxArr {
         }
     }
 
-    fn new_zero_len(data_type: DataType) -> Self {
+    fn new_empty(data_type: DataType) -> Self {
         Self::new_nulls(data_type, 0)
     }
 
@@ -219,36 +219,36 @@ impl FxSeq for BoxArr {
 
     fn to_arc_vector(self) -> FxResult<ArcVec> {
         match &self.data_type() {
-            DataType::Boolean => arc_arr_to_vec!(self, BA, MB),
-            DataType::Int8 => arc_arr_to_vec_p!(self, PAi8, MPAi8),
-            DataType::Int16 => arc_arr_to_vec_p!(self, PAi16, MPAi16),
-            DataType::Int32 => arc_arr_to_vec_p!(self, PAi32, MPAi32),
-            DataType::Int64 => arc_arr_to_vec_p!(self, PAi64, MPAi64),
-            DataType::UInt8 => arc_arr_to_vec_p!(self, PAu8, MPAu8),
-            DataType::UInt16 => arc_arr_to_vec_p!(self, PAu16, MPAu16),
-            DataType::UInt32 => arc_arr_to_vec_p!(self, PAu32, MPAu32),
-            DataType::UInt64 => arc_arr_to_vec_p!(self, PAu64, MPAu64),
-            DataType::Float32 => arc_arr_to_vec_p!(self, PAf32, MPAf32),
-            DataType::Float64 => arc_arr_to_vec_p!(self, PAf64, MPAf64),
-            DataType::Utf8 => arc_arr_to_vec!(self, UA, MU),
+            DataType::Boolean => arc_arr_to_vec!(self, BA, BV),
+            DataType::Int8 => arc_arr_to_vec_p!(self, PAi8, PVi8),
+            DataType::Int16 => arc_arr_to_vec_p!(self, PAi16, PVi16),
+            DataType::Int32 => arc_arr_to_vec_p!(self, PAi32, PVi32),
+            DataType::Int64 => arc_arr_to_vec_p!(self, PAi64, PVi64),
+            DataType::UInt8 => arc_arr_to_vec_p!(self, PAu8, PVu8),
+            DataType::UInt16 => arc_arr_to_vec_p!(self, PAu16, PVu16),
+            DataType::UInt32 => arc_arr_to_vec_p!(self, PAu32, PVu32),
+            DataType::UInt64 => arc_arr_to_vec_p!(self, PAu64, PVu64),
+            DataType::Float32 => arc_arr_to_vec_p!(self, PAf32, PVf32),
+            DataType::Float64 => arc_arr_to_vec_p!(self, PAf64, PVf64),
+            DataType::Utf8 => arc_arr_to_vec!(self, UA, UV),
             _ => Err(FxError::FailedToConvert),
         }
     }
 
     fn to_box_vector(self) -> FxResult<BoxVec> {
         match &self.data_type() {
-            DataType::Boolean => box_arr_to_vec!(self, BA, MB),
-            DataType::Int8 => box_arr_to_vec_p!(self, PAi8, MPAi8),
-            DataType::Int16 => box_arr_to_vec_p!(self, PAi16, MPAi16),
-            DataType::Int32 => box_arr_to_vec_p!(self, PAi32, MPAi32),
-            DataType::Int64 => box_arr_to_vec_p!(self, PAi64, MPAi64),
-            DataType::UInt8 => box_arr_to_vec_p!(self, PAu8, MPAu8),
-            DataType::UInt16 => box_arr_to_vec_p!(self, PAu16, MPAu16),
-            DataType::UInt32 => box_arr_to_vec_p!(self, PAu32, MPAu32),
-            DataType::UInt64 => box_arr_to_vec_p!(self, PAu64, MPAu64),
-            DataType::Float32 => box_arr_to_vec_p!(self, PAf32, MPAf32),
-            DataType::Float64 => box_arr_to_vec_p!(self, PAf64, MPAf64),
-            DataType::Utf8 => box_arr_to_vec!(self, UA, MU),
+            DataType::Boolean => box_arr_to_vec!(self, BA, BV),
+            DataType::Int8 => box_arr_to_vec_p!(self, PAi8, PVi8),
+            DataType::Int16 => box_arr_to_vec_p!(self, PAi16, PVi16),
+            DataType::Int32 => box_arr_to_vec_p!(self, PAi32, PVi32),
+            DataType::Int64 => box_arr_to_vec_p!(self, PAi64, PVi64),
+            DataType::UInt8 => box_arr_to_vec_p!(self, PAu8, PVu8),
+            DataType::UInt16 => box_arr_to_vec_p!(self, PAu16, PVu16),
+            DataType::UInt32 => box_arr_to_vec_p!(self, PAu32, PVu32),
+            DataType::UInt64 => box_arr_to_vec_p!(self, PAu64, PVu64),
+            DataType::Float32 => box_arr_to_vec_p!(self, PAf32, PVf32),
+            DataType::Float64 => box_arr_to_vec_p!(self, PAf64, PVf64),
+            DataType::Utf8 => box_arr_to_vec!(self, UA, UV),
             _ => Err(FxError::FailedToConvert),
         }
     }
@@ -268,23 +268,23 @@ impl FxSeq for BoxArr {
 impl FxSeq for ArcVec {
     fn new_nulls(data_type: DataType, len: usize) -> Self {
         match data_type {
-            DataType::Boolean => Arc::new(MB::from(vec![None; len])),
-            DataType::Int8 => Arc::new(MPAi8::from(vec![None; len])),
-            DataType::Int16 => Arc::new(MPAi16::from(vec![None; len])),
-            DataType::Int32 => Arc::new(MPAi32::from(vec![None; len])),
-            DataType::Int64 => Arc::new(MPAi64::from(vec![None; len])),
-            DataType::UInt8 => Arc::new(MPAu8::from(vec![None; len])),
-            DataType::UInt16 => Arc::new(MPAu16::from(vec![None; len])),
-            DataType::UInt32 => Arc::new(MPAu32::from(vec![None; len])),
-            DataType::UInt64 => Arc::new(MPAu64::from(vec![None; len])),
-            DataType::Float32 => Arc::new(MPAf32::from(vec![None; len])),
-            DataType::Float64 => Arc::new(MPAf64::from(vec![None; len])),
-            DataType::Utf8 => Arc::new(MU::from(vec![Option::<&str>::None; len])),
+            DataType::Boolean => Arc::new(BV::from(vec![None; len])),
+            DataType::Int8 => Arc::new(PVi8::from(vec![None; len])),
+            DataType::Int16 => Arc::new(PVi16::from(vec![None; len])),
+            DataType::Int32 => Arc::new(PVi32::from(vec![None; len])),
+            DataType::Int64 => Arc::new(PVi64::from(vec![None; len])),
+            DataType::UInt8 => Arc::new(PVu8::from(vec![None; len])),
+            DataType::UInt16 => Arc::new(PVu16::from(vec![None; len])),
+            DataType::UInt32 => Arc::new(PVu32::from(vec![None; len])),
+            DataType::UInt64 => Arc::new(PVu64::from(vec![None; len])),
+            DataType::Float32 => Arc::new(PVf32::from(vec![None; len])),
+            DataType::Float64 => Arc::new(PVf64::from(vec![None; len])),
+            DataType::Utf8 => Arc::new(UV::from(vec![Option::<&str>::None; len])),
             _ => unimplemented!(),
         }
     }
 
-    fn new_zero_len(data_type: DataType) -> Self {
+    fn new_empty(data_type: DataType) -> Self {
         Self::new_nulls(data_type, 0)
     }
 
@@ -350,18 +350,18 @@ impl FxSeq for ArcVec {
 
     fn extend(&mut self, s: &Self) -> FxResult<&mut Self> {
         match &self.data_type() {
-            DataType::Boolean => try_ext_from_slf!(self, s, MB),
-            DataType::Int8 => try_ext_from_slf!(self, s, MPAi8),
-            DataType::Int16 => try_ext_from_slf!(self, s, MPAi16),
-            DataType::Int32 => try_ext_from_slf!(self, s, MPAi32),
-            DataType::Int64 => try_ext_from_slf!(self, s, MPAi64),
-            DataType::UInt8 => try_ext_from_slf!(self, s, MPAu8),
-            DataType::UInt16 => try_ext_from_slf!(self, s, MPAu16),
-            DataType::UInt32 => try_ext_from_slf!(self, s, MPAu32),
-            DataType::UInt64 => try_ext_from_slf!(self, s, MPAu64),
-            DataType::Float32 => try_ext_from_slf!(self, s, MPAf32),
-            DataType::Float64 => try_ext_from_slf!(self, s, MPAf64),
-            DataType::Utf8 => try_ext_from_slf!(self, s, MU),
+            DataType::Boolean => try_ext_from_slf!(self, s, BV),
+            DataType::Int8 => try_ext_from_slf!(self, s, PVi8),
+            DataType::Int16 => try_ext_from_slf!(self, s, PVi16),
+            DataType::Int32 => try_ext_from_slf!(self, s, PVi32),
+            DataType::Int64 => try_ext_from_slf!(self, s, PVi64),
+            DataType::UInt8 => try_ext_from_slf!(self, s, PVu8),
+            DataType::UInt16 => try_ext_from_slf!(self, s, PVu16),
+            DataType::UInt32 => try_ext_from_slf!(self, s, PVu32),
+            DataType::UInt64 => try_ext_from_slf!(self, s, PVu64),
+            DataType::Float32 => try_ext_from_slf!(self, s, PVf32),
+            DataType::Float64 => try_ext_from_slf!(self, s, PVf64),
+            DataType::Utf8 => try_ext_from_slf!(self, s, UV),
             _ => Err(FxError::FailedToConvert),
         }
     }
@@ -374,23 +374,23 @@ impl FxSeq for ArcVec {
 impl FxSeq for BoxVec {
     fn new_nulls(data_type: DataType, length: usize) -> Self {
         match data_type {
-            DataType::Boolean => Box::new(MB::from(vec![None; length])),
-            DataType::Int8 => Box::new(MPAi8::from(vec![None; length])),
-            DataType::Int16 => Box::new(MPAi16::from(vec![None; length])),
-            DataType::Int32 => Box::new(MPAi32::from(vec![None; length])),
-            DataType::Int64 => Box::new(MPAi64::from(vec![None; length])),
-            DataType::UInt8 => Box::new(MPAu8::from(vec![None; length])),
-            DataType::UInt16 => Box::new(MPAu16::from(vec![None; length])),
-            DataType::UInt32 => Box::new(MPAu32::from(vec![None; length])),
-            DataType::UInt64 => Box::new(MPAu64::from(vec![None; length])),
-            DataType::Float32 => Box::new(MPAf32::from(vec![None; length])),
-            DataType::Float64 => Box::new(MPAf64::from(vec![None; length])),
-            DataType::Utf8 => Box::new(MU::from(vec![Option::<&str>::None; length])),
+            DataType::Boolean => Box::new(BV::from(vec![None; length])),
+            DataType::Int8 => Box::new(PVi8::from(vec![None; length])),
+            DataType::Int16 => Box::new(PVi16::from(vec![None; length])),
+            DataType::Int32 => Box::new(PVi32::from(vec![None; length])),
+            DataType::Int64 => Box::new(PVi64::from(vec![None; length])),
+            DataType::UInt8 => Box::new(PVu8::from(vec![None; length])),
+            DataType::UInt16 => Box::new(PVu16::from(vec![None; length])),
+            DataType::UInt32 => Box::new(PVu32::from(vec![None; length])),
+            DataType::UInt64 => Box::new(PVu64::from(vec![None; length])),
+            DataType::Float32 => Box::new(PVf32::from(vec![None; length])),
+            DataType::Float64 => Box::new(PVf64::from(vec![None; length])),
+            DataType::Utf8 => Box::new(UV::from(vec![Option::<&str>::None; length])),
             _ => unimplemented!(),
         }
     }
 
-    fn new_zero_len(data_type: DataType) -> Self {
+    fn new_empty(data_type: DataType) -> Self {
         Self::new_nulls(data_type, 0)
     }
 
@@ -449,18 +449,18 @@ impl FxSeq for BoxVec {
 
     fn extend(&mut self, s: &Self) -> FxResult<&mut Self> {
         match (**self).data_type() {
-            DataType::Boolean => try_ext_from_slf!(self, s, MB),
-            DataType::Int8 => try_ext_from_slf!(self, s, MPAi8),
-            DataType::Int16 => try_ext_from_slf!(self, s, MPAi16),
-            DataType::Int32 => try_ext_from_slf!(self, s, MPAi32),
-            DataType::Int64 => try_ext_from_slf!(self, s, MPAi64),
-            DataType::UInt8 => try_ext_from_slf!(self, s, MPAu8),
-            DataType::UInt16 => try_ext_from_slf!(self, s, MPAu16),
-            DataType::UInt32 => try_ext_from_slf!(self, s, MPAu32),
-            DataType::UInt64 => try_ext_from_slf!(self, s, MPAu64),
-            DataType::Float32 => try_ext_from_slf!(self, s, MPAf32),
-            DataType::Float64 => try_ext_from_slf!(self, s, MPAf64),
-            DataType::Utf8 => try_ext_from_slf!(self, s, MU),
+            DataType::Boolean => try_ext_from_slf!(self, s, BV),
+            DataType::Int8 => try_ext_from_slf!(self, s, PVi8),
+            DataType::Int16 => try_ext_from_slf!(self, s, PVi16),
+            DataType::Int32 => try_ext_from_slf!(self, s, PVi32),
+            DataType::Int64 => try_ext_from_slf!(self, s, PVi64),
+            DataType::UInt8 => try_ext_from_slf!(self, s, PVu8),
+            DataType::UInt16 => try_ext_from_slf!(self, s, PVu16),
+            DataType::UInt32 => try_ext_from_slf!(self, s, PVu32),
+            DataType::UInt64 => try_ext_from_slf!(self, s, PVu64),
+            DataType::Float32 => try_ext_from_slf!(self, s, PVf32),
+            DataType::Float64 => try_ext_from_slf!(self, s, PVf64),
+            DataType::Utf8 => try_ext_from_slf!(self, s, UV),
             _ => Err(FxError::FailedToConvert),
         }
     }
