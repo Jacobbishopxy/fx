@@ -132,7 +132,7 @@ where
 #[cfg(test)]
 mod test_table {
     use super::*;
-    use crate::ab::{Congruent, Eclectic, FromSlice, FromVec};
+    use crate::ab::{Confined, Congruent, Eclectic, FromSlice, FromVec};
     use crate::cont::{ArcArr, ArcVec};
 
     #[test]
@@ -194,7 +194,7 @@ mod test_table {
     }
 
     #[test]
-    fn test_table_of_arc_arr() {
+    fn test_bundle_of_arc_arr() {
         let a = ArcArr::from_vec(vec![None, Some("x")]);
         let b = ArcArr::from_vec(vec![None, Some(2), None]);
 
@@ -206,7 +206,7 @@ mod test_table {
     }
 
     #[test]
-    fn test_table_of_arc_vec() {
+    fn test_bundle_of_arc_vec() {
         let a = ArcVec::from_vec(vec![None, Some(1)]);
         let b = ArcVec::from_vec(vec![None, Some("y"), None]);
 
@@ -218,7 +218,7 @@ mod test_table {
     }
 
     #[test]
-    fn test_table_to_chunk() {
+    fn test_bundle_to_chunk() {
         let a = ArcVec::from_vec(vec![Some(1)]);
         let b = ArcVec::from_vec(vec![None, Some("y"), None]);
 

@@ -8,7 +8,7 @@ use std::hash::Hash;
 use arrow2::chunk::Chunk;
 use arrow2::datatypes::Schema;
 
-use crate::ab::FxSeq;
+use super::{Confined, FxSeq};
 use crate::cont::ArcArr;
 use crate::error::FxResult;
 
@@ -20,7 +20,7 @@ use crate::error::FxResult;
 // ================================================================================================
 
 #[doc(hidden)]
-pub trait InnerEclectic {
+pub trait InnerEclectic: Confined {
     type Seq: FxSeq; // Arc<Array>/Arc<MutableArray>/Box<Array>/Box<MutableArray>
 
     fn ref_sequences(&self) -> &[Self::Seq];
@@ -50,7 +50,7 @@ pub trait InnerEclecticMutChunk: InnerEclectic {
 pub trait InnerEclecticCollection<const SCHEMA: bool, I, C>
 where
     I: Hash + Eq,
-    C: InnerEclectic,
+    // C: InnerEclectic,
     Self: Sized,
 {
     fn new_empty() -> Self;

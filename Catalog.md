@@ -4,6 +4,7 @@
     │   │   ├── cont
     │   │   │   ├── ab
     │   │   │   │   ├── builder.rs
+    │   │   │   │   ├── confined.rs
     │   │   │   │   ├── congruent.rs
     │   │   │   │   ├── eclectic.rs
     │   │   │   │   ├── mod.rs
@@ -15,10 +16,12 @@
     │   │   │   ├── bundle.rs
     │   │   │   ├── bundles.rs
     │   │   │   ├── cvt.rs
+    │   │   │   ├── deque.rs
     │   │   │   ├── ext.rs
     │   │   │   ├── macros.rs
     │   │   │   ├── mod.rs
-    │   │   │   └── nullopt.rs
+    │   │   │   ├── nullopt.rs
+    │   │   │   └── table.rs
     │   │   ├── io
     │   │   │   ├── ab
     │   │   │   │   └── mod.rs

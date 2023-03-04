@@ -9,7 +9,7 @@
 
 use std::hash::Hash;
 
-use crate::ab::{Eclectic, EclecticCollection};
+use crate::ab::{Confined, EclecticCollection};
 use crate::cont::{ArcArr, ChunkArr, FxBatch, FxBatches, FxBundle, FxBundles};
 use crate::error::{FxError, FxResult};
 
@@ -29,7 +29,7 @@ use crate::error::{FxError, FxResult};
 
 pub trait FxEclecticBuilder<R, T>: Sized + Send
 where
-    T: Eclectic,
+    T: Confined,
 {
     fn new() -> Self;
 
@@ -80,8 +80,8 @@ pub trait FxBundleBuilderGenerator<const W: usize>: Sized {
 // 1. FxChunksBuilderGenerator:         ChunkArr -> Vec<ChunkArr>
 // 2. FxChunkBatchesBuilderGenerator:   ChunkArr -> Batches
 // 3. FxBatchBatchesBuilderGenerator:   Batch -> Batches
-// 4. FxBundleBatchesBuilderGenerator:   Table -> Batches
-// 5. FxBundlesBuilderGenerator:         [ArcArr; W] -> Tables
+// 4. FxBundleBatchesBuilderGenerator:  Bundle -> Batches
+// 5. FxBundlesBuilderGenerator:        [ArcArr; W] -> Bundles
 // ================================================================================================
 
 pub trait FxCollectionBuilder<const SCHEMA: bool, B, R, T, I, C>: Sized + Send
@@ -89,7 +89,7 @@ where
     B: FxEclecticBuilder<R, C>,
     T: EclecticCollection<SCHEMA, I, C>,
     I: Hash + Eq,
-    C: Eclectic,
+    C: Confined,
 {
     fn new() -> FxResult<Self>;
 

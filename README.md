@@ -11,6 +11,7 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   ├── cont
     │   │   │   ├── ab
     │   │   │   │   ├── builder.rs
+    │   │   │   │   ├── confined.rs
     │   │   │   │   ├── congruent.rs
     │   │   │   │   ├── eclectic.rs
     │   │   │   │   ├── mod.rs
@@ -22,10 +23,12 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   │   ├── bundle.rs
     │   │   │   ├── bundles.rs
     │   │   │   ├── cvt.rs
+    │   │   │   ├── deque.rs
     │   │   │   ├── ext.rs
     │   │   │   ├── macros.rs
     │   │   │   ├── mod.rs
-    │   │   │   └── nullopt.rs
+    │   │   │   ├── nullopt.rs
+    │   │   │   └── table.rs
     │   │   ├── io
     │   │   │   ├── ab
     │   │   │   │   └── mod.rs
@@ -104,6 +107,10 @@ Structs and enums provided by Fx crate:
 
 - `Bundles`: vector of `FxSeq` arrays, with a schema field
 
+- `Deque`: VecDeque of `Array`
+
+- `Table`: array of `Deque`
+
 ## Dependencies
 
 - fx
@@ -127,6 +134,8 @@ Structs and enums provided by Fx crate:
 - To get a tree view of this project, run `cargo make --makefile fx.toml tree`
 
 ## Todo
+
+- Need a similar `Eclectic` trait to work on `FxTable` as well
 
 - `empty_with_schema` functions for each `Eclectic` type (perhaps a new trait who denotes "constructor")
 

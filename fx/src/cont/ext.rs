@@ -15,7 +15,7 @@ use arrow2::chunk::Chunk;
 use arrow2::compute::concatenate::concatenate;
 use arrow2::datatypes::{DataType, Schema};
 
-use crate::ab::{private, Eclectic, FxSeq, StaticPurport};
+use crate::ab::{private, Confined, Eclectic, FxSeq, StaticPurport};
 use crate::cont::macros::*;
 use crate::error::{FxError, FxResult};
 use crate::types::*;
@@ -534,6 +534,37 @@ where
     }
 }
 
+impl<const W: usize, S> Confined for [S; W]
+where
+    S: FxSeq,
+{
+    fn width(&self) -> usize {
+        W
+    }
+
+    fn data_types(&self) -> Vec<&DataType> {
+        self.iter().map(|s| s.data_type()).collect()
+    }
+}
+
+impl<const W: usize, S> Confined for Vec<[S; W]>
+where
+    S: FxSeq,
+{
+    fn width(&self) -> usize {
+        W
+    }
+
+    // if vector is empty then simply return empty datatype
+    fn data_types(&self) -> Vec<&DataType> {
+        if let Some(a) = self.first() {
+            a.iter().map(|s| s.data_type()).collect()
+        } else {
+            vec![]
+        }
+    }
+}
+
 // ================================================================================================
 // Default implementation for Vec<FxSeq>
 // ================================================================================================
@@ -570,6 +601,19 @@ where
     }
 }
 
+impl<S> Confined for Vec<S>
+where
+    S: FxSeq,
+{
+    fn width(&self) -> usize {
+        self.len()
+    }
+
+    fn data_types(&self) -> Vec<&DataType> {
+        self.iter().map(|s| s.data_type()).collect()
+    }
+}
+
 // ================================================================================================
 // Default implementation for Chunk<dyn Array>
 // ================================================================================================
@@ -597,6 +641,36 @@ impl private::InnerEclectic for ChunkArr {
 impl private::InnerEclecticMutChunk for ChunkArr {
     fn mut_chunk(&mut self) -> &mut ChunkArr {
         self
+    }
+}
+
+impl Confined for ChunkArr {
+    fn width(&self) -> usize {
+        self.arrays().len()
+    }
+
+    fn data_types(&self) -> Vec<&DataType> {
+        self.arrays().iter().map(|a| a.data_type()).collect()
+    }
+}
+
+impl Confined for Vec<ChunkArr> {
+    // if the vector is empty then simply return 0
+    fn width(&self) -> usize {
+        if let Some(a) = self.first() {
+            a.arrays().len()
+        } else {
+            0
+        }
+    }
+
+    // if the vector is empty then simply return empty datatype
+    fn data_types(&self) -> Vec<&DataType> {
+        if let Some(a) = self.first() {
+            a.arrays().iter().map(|a| a.data_type()).collect()
+        } else {
+            vec![]
+        }
     }
 }
 

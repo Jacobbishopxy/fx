@@ -8,10 +8,9 @@ use std::ops::Deref;
 
 use arrow2::chunk::Chunk;
 use arrow2::compute::concatenate::concatenate;
-use arrow2::datatypes::DataType;
 
 use super::FxSeq;
-use crate::ab::private;
+use crate::ab::{private, Confined};
 use crate::cont::ArcArr;
 use crate::error::{FxError, FxResult};
 
@@ -62,13 +61,13 @@ pub trait Eclectic: private::InnerEclectic + Sized {
         self.ref_sequences().is_empty()
     }
 
-    fn data_types(&self) -> Vec<&DataType> {
-        self.ref_sequences().iter().map(|e| e.data_type()).collect()
-    }
+    // fn data_types(&self) -> Vec<&DataType> {
+    //     self.ref_sequences().iter().map(|e| e.data_type()).collect()
+    // }
 
-    fn data_types_match<T: Eclectic>(&self, d: &T) -> bool {
-        self.width() == d.width() && self.data_types() == d.data_types()
-    }
+    // fn data_types_match<T: Eclectic>(&self, d: &T) -> bool {
+    //     self.width() == d.width() && self.data_types() == d.data_types()
+    // }
 
     fn sequences(&self) -> &[Self::Seq] {
         self.ref_sequences()
@@ -91,7 +90,7 @@ impl<T> Eclectic for T where T: private::InnerEclectic {}
 
 pub trait EclecticMutSeq: private::InnerEclecticMutSeq + Eclectic {
     fn try_extent<T: Eclectic<Seq = Self::Seq>>(&mut self, d: &T) -> FxResult<&mut Self> {
-        if !Eclectic::data_types_match(self, d) {
+        if !Confined::data_types_match(self, d) {
             return Err(FxError::SchemaMismatch);
         }
 
@@ -118,7 +117,7 @@ impl<T> EclecticMutSeq for T where T: private::InnerEclecticMutSeq {}
 
 pub trait EclecticMutChunk: private::InnerEclecticMutChunk + Eclectic {
     fn try_extent<T: Eclectic<Seq = ArcArr>>(&mut self, d: &T) -> FxResult<&mut Self> {
-        if !Eclectic::data_types_match(self, d) || !Eclectic::is_lens_same(d) {
+        if !Confined::data_types_match(self, d) || !Eclectic::is_lens_same(d) {
             return Err(FxError::SchemaMismatch);
         }
 
@@ -145,17 +144,17 @@ pub trait EclecticMutChunk: private::InnerEclecticMutChunk + Eclectic {
     }
 }
 
-impl<T> EclecticMutChunk for T where T: private::InnerEclecticMutChunk {}
+impl<T> EclecticMutChunk for T where T: private::InnerEclecticMutChunk + Confined {}
 
 // ================================================================================================
 // EclecticCollection
 // ================================================================================================
 
 pub trait EclecticCollection<const SCHEMA: bool, I, C>:
-    private::InnerEclecticCollection<SCHEMA, I, C>
+    private::InnerEclecticCollection<SCHEMA, I, C> + Confined
 where
     I: Hash + Eq,
-    C: Eclectic,
+    C: Confined,
 {
     fn new_empty() -> Self {
         private::InnerEclecticCollection::<SCHEMA, I, C>::new_empty()
@@ -163,10 +162,6 @@ where
 
     fn length(&self) -> usize {
         self.ref_container().len()
-    }
-
-    fn width(&self) -> usize {
-        self.ref_schema().map(|s| s.fields.len()).unwrap_or(0)
     }
 
     fn size(&self) -> (usize, usize) {
@@ -177,14 +172,8 @@ where
         self.ref_container().is_empty()
     }
 
-    fn data_types(&self) -> Vec<&DataType> {
-        self.ref_schema()
-            .map(|s| s.fields.iter().map(|f| f.data_type()).collect::<Vec<_>>())
-            .unwrap_or(Vec::new())
-    }
-
     fn data_types_check(&self, c: &C) -> bool {
-        self.width() == c.width() && self.data_types() == c.data_types()
+        Confined::data_types_match(self, c)
     }
 
     fn data_types_match<T>(&self, d: &T) -> bool
@@ -255,8 +244,8 @@ where
 
 impl<const SCHEMA: bool, I, C, T> EclecticCollection<SCHEMA, I, C> for T
 where
-    T: private::InnerEclecticCollection<SCHEMA, I, C>,
+    T: private::InnerEclecticCollection<SCHEMA, I, C> + Confined,
     I: Hash + Eq,
-    C: Eclectic,
+    C: Confined,
 {
 }

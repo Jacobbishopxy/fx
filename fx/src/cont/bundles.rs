@@ -28,7 +28,7 @@ impl<const W: usize, S: FxSeq> Purport for FxBundles<W, S> {
     }
 }
 
-// [S; W] -> Tables
+// [S; W] -> Bundles
 impl<const W: usize, S: FxSeq> private::InnerEclecticCollection<true, usize, [S; W]>
     for FxBundles<W, S>
 {

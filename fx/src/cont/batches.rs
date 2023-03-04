@@ -6,7 +6,7 @@
 use arrow2::datatypes::{Field, Schema};
 use inherent::inherent;
 
-use crate::ab::{private, Eclectic, EclecticCollection, Purport, StaticPurport};
+use crate::ab::*;
 use crate::error::FxResult;
 
 // ================================================================================================
@@ -18,6 +18,10 @@ pub struct FxBatches<E: Eclectic> {
     pub(crate) schema: Schema,
     pub(crate) data: Vec<E>,
 }
+
+// ================================================================================================
+// Purport
+// ================================================================================================
 
 impl<E: Eclectic> StaticPurport for FxBatches<E> {}
 
@@ -117,7 +121,6 @@ impl<E: Eclectic> FxBatches<E> {
 mod test_batches {
     use super::*;
 
-    use crate::ab::*;
     use crate::cont::{ArcArr, ChunkArr, FxBatch};
 
     #[test]
