@@ -21,7 +21,7 @@ use crate::error::FxResult;
 
 #[doc(hidden)]
 pub trait InnerEclectic {
-    type Seq: FxSeq; // Arc<Array> or Arc<MutableArray>
+    type Seq: FxSeq; // Arc<Array>/Arc<MutableArray>/Box<Array>/Box<MutableArray>
 
     fn ref_sequences(&self) -> &[Self::Seq];
 

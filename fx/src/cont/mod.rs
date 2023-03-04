@@ -13,6 +13,7 @@ pub mod deque;
 pub mod ext;
 mod macros;
 pub mod nullopt;
+pub mod table;
 
 pub use batch::*;
 pub use batches::*;
@@ -22,3 +23,4 @@ pub use cvt::*;
 pub use deque::*;
 pub use ext::*;
 pub use nullopt::*;
+pub use table::*;

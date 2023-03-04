@@ -15,9 +15,9 @@ use crate::error::{FxError, FxResult};
 // ================================================================================================
 
 pub trait FxSeq {
-    fn new_nulls(data_type: DataType, length: usize) -> Self;
+    fn new_nulls(datatype: DataType, length: usize) -> Self;
 
-    fn new_empty(data_type: DataType) -> Self;
+    fn new_empty(datatype: DataType) -> Self;
 
     fn is_arr() -> bool;
 

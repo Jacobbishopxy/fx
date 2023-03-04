@@ -72,6 +72,13 @@ impl<A: AsRef<dyn Array>> Deque<A> {
         }
     }
 
+    pub fn new_empty_with_type(datatype: DataType) -> Self {
+        Self {
+            datatype: Some(datatype),
+            deque: VecDeque::new(),
+        }
+    }
+
     /// Returns the arrays of this [`Deque<A>`]
     pub fn arrays(&self) -> (&[A], &[A]) {
         self.deque.as_slices()
