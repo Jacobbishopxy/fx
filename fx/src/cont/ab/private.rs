@@ -41,16 +41,15 @@ pub trait InnerEclecticMutChunk: InnerEclectic {
 }
 
 // ================================================================================================
-// InnerEclecticCollection
+// InnerReceptacle
 //
 // Replacement of InnerChunkingContainer
 // ================================================================================================
 
 #[doc(hidden)]
-pub trait InnerEclecticCollection<const SCHEMA: bool, I, C>
+pub trait InnerReceptacle<const SCHEMA: bool, I, C>
 where
     I: Hash + Eq,
-    // C: InnerEclectic,
     Self: Sized,
 {
     fn new_empty() -> Self;

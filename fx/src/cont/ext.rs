@@ -678,7 +678,7 @@ impl Confined for Vec<ChunkArr> {
 // Default implementation for Vec<E> where E: Eclectic
 // ================================================================================================
 
-impl<E: Eclectic> private::InnerEclecticCollection<false, usize, E> for Vec<E> {
+impl<E: Eclectic> private::InnerReceptacle<false, usize, E> for Vec<E> {
     fn new_empty() -> Self {
         Vec::<E>::new()
     }
@@ -747,7 +747,7 @@ where
 {
 }
 
-impl<IDX, E> private::InnerEclecticCollection<false, IDX, E> for HashMap<IDX, E>
+impl<IDX, E> private::InnerReceptacle<false, IDX, E> for HashMap<IDX, E>
 where
     IDX: Hash + Eq,
     E: Eclectic,

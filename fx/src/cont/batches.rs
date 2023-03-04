@@ -33,11 +33,11 @@ impl<E: Eclectic> Purport for FxBatches<E> {
 }
 
 // ================================================================================================
-// EclecticCollection's impl
+// Receptacle's impl
 // ================================================================================================
 
 // ChunkArr -> FxBatches
-impl<E: Eclectic> private::InnerEclecticCollection<true, usize, E> for FxBatches<E> {
+impl<E: Eclectic> private::InnerReceptacle<true, usize, E> for FxBatches<E> {
     fn new_empty() -> Self {
         Self {
             schema: Schema::from(Vec::<Field>::new()),

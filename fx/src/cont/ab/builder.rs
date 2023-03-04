@@ -4,12 +4,12 @@
 //! brief: Builder
 //!
 //! By deriving `Fx` proc-macro on a struct, builder traits are used in the sense of auto generating
-//! `Eclectic` or `EclecticCollection`.
+//! `Eclectic` or `Receptacle`.
 //! Please check [tests/fx_builder_test.rs] for manual implement.
 
 use std::hash::Hash;
 
-use crate::ab::{Confined, EclecticCollection};
+use crate::ab::{Confined, Receptacle};
 use crate::cont::{ArcArr, ChunkArr, FxBatch, FxBatches, FxBundle, FxBundles};
 use crate::error::{FxError, FxResult};
 
@@ -87,7 +87,7 @@ pub trait FxBundleBuilderGenerator<const W: usize>: Sized {
 pub trait FxCollectionBuilder<const SCHEMA: bool, B, R, T, I, C>: Sized + Send
 where
     B: FxEclecticBuilder<R, C>,
-    T: EclecticCollection<SCHEMA, I, C>,
+    T: Receptacle<SCHEMA, I, C>,
     I: Hash + Eq,
     C: Confined,
 {

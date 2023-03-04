@@ -6,7 +6,7 @@
 use arrow2::datatypes::{Field, Schema};
 use inherent::inherent;
 
-use crate::ab::{private, EclecticCollection, FxSeq, Purport, StaticPurport};
+use crate::ab::{private, FxSeq, Purport, Receptacle, StaticPurport};
 use crate::error::FxResult;
 
 // ================================================================================================
@@ -29,9 +29,7 @@ impl<const W: usize, S: FxSeq> Purport for FxBundles<W, S> {
 }
 
 // [S; W] -> Bundles
-impl<const W: usize, S: FxSeq> private::InnerEclecticCollection<true, usize, [S; W]>
-    for FxBundles<W, S>
-{
+impl<const W: usize, S: FxSeq> private::InnerReceptacle<true, usize, [S; W]> for FxBundles<W, S> {
     fn new_empty() -> Self {
         Self {
             schema: Schema::from(Vec::<Field>::new()),

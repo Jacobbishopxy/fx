@@ -10,6 +10,7 @@
     │   │   │   │   ├── mod.rs
     │   │   │   │   ├── private.rs
     │   │   │   │   ├── purport.rs
+    │   │   │   │   ├── receptacle.rs
     │   │   │   │   └── seq.rs
     │   │   │   ├── batch.rs
     │   │   │   ├── batches.rs

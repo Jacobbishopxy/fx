@@ -17,6 +17,7 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   │   │   ├── mod.rs
     │   │   │   │   ├── private.rs
     │   │   │   │   ├── purport.rs
+    │   │   │   │   ├── receptacle.rs
     │   │   │   │   └── seq.rs
     │   │   │   ├── batch.rs
     │   │   │   ├── batches.rs
@@ -65,7 +66,7 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 
 - `Eclectic`: common behavior of a collection of `FxSeq`
 
-- `EclecticCollection`: common behavior of the `Eclectic` types
+- `Receptacle`: common behavior of the `Eclectic` types
 
 - `Congruent`: common behavior of the `Chunk`
 
@@ -89,9 +90,9 @@ Traits implementation for Rust and Arrow types:
 
 - `ChunkArr`: `Chunk<Arc<dyn Array>>` with `Eclectic` trait implemented
 
-- `Vec<E>`: `Vec<E> where E: Eclectic` with `EclecticCollection` trait implemented
+- `Vec<E>`: `Vec<E> where E: Eclectic` with `Receptacle` trait implemented
 
-- `HashMap<I, E>`: `HashMap<I, E> where I: Hash + Eq, E: Eclectic` with `EclecticCollection` trait implemented
+- `HashMap<I, E>`: `HashMap<I, E> where I: Hash + Eq, E: Eclectic` with `Receptacle` trait implemented
 
 ### Structs and Enums
 

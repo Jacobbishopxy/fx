@@ -4,13 +4,13 @@
 //! brief: Derive
 //!
 //! There are three markers can be chose while using the `FX` proc-macro (see Constants).
-//! These markers are used for distinguishing which kind of `Eclectic` and `EclecticCollection` to
+//! These markers are used for distinguishing which kind of `Eclectic` and `Receptacle` to
 //! be constructed.
 //!
 //! We can choose one from below (default "batch"):
-//! 1. "chunk": `ChunkArr` as the Eclectic type, and `Vec<ChunkArr>` as the EclecticCollection type;
-//! 2. "batch": `FxBatch` as the Eclectic type, and `FxBatchs<ChunkArr>` as the EclecticCollection type;
-//! 3. "bundle": `FxBundle` as the Eclectic type, and `FxBundles` as the EclecticCollection type.
+//! 1. "chunk": `ChunkArr` as the Eclectic type, and `Vec<ChunkArr>` as the Receptacle type;
+//! 2. "batch": `FxBatch` as the Eclectic type, and `FxBatchs<ChunkArr>` as the Receptacle type;
+//! 3. "bundle": `FxBundle` as the Eclectic type, and `FxBundles` as the Receptacle type.
 //!
 //! Note that `ARRAA` works for constructing `FxBundle` and `FxBundles`, and since we already have "chunk"
 //! option, which behaves pretty much the same as the "arraa" and has a stronger restriction (same length),
@@ -423,7 +423,7 @@ fn gen_collection_builder_struct(
 /// return type:
 /// 1. has_schema;
 /// 2. Eclectic;
-/// 3. EclecticCollection;
+/// 3. Receptacle;
 /// 4. result & buffer in `fn new()`.
 fn gen_collection_type(
     e_type: &str,
