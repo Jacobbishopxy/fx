@@ -36,6 +36,9 @@ pub enum FxError {
     #[error("failed to convert")]
     FailedToConvert,
 
+    #[error("datatype mismatch")]
+    DatatypeMismatch,
+
     #[error("schema mismatch")]
     SchemaMismatch,
 

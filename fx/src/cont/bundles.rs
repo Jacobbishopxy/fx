@@ -32,7 +32,7 @@ impl<const W: usize, S: FxSeq> Purport for FxBundles<W, S> {
 impl<const W: usize, S: FxSeq> private::InnerEclecticCollection<true, usize, [S; W]>
     for FxBundles<W, S>
 {
-    fn empty() -> Self {
+    fn new_empty() -> Self {
         Self {
             schema: Schema::from(Vec::<Field>::new()),
             data: Vec::<[S; W]>::new(),
@@ -79,7 +79,7 @@ impl<const W: usize, S: FxSeq> private::InnerEclecticCollection<true, usize, [S;
 impl<const W: usize, S: FxSeq> FxBundles<W, S> {
     pub fn new(data: Vec<[S; W]>) -> Self {
         if data.is_empty() {
-            return Self::empty();
+            return Self::new_empty();
         }
 
         let schema = Self::gen_schema(data.first().unwrap());
@@ -93,7 +93,7 @@ impl<const W: usize, S: FxSeq> FxBundles<W, S> {
         T: AsRef<str>,
     {
         if data.is_empty() {
-            return Self::empty();
+            return Self::new_empty();
         }
 
         let schema = Self::gen_schema_with_names(data.first().unwrap(), names);

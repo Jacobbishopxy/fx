@@ -157,8 +157,8 @@ where
     I: Hash + Eq,
     C: Eclectic,
 {
-    fn empty() -> Self {
-        private::InnerEclecticCollection::<SCHEMA, I, C>::empty()
+    fn new_empty() -> Self {
+        private::InnerEclecticCollection::<SCHEMA, I, C>::new_empty()
     }
 
     fn length(&self) -> usize {

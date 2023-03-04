@@ -143,6 +143,17 @@ impl FxSeq for ArcArr {
 
         Ok(self)
     }
+
+    fn concat(&mut self, ss: &[&Self]) -> FxResult<&mut Self> {
+        let mut ars = vec![self.as_ref()];
+        let ss_d = ss.iter().map(|s| s.deref().deref()).collect::<Vec<_>>();
+        ars.extend_from_slice(&ss_d);
+
+        let ct = concatenate(&ars)?;
+        *self = Arc::from(ct);
+
+        Ok(self)
+    }
 }
 
 // ================================================================================================
@@ -254,6 +265,17 @@ impl FxSeq for BoxArr {
 
     fn extend(&mut self, s: &Self) -> FxResult<&mut Self> {
         let ct = concatenate(&[self.as_ref(), s.deref()])?;
+        *self = ct;
+
+        Ok(self)
+    }
+
+    fn concat(&mut self, ss: &[&Self]) -> FxResult<&mut Self> {
+        let mut ars = vec![self.as_ref()];
+        let ss_d = ss.iter().map(|s| s.deref().deref()).collect::<Vec<_>>();
+        ars.extend_from_slice(&ss_d);
+
+        let ct = concatenate(&ars)?;
         *self = ct;
 
         Ok(self)
@@ -583,7 +605,7 @@ impl private::InnerEclecticMutChunk for ChunkArr {
 // ================================================================================================
 
 impl<E: Eclectic> private::InnerEclecticCollection<false, usize, E> for Vec<E> {
-    fn empty() -> Self {
+    fn new_empty() -> Self {
         Vec::<E>::new()
     }
 
@@ -656,7 +678,7 @@ where
     IDX: Hash + Eq,
     E: Eclectic,
 {
-    fn empty() -> Self {
+    fn new_empty() -> Self {
         HashMap::<IDX, E>::new()
     }
 

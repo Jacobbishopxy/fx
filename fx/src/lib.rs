@@ -27,8 +27,8 @@ pub use arrow2::*;
 
 // reexport all ab, so that can use all the traits in ab as `use fx::ab::*`
 pub mod ab {
-    pub use crate::cont::ab::*;
-    pub use crate::io::ab::*;
+    pub use super::cont::ab::*;
+    pub use super::io::ab::*;
 
     pub trait FromSlice<T, D> {
         fn from_slice(slice: &[T]) -> D;
@@ -45,11 +45,11 @@ pub mod ab {
 
 // an easier way for using `FX` derived proc-macro, see `tests/fx_macros_test.rs`
 pub mod row_builder {
-    pub use crate::FX;
+    pub use super::FX;
 
-    pub use crate::cont::ab::*;
+    pub use super::cont::ab::*;
 
-    pub use crate::error::FxResult;
+    pub use super::error::FxResult;
 
     pub use super::ab::{FromSlice, FromVec};
 }

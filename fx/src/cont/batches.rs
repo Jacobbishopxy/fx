@@ -34,7 +34,7 @@ impl<E: Eclectic> Purport for FxBatches<E> {
 
 // ChunkArr -> FxBatches
 impl<E: Eclectic> private::InnerEclecticCollection<true, usize, E> for FxBatches<E> {
-    fn empty() -> Self {
+    fn new_empty() -> Self {
         Self {
             schema: Schema::from(Vec::<Field>::new()),
             data: Vec::<E>::new(),
@@ -81,7 +81,7 @@ impl<E: Eclectic> private::InnerEclecticCollection<true, usize, E> for FxBatches
 impl<E: Eclectic> FxBatches<E> {
     pub fn new(data: Vec<E>) -> Self {
         if data.is_empty() {
-            return Self::empty();
+            return Self::new_empty();
         }
 
         let schema = Self::gen_schema(data.first().unwrap().ref_sequences());
@@ -95,7 +95,7 @@ impl<E: Eclectic> FxBatches<E> {
         T: AsRef<str>,
     {
         if data.is_empty() {
-            return Self::empty();
+            return Self::new_empty();
         }
 
         let schema = Self::gen_schema_with_names(data.first().unwrap().ref_sequences(), names);
