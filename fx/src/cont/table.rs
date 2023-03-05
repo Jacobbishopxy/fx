@@ -9,7 +9,7 @@ use arrow2::datatypes::{DataType, Field, Schema};
 use inherent::inherent;
 
 use super::{ArcArr, DequeArr, DequeIter, DequeIterMut};
-use crate::ab::{FxSeq, Purport, StaticPurport};
+use crate::ab::{Eclectic, FxSeq, Purport, StaticPurport};
 use crate::error::{FxError, FxResult};
 
 // ================================================================================================
@@ -39,25 +39,107 @@ impl<const W: usize> Purport for FxTable<W> {
 // Table methods
 // ================================================================================================
 
+fn from_arraa<const W: usize>(arraa: [ArcArr; W]) -> [DequeArr; W] {
+    arraa.map(DequeArr::from)
+}
+
 impl<const W: usize> FxTable<W> {
-    pub fn new(data: [ArcArr; W]) -> Self {
-        Self {
-            schema: Self::gen_schema(&data),
-            data: data.map(|d| DequeArr::new(vec![d])),
+    // ============================================================================================
+    // private methods
+    // ============================================================================================
+
+    fn _eclectic_into<E: Eclectic>(data: E) -> FxResult<[ArcArr; W]> {
+        if data.width() != W {
+            return Err(FxError::LengthMismatch(data.width(), W));
         }
+
+        let res = data
+            .into_sequences()
+            .into_iter()
+            .map(|s| s.to_arc_array())
+            .collect::<FxResult<Vec<_>>>()?
+            .try_into()
+            .unwrap();
+
+        Ok(res)
     }
 
-    pub fn new_with_names<I, T>(data: [ArcArr; W], names: I) -> Self
+    fn _new<E, I, T>(data: E, names: Option<I>) -> FxResult<Self>
     where
         I: IntoIterator<Item = T>,
         T: AsRef<str>,
+        E: Eclectic,
     {
+        let schema = match names {
+            Some(n) => Self::gen_schema_with_names(&data, n),
+            None => Self::gen_schema(&data),
+        };
+
+        let data = from_arraa(Self::_eclectic_into(data)?);
+
+        Ok(Self { schema, data })
+    }
+
+    #[allow(dead_code)]
+    fn new_empty() -> Self {
         Self {
-            schema: Self::gen_schema_with_names(&data, names),
-            data: data.map(|d| DequeArr::new(vec![d])),
+            schema: Schema::from(Vec::<Field>::new()),
+            data: [(); W].map(|_| DequeArr::new_empty()),
         }
     }
 
+    // ============================================================================================
+    // public methods
+    // ============================================================================================
+
+    /// Creates a new [`FxTable`].
+    /// # Panics
+    /// Panics if data length mismatch.
+    pub fn new<E: Eclectic>(data: E) -> Self {
+        Self::try_new(data).unwrap()
+    }
+
+    /// Creates a new [`FxTable`].
+    /// # Errors
+    /// This function will return an error if data length mismatch.
+    pub fn try_new<E: Eclectic>(data: E) -> FxResult<Self> {
+        Self::_new(data, Option::<&[&str]>::None)
+    }
+
+    /// Creates a new [`FxTable`].
+    /// # Panics
+    /// Panics if data length mismatch.
+    pub fn new_with_names<E, I, T>(data: E, names: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        T: AsRef<str>,
+        E: Eclectic,
+    {
+        Self::try_new_with_names(data, names).unwrap()
+    }
+
+    /// Creates a new [`FxTable`].
+    /// # Errors
+    /// This function will return an error if data length mismatch.
+    pub fn try_new_with_names<E, I, T>(data: E, names: I) -> FxResult<Self>
+    where
+        I: IntoIterator<Item = T>,
+        T: AsRef<str>,
+        E: Eclectic,
+    {
+        Self::_new(data, Some(names))
+    }
+
+    /// Creates an empty [`FxTable`].
+    /// # Panics
+    /// Panics if schema length mismatch.
+    pub fn empty_with_schema(schema: Schema) -> Self {
+        Self::try_empty_with_schema(schema).unwrap()
+    }
+
+    /// Creates an empty [`FxTable`].
+    /// # Errors
+    /// This function will return an error if schema length mismatch.
     pub fn try_empty_with_schema(schema: Schema) -> FxResult<Self> {
         if schema.fields.len() != W {
             return Err(FxError::LengthMismatch(schema.fields.len(), W));
@@ -72,13 +154,6 @@ impl<const W: usize> FxTable<W> {
         });
 
         Ok(Self { schema: sch, data })
-    }
-
-    pub fn new_empty() -> Self {
-        Self {
-            schema: Schema::from(Vec::<Field>::new()),
-            data: [(); W].map(|_| DequeArr::new_empty()),
-        }
     }
 
     pub fn data(&self) -> &[DequeArr; W] {
@@ -170,7 +245,9 @@ impl<const W: usize> FxTable<W> {
         self.data.each_mut().map(|dq| dq.get_mut(index))
     }
 
-    pub fn deque_insert(&mut self, index: usize, mut value: [ArcArr; W]) -> FxResult<()> {
+    pub fn deque_insert<E: Eclectic>(&mut self, index: usize, value: E) -> FxResult<()> {
+        let mut value = Self::_eclectic_into(value)?;
+
         for (idx, dq) in self.data.iter_mut().enumerate() {
             let mut tmp = ArcArr::new_empty(DataType::Null);
             std::mem::swap(&mut tmp, value.get_mut(idx).unwrap());
@@ -204,7 +281,9 @@ impl<const W: usize> FxTable<W> {
         self.data.each_mut().map(|dq| dq.pop_front())
     }
 
-    pub fn deque_push_back(&mut self, mut value: [ArcArr; W]) -> FxResult<()> {
+    pub fn deque_push_back<E: Eclectic>(&mut self, value: E) -> FxResult<()> {
+        let mut value = Self::_eclectic_into(value)?;
+
         for (idx, dq) in self.data.iter_mut().enumerate() {
             let mut tmp = ArcArr::new_empty(DataType::Null);
             std::mem::swap(&mut tmp, value.get_mut(idx).unwrap());
@@ -214,7 +293,9 @@ impl<const W: usize> FxTable<W> {
         Ok(())
     }
 
-    pub fn deque_push_front(&mut self, mut value: [ArcArr; W]) -> FxResult<()> {
+    pub fn deque_push_front<E: Eclectic>(&mut self, value: E) -> FxResult<()> {
+        let mut value = Self::_eclectic_into(value)?;
+
         for (idx, dq) in self.data.iter_mut().enumerate() {
             let mut tmp = ArcArr::new_empty(DataType::Null);
             std::mem::swap(&mut tmp, value.get_mut(idx).unwrap());
