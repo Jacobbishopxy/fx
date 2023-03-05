@@ -56,8 +56,6 @@ where
 
     fn ref_schema(&self) -> Option<&Schema>;
 
-    fn ref_container(&self) -> Vec<&C>;
-
     fn get_chunk(&self, key: I) -> FxResult<&C>;
 
     fn get_mut_chunk(&mut self, key: I) -> FxResult<&mut C>;
@@ -71,6 +69,4 @@ where
 
     // TODO: vec-like behavior, take it out to a new trait
     fn pop_chunk(&mut self) -> FxResult<()>;
-
-    fn take_container(self) -> Vec<C>;
 }

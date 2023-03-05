@@ -22,18 +22,6 @@ where
         private::InnerReceptacle::<SCHEMA, I, C>::new_empty()
     }
 
-    fn length(&self) -> usize {
-        self.ref_container().len()
-    }
-
-    fn size(&self) -> (usize, usize) {
-        (self.length(), self.width())
-    }
-
-    fn is_empty(&self) -> bool {
-        self.ref_container().is_empty()
-    }
-
     fn data_types_check(&self, c: &C) -> bool {
         Confined::data_types_match(self, c)
     }
@@ -97,10 +85,6 @@ where
 
     fn pop(&mut self) -> FxResult<()> {
         self.pop_chunk()
-    }
-
-    fn into_vec_content(self) -> Vec<C> {
-        self.take_container()
     }
 }
 

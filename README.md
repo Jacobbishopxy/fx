@@ -136,7 +136,7 @@ Structs and enums provided by Fx crate:
 
 ## Todo
 
-- Need a similar `Eclectic` trait to work on `FxTable` as well
+- Refactor `Receptacle` trait to satisfy `FxTable` (modify `ref_container` & `take_container` methods)
 
 - `empty_with_schema` functions for each `Eclectic` type (perhaps a new trait who denotes "constructor")
 

@@ -687,10 +687,6 @@ impl<E: Eclectic> private::InnerReceptacle<false, usize, E> for Vec<E> {
         None
     }
 
-    fn ref_container(&self) -> Vec<&E> {
-        self.iter().collect()
-    }
-
     fn get_chunk(&self, key: usize) -> FxResult<&E> {
         self.get(key).ok_or(FxError::OutBounds)
     }
@@ -730,10 +726,6 @@ impl<E: Eclectic> private::InnerReceptacle<false, usize, E> for Vec<E> {
 
         Ok(())
     }
-
-    fn take_container(self) -> Vec<E> {
-        self
-    }
 }
 
 // ================================================================================================
@@ -758,10 +750,6 @@ where
 
     fn ref_schema(&self) -> Option<&Schema> {
         None
-    }
-
-    fn ref_container(&self) -> Vec<&E> {
-        self.iter().map(|(_, v)| v).collect()
     }
 
     fn get_chunk(&self, key: IDX) -> FxResult<&E> {
@@ -790,9 +778,5 @@ where
 
     fn pop_chunk(&mut self) -> FxResult<()> {
         unimplemented!()
-    }
-
-    fn take_container(self) -> Vec<E> {
-        self.into_values().collect()
     }
 }

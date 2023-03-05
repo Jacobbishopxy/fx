@@ -19,6 +19,10 @@ pub struct FxBundles<const W: usize, S: FxSeq> {
     pub(crate) data: Vec<[S; W]>,
 }
 
+// ================================================================================================
+// Purport
+// ================================================================================================
+
 impl<const W: usize, S: FxSeq> StaticPurport for FxBundles<W, S> {}
 
 #[inherent]
@@ -45,10 +49,6 @@ impl<const W: usize, S: FxSeq> private::InnerReceptacle<true, usize, [S; W]> for
         Some(&self.schema)
     }
 
-    fn ref_container(&self) -> Vec<&[S; W]> {
-        self.data.ref_container()
-    }
-
     fn get_chunk(&self, key: usize) -> FxResult<&[S; W]> {
         self.data.get(key)
     }
@@ -71,10 +71,6 @@ impl<const W: usize, S: FxSeq> private::InnerReceptacle<true, usize, [S; W]> for
 
     fn pop_chunk(&mut self) -> FxResult<()> {
         self.data.pop_chunk()
-    }
-
-    fn take_container(self) -> Vec<[S; W]> {
-        self.data
     }
 }
 

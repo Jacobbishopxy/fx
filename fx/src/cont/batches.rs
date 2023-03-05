@@ -49,10 +49,6 @@ impl<E: Eclectic> private::InnerReceptacle<true, usize, E> for FxBatches<E> {
         Some(&self.schema)
     }
 
-    fn ref_container(&self) -> Vec<&E> {
-        self.data.ref_container()
-    }
-
     fn get_chunk(&self, key: usize) -> FxResult<&E> {
         self.data.get_chunk(key)
     }
@@ -75,10 +71,6 @@ impl<E: Eclectic> private::InnerReceptacle<true, usize, E> for FxBatches<E> {
 
     fn pop_chunk(&mut self) -> FxResult<()> {
         self.data.pop_chunk()
-    }
-
-    fn take_container(self) -> Vec<E> {
-        self.data
     }
 }
 
