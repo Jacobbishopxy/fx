@@ -1,7 +1,7 @@
 //! file: bundle.rs
 //! author: Jacob Xie
 //! date: 2023/02/14 17:25:37 Tuesday
-//! brief: Table
+//! brief: Bundle
 
 use arrow2::datatypes::{DataType, Schema};
 use inherent::inherent;
@@ -81,7 +81,7 @@ where
 }
 
 // ================================================================================================
-// Table methods
+// Bundle methods
 // ================================================================================================
 
 impl<const W: usize, S> FxBundle<W, S>

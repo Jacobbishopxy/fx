@@ -1,7 +1,7 @@
-//! file: tables.rs
+//! file: bundles.rs
 //! author: Jacob Xie
 //! date: 2023/02/23 23:02:32 Thursday
-//! brief: Tables
+//! brief: Bundles
 
 use arrow2::datatypes::{Field, Schema};
 use inherent::inherent;
@@ -27,6 +27,10 @@ impl<const W: usize, S: FxSeq> Purport for FxBundles<W, S> {
         &self.schema
     }
 }
+
+// ================================================================================================
+// Receptacle
+// ================================================================================================
 
 // [S; W] -> Bundles
 impl<const W: usize, S: FxSeq> private::InnerReceptacle<true, usize, [S; W]> for FxBundles<W, S> {

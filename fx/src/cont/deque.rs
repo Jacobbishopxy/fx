@@ -18,6 +18,10 @@ use crate::error::{FxError, FxResult};
 // Deque<dyn Array>
 pub type DequeArr = Deque<ArcArr>;
 
+// Type alias for iter & iter_mut
+pub type DequeIter<'a, A> = std::collections::vec_deque::Iter<'a, A>;
+pub type DequeIterMut<'a, A> = std::collections::vec_deque::IterMut<'a, A>;
+
 // ================================================================================================
 // Deque
 // ================================================================================================
@@ -208,6 +212,16 @@ impl<A: AsRef<dyn Array>> Deque<A> {
     pub fn truncate(&mut self, len: usize) {
         self.deque.truncate(len);
     }
+
+    /// Returns the iter of this [`Deque<A>`].
+    pub fn iter(&self) -> DequeIter<A> {
+        self.deque.iter()
+    }
+
+    /// Returns the iter of this [`Deque<A>`].
+    pub fn iter_mut(&mut self) -> DequeIterMut<A> {
+        self.deque.iter_mut()
+    }
 }
 
 impl<A: AsRef<dyn Array>> From<Deque<A>> for Vec<A> {
@@ -222,6 +236,66 @@ impl<A: AsRef<dyn Array>> Deref for Deque<A> {
     #[inline]
     fn deref(&self) -> &Self::Target {
         &self.deque
+    }
+}
+
+// ================================================================================================
+// Iterator: Ref
+// ================================================================================================
+
+/// impl IntoIterator for ref [`Deque<A>`]
+impl<'a, A: AsRef<dyn Array>> IntoIterator for &'a Deque<A> {
+    type Item = &'a A;
+
+    type IntoIter = DequeRefIterator<'a, A>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        DequeRefIterator { iter: self.iter() }
+    }
+}
+
+/// Ref iterator
+pub struct DequeRefIterator<'a, A: AsRef<dyn Array>> {
+    iter: DequeIter<'a, A>,
+}
+
+/// impl Iterator for [`DequeRefIterator`]
+impl<'a, A: AsRef<dyn Array>> Iterator for DequeRefIterator<'a, A> {
+    type Item = &'a A;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+// ================================================================================================
+// Iterator: Mut
+// ================================================================================================
+
+/// impl IntoIterator for mut ref [`Deque<A>`]
+impl<'a, A: AsRef<dyn Array>> IntoIterator for &'a mut Deque<A> {
+    type Item = &'a mut A;
+
+    type IntoIter = DequeMutIterator<'a, A>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        DequeMutIterator {
+            iter: self.iter_mut(),
+        }
+    }
+}
+
+/// Mut iterator
+pub struct DequeMutIterator<'a, A: AsRef<dyn Array>> {
+    iter: DequeIterMut<'a, A>,
+}
+
+/// impl Iterator for [`DequeMutIterator`]
+impl<'a, A: AsRef<dyn Array>> Iterator for DequeMutIterator<'a, A> {
+    type Item = &'a mut A;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
     }
 }
 
