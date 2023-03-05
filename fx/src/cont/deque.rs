@@ -3,8 +3,8 @@
 //! date: 2023/03/04 09:15:59 Saturday
 //! brief:
 
-use std::collections::VecDeque;
-use std::ops::Deref;
+use std::ops::{Deref, Range};
+use std::{collections::VecDeque, ops::RangeBounds};
 
 use arrow2::{array::Array, datatypes::DataType};
 
@@ -68,7 +68,7 @@ impl<A: AsRef<dyn Array>> Deque<A> {
         }
     }
 
-    /// Creates an empty [`Deque`]
+    /// Creates an empty [`Deque<A>`]
     pub fn new_empty() -> Self {
         Self {
             datatype: None,
@@ -76,6 +76,7 @@ impl<A: AsRef<dyn Array>> Deque<A> {
         }
     }
 
+    /// Creates an empty [`Deque<A>`] with a datatype
     pub fn new_empty_with_type(datatype: DataType) -> Self {
         Self {
             datatype: Some(datatype),
@@ -83,18 +84,13 @@ impl<A: AsRef<dyn Array>> Deque<A> {
         }
     }
 
-    /// Returns the arrays of this [`Deque<A>`]
-    pub fn arrays(&self) -> (&[A], &[A]) {
-        self.deque.as_slices()
-    }
-
     /// Returns the length of this [`Deque<A>`]
     pub fn len(&self) -> usize {
         self.deque.len()
     }
 
-    /// Returns the total len of this [`Deque<A>`].
-    pub fn total_len(&self) -> usize {
+    /// Returns the total arrays length in this [`Deque<A>`].
+    pub fn array_len(&self) -> usize {
         self.deque.iter().fold(0, |mut acc, e| {
             acc += e.as_ref().len();
             acc
@@ -120,6 +116,23 @@ impl<A: AsRef<dyn Array>> Deque<A> {
         self.datatype.as_ref().map_or(false, |d| d == datatype)
     }
 
+    /// Returns the arrays of this [`Deque<A>`]
+    pub fn as_slices(&self) -> (&[A], &[A]) {
+        self.deque.as_slices()
+    }
+
+    /// Returns a mutable reference to the make contiguous of this [`Deque<A>`].
+    pub fn make_contiguous(&mut self) -> &mut [A] {
+        self.deque.make_contiguous()
+    }
+
+    /// Returns a reference to the make as slice of this [`Deque<A>`].
+    pub fn make_as_slice(&mut self) -> &[A] {
+        self.make_contiguous();
+
+        self.as_slices().0
+    }
+
     /// Provides a reference of A to the element at the given index.
     /// Returns `None` if index out of bounds
     pub fn get(&self, index: usize) -> Option<&A> {
@@ -132,6 +145,9 @@ impl<A: AsRef<dyn Array>> Deque<A> {
         self.deque.get_mut(index)
     }
 
+    /// Inserts an A at the index
+    /// # Errors
+    /// This function will return an error if index > self.len() or doesn't hold a type (empty data)
     pub fn insert(&mut self, index: usize, value: A) -> FxResult<()> {
         if index > self.len() || !self.has_type() {
             return Err(FxError::OutBounds);
@@ -211,6 +227,54 @@ impl<A: AsRef<dyn Array>> Deque<A> {
     /// Shortens the deque
     pub fn truncate(&mut self, len: usize) {
         self.deque.truncate(len);
+    }
+
+    /// Creates an iterator that covers the specified range in the deque
+    pub fn range<R>(&self, range: R) -> DequeIter<A>
+    where
+        R: RangeBounds<usize>,
+    {
+        self.deque.range(range)
+    }
+
+    /// Creates an iterator that covers the specified mutable range in the deque
+    pub fn range_mut<R>(&mut self, range: R) -> DequeIterMut<A>
+    where
+        R: RangeBounds<usize>,
+    {
+        self.deque.range_mut(range)
+    }
+
+    /// Returns a slice to this [`Deque<A>`]
+    /// # Errors
+    /// This function will return an error if offset + length > self.len()
+    pub fn slice(&self, offset: usize, length: usize) -> FxResult<Vec<&A>> {
+        if offset + length > self.len() {
+            return Err(FxError::OutBounds);
+        }
+
+        let iter = self.range(Range {
+            start: offset,
+            end: offset + length,
+        });
+
+        Ok(iter.collect())
+    }
+
+    /// Returns a mutable slice to this [`Deque<A>`]
+    /// # Errors
+    /// This function will return an error if offset + length > self.len()
+    pub fn slice_mut(&mut self, offset: usize, length: usize) -> FxResult<Vec<&mut A>> {
+        if offset + length > self.len() {
+            return Err(FxError::OutBounds);
+        }
+
+        let iter = self.range_mut(Range {
+            start: offset,
+            end: offset + length,
+        });
+
+        Ok(iter.collect())
     }
 
     /// Returns the iter of this [`Deque<A>`].
@@ -324,7 +388,7 @@ mod deque_test {
         let res = deque.push_front(aa3);
         assert!(res.is_ok());
 
-        println!("{:?}", deque.arrays());
+        println!("{:?}", deque.as_slices());
 
         println!("{:?}", deque.into_arrays());
     }
