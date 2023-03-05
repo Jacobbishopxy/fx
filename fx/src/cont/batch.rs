@@ -28,8 +28,6 @@ pub struct FxBatch {
 // impl Purport
 // ================================================================================================
 
-impl StaticPurport for FxBatch {}
-
 #[inherent]
 impl Purport for FxBatch {
     pub fn schema(&self) -> &Schema {

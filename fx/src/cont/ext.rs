@@ -491,8 +491,6 @@ impl FxSeq for BoxVec {
 // Default implementation for [FxSeq; W]
 // ================================================================================================
 
-impl<const W: usize, S> StaticPurport for [S; W] where S: FxSeq {}
-
 impl<const W: usize, S> private::InnerEclectic for [S; W]
 where
     S: FxSeq,
@@ -569,8 +567,6 @@ where
 // Default implementation for Vec<FxSeq>
 // ================================================================================================
 
-impl<S> StaticPurport for Vec<S> where S: FxSeq {}
-
 impl<S> private::InnerEclectic for Vec<S>
 where
     S: FxSeq,
@@ -617,8 +613,6 @@ where
 // ================================================================================================
 // Default implementation for Chunk<dyn Array>
 // ================================================================================================
-
-impl StaticPurport for ChunkArr {}
 
 impl private::InnerEclectic for ChunkArr {
     type Seq = ArcArr;

@@ -24,8 +24,6 @@ pub struct FxBundle<const W: usize, S: FxSeq> {
 // impl Purport
 // ================================================================================================
 
-impl<const W: usize, S> StaticPurport for FxBundle<W, S> where S: FxSeq {}
-
 #[inherent]
 impl<const W: usize, S> Purport for FxBundle<W, S>
 where

@@ -80,7 +80,7 @@ impl<E: Eclectic> FxBatches<E> {
             return Self::new_empty();
         }
 
-        let schema = Self::gen_schema(data.first().unwrap().ref_sequences());
+        let schema = Self::gen_schema(data.first().unwrap());
 
         Self { schema, data }
     }
@@ -94,7 +94,7 @@ impl<E: Eclectic> FxBatches<E> {
             return Self::new_empty();
         }
 
-        let schema = Self::gen_schema_with_names(data.first().unwrap().ref_sequences(), names);
+        let schema = Self::gen_schema_with_names(data.first().unwrap(), names);
 
         Self { schema, data }
     }

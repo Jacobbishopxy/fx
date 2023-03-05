@@ -27,10 +27,6 @@ pub trait Eclectic: private::InnerEclectic + Sized {
         Self::Seq::is_vec()
     }
 
-    fn width(&self) -> usize {
-        self.ref_sequences().iter().count()
-    }
-
     fn lens(&self) -> Vec<usize> {
         self.ref_sequences()
             .iter()
@@ -60,14 +56,6 @@ pub trait Eclectic: private::InnerEclectic + Sized {
         self.ref_sequences().is_empty()
     }
 
-    // fn data_types(&self) -> Vec<&DataType> {
-    //     self.ref_sequences().iter().map(|e| e.data_type()).collect()
-    // }
-
-    // fn data_types_match<T: Eclectic>(&self, d: &T) -> bool {
-    //     self.width() == d.width() && self.data_types() == d.data_types()
-    // }
-
     fn sequences(&self) -> &[Self::Seq] {
         self.ref_sequences()
     }
@@ -78,10 +66,6 @@ pub trait Eclectic: private::InnerEclectic + Sized {
 
     fn check_nulls(&self) -> Vec<bool> {
         self.ref_sequences().iter().map(|s| s.has_null()).collect()
-    }
-
-    fn slice() {
-        unimplemented!()
     }
 }
 

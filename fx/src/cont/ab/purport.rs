@@ -5,7 +5,7 @@
 
 use arrow2::datatypes::{Field, Schema};
 
-use super::FxSeq;
+use super::{Eclectic, FxSeq};
 
 // ================================================================================================
 // Purport
@@ -45,11 +45,9 @@ where
 }
 
 #[inline]
-fn gen_schema<S>(seq: &[S], names: Vec<String>) -> Schema
-where
-    S: FxSeq,
-{
-    let fields = seq
+fn gen_schema<E: Eclectic>(data: &E, names: Vec<String>) -> Schema {
+    let fields = data
+        .sequences()
         .iter()
         .zip(names)
         .map(|(d, n)| Field::new(n, d.data_type().clone(), d.has_null()))
@@ -61,22 +59,21 @@ where
 pub trait StaticPurport {
     // static methods
 
-    fn gen_schema<S>(seq: &[S]) -> Schema
-    where
-        S: FxSeq,
-    {
-        gen_schema(seq, default_cols(seq.len()).collect())
+    fn gen_schema<E: Eclectic>(data: &E) -> Schema {
+        gen_schema(data, default_cols(data.width()).collect())
     }
 
-    fn gen_schema_with_names<S, I, T>(seq: &[S], names: I) -> Schema
+    fn gen_schema_with_names<E, I, T>(data: &E, names: I) -> Schema
     where
-        S: FxSeq,
+        E: Eclectic,
         I: IntoIterator<Item = T>,
         T: AsRef<str>,
     {
-        gen_schema(seq, filled_cols(seq.len(), names))
+        gen_schema(data, filled_cols(data.width(), names))
     }
 }
+
+impl<E: Eclectic> StaticPurport for E {}
 
 pub trait Purport: StaticPurport {
     fn schema(&self) -> &Schema;

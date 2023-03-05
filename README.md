@@ -64,13 +64,15 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 
 - `FxSeq`: common behavior of various sequences type: `Array` and `MutableArray`
 
+- `Purport`: schema related
+
+- `Confined`: typed and fixed length
+
 - `Eclectic`: common behavior of a collection of `FxSeq`
 
-- `Receptacle`: common behavior of the `Eclectic` types
+- `Receptacle`: common behavior of the `Confined` types
 
-- `Congruent`: common behavior of the `Chunk`
-
-- `Purport`: common behavior of the schema
+- `Congruent`: `Chunk` related
 
 ### Types
 
