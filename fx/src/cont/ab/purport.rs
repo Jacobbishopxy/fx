@@ -73,6 +73,7 @@ pub trait StaticPurport {
     }
 }
 
+/// impl [`StaticPurport`] for all [`Eclectic`]
 impl<E: Eclectic> StaticPurport for E {}
 
 pub trait Purport: StaticPurport {

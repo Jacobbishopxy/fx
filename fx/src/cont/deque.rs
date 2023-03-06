@@ -33,6 +33,16 @@ pub struct Deque<A: AsRef<dyn Array>> {
 }
 
 impl<A: AsRef<dyn Array>> Deque<A> {
+    // ============================================================================================
+    // private methods
+    // ============================================================================================
+
+    // None
+
+    // ============================================================================================
+    // public methods
+    // ============================================================================================
+
     /// Creates a new [`Deque`]
     /// # Panic
     /// Iff the arrays do not have the same datatype
@@ -224,6 +234,31 @@ impl<A: AsRef<dyn Array>> Deque<A> {
         }
     }
 
+    // pub fn pop_many_back(&mut self, num: usize)
+    // pub fn pop_many_front(&mut self, num: usize)
+
+    pub fn push_many_back<I>(&mut self, value: I) -> FxResult<()>
+    where
+        I: IntoIterator<Item = A>,
+    {
+        for a in value.into_iter() {
+            self.push_back(a)?;
+        }
+
+        Ok(())
+    }
+
+    pub fn push_many_front<I>(&mut self, value: I) -> FxResult<()>
+    where
+        I: IntoIterator<Item = A>,
+    {
+        for a in value.into_iter() {
+            self.push_front(a)?;
+        }
+
+        Ok(())
+    }
+
     /// Shortens the deque
     pub fn truncate(&mut self, len: usize) {
         self.deque.truncate(len);
@@ -287,6 +322,10 @@ impl<A: AsRef<dyn Array>> Deque<A> {
         self.deque.iter_mut()
     }
 }
+
+// ================================================================================================
+// From & Deref
+// ================================================================================================
 
 impl<A: AsRef<dyn Array>> From<Deque<A>> for Vec<A> {
     fn from(q: Deque<A>) -> Self {

@@ -156,35 +156,43 @@ impl<const W: usize> FxTable<W> {
         Ok(Self { schema: sch, data })
     }
 
+    /// Returns a reference to the data of this [`FxTable<W>`].
     pub fn data(&self) -> &[DequeArr; W] {
         &self.data
     }
 
+    /// Returns the deque lens of this [`FxTable<W>`].
     pub fn deque_lens(&self) -> [usize; W] {
         self.data.each_ref().map(|dq| dq.len())
     }
 
+    /// Returns the array lens of this [`FxTable<W>`].
     pub fn array_lens(&self) -> [usize; W] {
         self.data.each_ref().map(|dq| dq.array_len())
     }
 
+    /// Returns the max deque len of this [`FxTable<W>`].
     pub fn max_deque_len(&self) -> Option<usize> {
         self.deque_lens().iter().max().cloned()
     }
 
+    /// Returns the max array len of this [`FxTable<W>`].
     pub fn max_array_len(&self) -> Option<usize> {
         self.array_lens().iter().max().cloned()
     }
 
+    /// Returns the min deque len of this [`FxTable<W>`].
     pub fn min_deque_len(&self) -> Option<usize> {
         self.deque_lens().iter().min().cloned()
     }
 
+    /// Returns the min array len of this [`FxTable<W>`].
     pub fn min_array_len(&self) -> Option<usize> {
         self.array_lens().iter().min().cloned()
     }
 
-    pub fn is_deque_lens_same(&self) -> bool {
+    /// True if the deque lens are the same.
+    pub fn is_deque_lens_equal(&self) -> bool {
         let l = self.deque_lens();
 
         l.first()
@@ -192,7 +200,8 @@ impl<const W: usize> FxTable<W> {
             .unwrap_or(true)
     }
 
-    pub fn is_array_lens_same(&self) -> bool {
+    /// True if the array lens are the same.
+    pub fn is_array_lens_equal(&self) -> bool {
         let l = self.array_lens();
 
         l.first()
@@ -200,20 +209,24 @@ impl<const W: usize> FxTable<W> {
             .unwrap_or(true)
     }
 
+    /// True if all deques are empty.
     pub fn is_empty(&self) -> bool {
         self.data.iter().all(|dq| dq.is_empty())
     }
 
+    /// True if all deques has no datatype initialized.
     pub fn has_type(&self) -> bool {
         self.data.iter().all(|dq| dq.has_type())
     }
 
+    /// Turns this [`FxTable<W>`] into a array of [`ArcArr`] vectors.
     pub fn into_arrays(self) -> [Vec<ArcArr>; W] {
         self.data.map(|dq| dq.into_arrays())
     }
 
+    /// True if datatypes equals to self.datatypes.
     pub fn data_types_match(&self, datatypes: &[DataType]) -> bool {
-        if datatypes.len() < W {
+        if datatypes.len() != W {
             return false;
         }
 
@@ -223,14 +236,17 @@ impl<const W: usize> FxTable<W> {
             .all(|(dq, d)| dq.data_type_match(d))
     }
 
+    /// Returns references to each deque.
     pub fn as_slices(&self) -> [(&[ArcArr], &[ArcArr]); W] {
         self.data.each_ref().map(|dq| dq.as_slices())
     }
 
+    /// Makes all deque contiguos and returns their mutable references.
     pub fn make_contiguous(&mut self) -> [&mut [ArcArr]; W] {
         self.data.each_mut().map(|dq| dq.make_contiguous())
     }
 
+    /// Makes all deque contiguous and returns their references.
     pub fn make_as_slice(&mut self) -> [&[ArcArr]; W] {
         self.make_contiguous();
 
