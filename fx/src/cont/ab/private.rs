@@ -8,7 +8,7 @@ use std::hash::Hash;
 use arrow2::chunk::Chunk;
 use arrow2::datatypes::Schema;
 
-use super::{Confined, FxSeq};
+use super::{Confined, Eclectic, FxSeq};
 use crate::cont::ArcArr;
 use crate::error::FxResult;
 
@@ -47,12 +47,12 @@ pub trait InnerEclecticMutChunk: InnerEclectic {
 // ================================================================================================
 
 // #[doc(hidden)]
-pub trait InnerReceptacle<const SCHEMA: bool, I>
+pub trait InnerReceptacle<const SCHEMA: bool, I, E>
 where
     I: Hash + Eq,
+    E: Eclectic + Confined,
     Self: Sized,
 {
-    type In: Confined;
     type OutRef<'a>
     where
         Self: 'a;
@@ -68,11 +68,11 @@ where
 
     fn get_mut_chunk<'a>(&'a mut self, key: I) -> FxResult<Self::OutMut<'a>>;
 
-    fn insert_chunk_type_unchecked(&mut self, key: I, data: Self::In) -> FxResult<()>;
+    fn insert_chunk_type_unchecked(&mut self, key: I, data: E) -> FxResult<()>;
 
     fn remove_chunk(&mut self, key: I) -> FxResult<()>;
 
-    fn push_chunk_type_unchecked(&mut self, data: Self::In) -> FxResult<()>;
+    fn push_chunk_type_unchecked(&mut self, data: E) -> FxResult<()>;
 
     fn pop_chunk(&mut self) -> FxResult<()>;
 }

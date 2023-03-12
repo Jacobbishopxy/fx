@@ -138,6 +138,8 @@ Structs and enums provided by Fx crate:
 
 ## Todo
 
+- `fx-macro` supports more builder options for `FxBundle`
+
 - `io::parquet` needs parallel read/write and flexible data param, i.e. `impl FxBatchBuilderGenerator`
 
 - Better conversion among ArcArr/BoxArr/ArcVec/BoxVec

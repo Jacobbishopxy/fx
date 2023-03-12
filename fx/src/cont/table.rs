@@ -401,9 +401,11 @@ impl<const W: usize> FxTable<W> {
 // impl Receptacle
 // ================================================================================================
 
-// [ArcArr; W] -> FxTable
-impl<const W: usize> private::InnerReceptacle<true, usize> for FxTable<W> {
-    type In = [ArcArr; W];
+// E -> FxTable
+impl<const W: usize, E> private::InnerReceptacle<true, usize, E> for FxTable<W>
+where
+    E: Eclectic + Confined,
+{
     type OutRef<'a> = [&'a ArcArr; W] where Self: 'a;
     type OutMut<'a> = [&'a mut ArcArr; W] where Self : 'a;
 
@@ -423,7 +425,7 @@ impl<const W: usize> private::InnerReceptacle<true, usize> for FxTable<W> {
         self.deque_get_mut_ok(key)
     }
 
-    fn insert_chunk_type_unchecked(&mut self, key: usize, data: Self::In) -> FxResult<()> {
+    fn insert_chunk_type_unchecked(&mut self, key: usize, data: E) -> FxResult<()> {
         self.deque_insert(key, data)
     }
 
@@ -433,7 +435,7 @@ impl<const W: usize> private::InnerReceptacle<true, usize> for FxTable<W> {
         Ok(())
     }
 
-    fn push_chunk_type_unchecked(&mut self, data: Self::In) -> FxResult<()> {
+    fn push_chunk_type_unchecked(&mut self, data: E) -> FxResult<()> {
         self.deque_push_back(data)
     }
 

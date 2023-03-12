@@ -9,7 +9,7 @@
 
 use std::hash::Hash;
 
-use crate::ab::{Confined, Receptacle};
+use crate::ab::{Confined, Eclectic, Receptacle};
 use crate::cont::{ArcArr, ChunkArr, FxBatch, FxBatches, FxBundle, FxBundles, FxTable};
 use crate::error::{FxError, FxResult};
 
@@ -83,14 +83,16 @@ pub trait FxBundleBuilderGenerator<const W: usize>: Sized {
 // 4. FxBundleBatchesBuilderGenerator:  Bundle -> Batches
 // 5. FxBundlesBuilderGenerator:        [ArcArr; W] -> Bundles
 // 6. FxArraaTableGenerator:            [ArcArr; W] -> Table
+// 7. FxChunkTableGenerator:            ChunkArr -> Table
+// 8. FxBatchTableGenerator:            Batch -> Table
 // ================================================================================================
 
 pub trait FxCollectionBuilder<const SCHEMA: bool, B, R, T, I, C>: Sized + Send
 where
     B: FxEclecticBuilder<R, C>,
-    T: Receptacle<SCHEMA, I, In = C>,
+    T: Receptacle<SCHEMA, I, C>,
     I: Hash + Eq,
-    C: Confined,
+    C: Eclectic + Confined,
 {
     fn new() -> FxResult<Self>;
 
@@ -243,8 +245,40 @@ pub trait FxArraaTableGenerator<const W: usize>: Sized {
 }
 
 // ChunkArr -> Table
+pub trait FxChunkTableGenerator<const W: usize>: Sized {
+    type ChunkBuilder: FxEclecticBuilder<Self, ChunkArr>;
+
+    type TableBuilder: FxCollectionBuilder<
+        true,
+        Self::ChunkBuilder,
+        Self,
+        FxTable<W>,
+        usize,
+        ChunkArr,
+    >;
+
+    fn gen_chunk_table_builder() -> FxResult<Self::TableBuilder> {
+        Self::TableBuilder::new()
+    }
+}
 
 // Batch -> Table
+pub trait FxBatchTableGenerator<const W: usize>: Sized {
+    type BatchBuilder: FxEclecticBuilder<Self, FxBatch>;
+
+    type TableBuilder: FxCollectionBuilder<
+        true,
+        Self::BatchBuilder,
+        Self,
+        FxTable<W>,
+        usize,
+        FxBatch,
+    >;
+
+    fn gen_batch_table_builder() -> FxResult<Self::TableBuilder> {
+        Self::TableBuilder::new()
+    }
+}
 
 // ================================================================================================
 // Test (Check tests/fx_builder_test.rs)

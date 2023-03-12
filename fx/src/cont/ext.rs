@@ -672,9 +672,7 @@ impl Confined for Vec<ChunkArr> {
 // Default implementation for Vec<E> where E: Eclectic
 // ================================================================================================
 
-impl<E: Eclectic + Confined> private::InnerReceptacle<false, usize> for Vec<E> {
-    type In = E;
-
+impl<E: Eclectic + Confined> private::InnerReceptacle<false, usize, E> for Vec<E> {
     type OutRef<'a> = &'a E where Self: 'a;
 
     type OutMut<'a> = &'a mut E where Self: 'a;
@@ -695,7 +693,7 @@ impl<E: Eclectic + Confined> private::InnerReceptacle<false, usize> for Vec<E> {
         self.get_mut(key).ok_or(FxError::OutBounds)
     }
 
-    fn insert_chunk_type_unchecked(&mut self, key: usize, data: Self::In) -> FxResult<()> {
+    fn insert_chunk_type_unchecked(&mut self, key: usize, data: E) -> FxResult<()> {
         if key > self.len() {
             return Err(FxError::OutBounds);
         }
@@ -715,7 +713,7 @@ impl<E: Eclectic + Confined> private::InnerReceptacle<false, usize> for Vec<E> {
         Ok(())
     }
 
-    fn push_chunk_type_unchecked(&mut self, data: Self::In) -> FxResult<()> {
+    fn push_chunk_type_unchecked(&mut self, data: E) -> FxResult<()> {
         self.push(data);
 
         Ok(())
@@ -739,13 +737,11 @@ where
 {
 }
 
-impl<IDX, E> private::InnerReceptacle<false, IDX> for HashMap<IDX, E>
+impl<IDX, E> private::InnerReceptacle<false, IDX, E> for HashMap<IDX, E>
 where
     IDX: Hash + Eq,
     E: Eclectic,
 {
-    type In = E;
-
     type OutRef<'a> = &'a E where Self: 'a;
 
     type OutMut<'a> = &'a mut E where Self: 'a;
@@ -766,7 +762,7 @@ where
         self.get_mut(&key).ok_or(FxError::NoKey)
     }
 
-    fn insert_chunk_type_unchecked(&mut self, key: IDX, data: Self::In) -> FxResult<()> {
+    fn insert_chunk_type_unchecked(&mut self, key: IDX, data: E) -> FxResult<()> {
         self.insert(key, data).ok_or(FxError::NoKey)?;
 
         Ok(())
@@ -778,7 +774,7 @@ where
         Ok(())
     }
 
-    fn push_chunk_type_unchecked(&mut self, _data: Self::In) -> FxResult<()> {
+    fn push_chunk_type_unchecked(&mut self, _data: E) -> FxResult<()> {
         unimplemented!()
     }
 

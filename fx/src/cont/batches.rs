@@ -37,9 +37,7 @@ impl<E: Eclectic> Purport for FxBatches<E> {
 // ================================================================================================
 
 // ChunkArr -> FxBatches
-impl<E: Eclectic + Confined> private::InnerReceptacle<true, usize> for FxBatches<E> {
-    type In = E;
-
+impl<E: Eclectic + Confined> private::InnerReceptacle<true, usize, E> for FxBatches<E> {
     type OutRef<'a> = &'a E where Self: 'a;
 
     type OutMut<'a> = &'a mut E where Self: 'a;
@@ -63,7 +61,7 @@ impl<E: Eclectic + Confined> private::InnerReceptacle<true, usize> for FxBatches
         self.data.get_mut_chunk(key)
     }
 
-    fn insert_chunk_type_unchecked(&mut self, key: usize, data: Self::In) -> FxResult<()> {
+    fn insert_chunk_type_unchecked(&mut self, key: usize, data: E) -> FxResult<()> {
         self.data.insert_chunk_type_unchecked(key, data)
     }
 
@@ -71,7 +69,7 @@ impl<E: Eclectic + Confined> private::InnerReceptacle<true, usize> for FxBatches
         self.data.remove_chunk(key)
     }
 
-    fn push_chunk_type_unchecked(&mut self, data: Self::In) -> FxResult<()> {
+    fn push_chunk_type_unchecked(&mut self, data: E) -> FxResult<()> {
         self.data.push_chunk_type_unchecked(data)
     }
 

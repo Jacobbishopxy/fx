@@ -37,9 +37,7 @@ impl<const W: usize, S: FxSeq> Purport for FxBundles<W, S> {
 // ================================================================================================
 
 // [S; W] -> Bundles
-impl<const W: usize, S: FxSeq> private::InnerReceptacle<true, usize> for FxBundles<W, S> {
-    type In = [S; W];
-
+impl<const W: usize, S: FxSeq> private::InnerReceptacle<true, usize, [S; W]> for FxBundles<W, S> {
     type OutRef<'a> = &'a [S; W] where Self: 'a;
 
     type OutMut<'a> = &'a mut [S; W] where Self: 'a;
@@ -63,7 +61,7 @@ impl<const W: usize, S: FxSeq> private::InnerReceptacle<true, usize> for FxBundl
         self.data.get_mut(key)
     }
 
-    fn insert_chunk_type_unchecked(&mut self, key: usize, data: Self::In) -> FxResult<()> {
+    fn insert_chunk_type_unchecked(&mut self, key: usize, data: [S; W]) -> FxResult<()> {
         self.data.insert_chunk_type_unchecked(key, data)
     }
 
@@ -71,7 +69,7 @@ impl<const W: usize, S: FxSeq> private::InnerReceptacle<true, usize> for FxBundl
         self.data.remove_chunk(key)
     }
 
-    fn push_chunk_type_unchecked(&mut self, data: Self::In) -> FxResult<()> {
+    fn push_chunk_type_unchecked(&mut self, data: [S; W]) -> FxResult<()> {
         self.data.push_chunk_type_unchecked(data)
     }
 

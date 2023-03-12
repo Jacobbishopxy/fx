@@ -5,114 +5,28 @@
 
 use std::hash::Hash;
 
-use crate::ab::{private, Confined};
+use crate::ab::{private, Confined, Eclectic};
 use crate::error::{FxError, FxResult};
 
 // ================================================================================================
 // Receptacle
 // ================================================================================================
 
-// pub trait Receptacle<const SCHEMA: bool, I, C>:
-//     private::InnerReceptacle<SCHEMA, I, C> + Confined
-// where
-//     I: Hash + Eq,
-//     C: Confined,
-// {
-//     fn new_empty() -> Self {
-//         private::InnerReceptacle::<SCHEMA, I, C>::new_empty()
-//     }
-
-//     fn data_types_check(&self, c: &C) -> bool {
-//         Confined::data_types_match(self, c)
-//     }
-
-//     fn data_types_match<T>(&self, d: &T) -> bool
-//     where
-//         T: Receptacle<SCHEMA, I, C>,
-//     {
-//         self.width() == d.width() && self.data_types() == d.data_types()
-//     }
-
-//     fn get(&self, key: I) -> FxResult<&C> {
-//         self.get_chunk(key)
-//     }
-
-//     fn get_mut(&mut self, key: I) -> FxResult<&mut C> {
-//         self.get_mut_chunk(key)
-//     }
-
-//     fn insert(&mut self, key: I, data: C) -> FxResult<()> {
-//         if SCHEMA && !self.data_types_check(&data) {
-//             return Err(FxError::SchemaMismatch);
-//         }
-
-//         self.insert_chunk_type_unchecked(key, data)
-//     }
-
-//     fn remove(&mut self, key: I) -> FxResult<()> {
-//         self.remove_chunk(key)
-//     }
-
-//     fn remove_many<ITR>(&mut self, keys: ITR) -> FxResult<()>
-//     where
-//         ITR: IntoIterator<Item = I>,
-//     {
-//         for i in keys {
-//             self.remove(i)?;
-//         }
-
-//         Ok(())
-//     }
-
-//     fn push(&mut self, data: C) -> FxResult<()> {
-//         if SCHEMA && !self.data_types_check(&data) {
-//             return Err(FxError::SchemaMismatch);
-//         }
-
-//         self.push_chunk_type_unchecked(data)
-//     }
-
-//     fn extend<ITR>(&mut self, data: ITR) -> FxResult<()>
-//     where
-//         ITR: IntoIterator<Item = C>,
-//     {
-//         for d in data {
-//             self.push(d)?;
-//         }
-
-//         Ok(())
-//     }
-
-//     fn pop(&mut self) -> FxResult<()> {
-//         self.pop_chunk()
-//     }
-// }
-
-// impl<const SCHEMA: bool, I, C, T> Receptacle<SCHEMA, I, C> for T
-// where
-//     T: private::InnerReceptacle<SCHEMA, I, C> + Confined,
-//     I: Hash + Eq,
-//     C: Confined,
-// {
-// }
-
-pub trait Receptacle<const SCHEMA: bool, I>:
-    private::InnerReceptacle<SCHEMA, I> + Confined
+pub trait Receptacle<const SCHEMA: bool, I, E>:
+    private::InnerReceptacle<SCHEMA, I, E> + Confined
 where
     I: Hash + Eq,
+    E: Eclectic + Confined,
 {
     fn new_empty() -> Self {
-        private::InnerReceptacle::<SCHEMA, I>::new_empty()
+        private::InnerReceptacle::<SCHEMA, I, E>::new_empty()
     }
 
     fn data_types_check<C: Confined>(&self, c: &C) -> bool {
         Confined::data_types_match(self, c)
     }
 
-    fn data_types_match<T>(&self, d: &T) -> bool
-    where
-        T: Receptacle<SCHEMA, I>,
-    {
+    fn data_types_match(&self, d: &E) -> bool {
         self.width() == d.width() && self.data_types() == d.data_types()
     }
 
@@ -124,7 +38,7 @@ where
         self.get_mut_chunk(key)
     }
 
-    fn insert(&mut self, key: I, data: Self::In) -> FxResult<()> {
+    fn insert(&mut self, key: I, data: E) -> FxResult<()> {
         if SCHEMA && !self.data_types_check(&data) {
             return Err(FxError::SchemaMismatch);
         }
@@ -147,7 +61,7 @@ where
         Ok(())
     }
 
-    fn push(&mut self, data: Self::In) -> FxResult<()> {
+    fn push(&mut self, data: E) -> FxResult<()> {
         if SCHEMA && !self.data_types_check(&data) {
             return Err(FxError::SchemaMismatch);
         }
@@ -157,7 +71,7 @@ where
 
     fn extend<ITR>(&mut self, data: ITR) -> FxResult<()>
     where
-        ITR: IntoIterator<Item = Self::In>,
+        ITR: IntoIterator<Item = E>,
     {
         for d in data {
             self.push(d)?;
@@ -171,9 +85,10 @@ where
     }
 }
 
-impl<const SCHEMA: bool, I, T> Receptacle<SCHEMA, I> for T
+impl<const SCHEMA: bool, I, E, T> Receptacle<SCHEMA, I, E> for T
 where
-    T: private::InnerReceptacle<SCHEMA, I> + Confined,
+    T: private::InnerReceptacle<SCHEMA, I, E> + Confined,
     I: Hash + Eq,
+    E: Eclectic + Confined,
 {
 }
