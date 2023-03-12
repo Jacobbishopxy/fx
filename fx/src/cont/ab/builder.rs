@@ -82,6 +82,7 @@ pub trait FxBundleBuilderGenerator<const W: usize>: Sized {
 // 3. FxBatchBatchesBuilderGenerator:   Batch -> Batches
 // 4. FxBundleBatchesBuilderGenerator:  Bundle -> Batches
 // 5. FxBundlesBuilderGenerator:        [ArcArr; W] -> Bundles
+// 6. FxArraaTableGenerator:            [ArcArr; W] -> Table
 // ================================================================================================
 
 pub trait FxCollectionBuilder<const SCHEMA: bool, B, R, T, I, C>: Sized + Send

@@ -47,31 +47,6 @@ pub trait InnerEclecticMutChunk: InnerEclectic {
 // ================================================================================================
 
 // #[doc(hidden)]
-// pub trait InnerReceptacle<const SCHEMA: bool, I, C>
-// where
-//     I: Hash + Eq,
-//     Self: Sized,
-// {
-//     fn new_empty() -> Self;
-
-//     fn ref_schema(&self) -> Option<&Schema>;
-
-//     fn get_chunk(&self, key: I) -> FxResult<&C>;
-
-//     fn get_mut_chunk(&mut self, key: I) -> FxResult<&mut C>;
-
-//     fn insert_chunk_type_unchecked(&mut self, key: I, data: C) -> FxResult<()>;
-
-//     fn remove_chunk(&mut self, key: I) -> FxResult<()>;
-
-//     // TODO: vec-like behavior, take it out to a new trait
-//     fn push_chunk_type_unchecked(&mut self, data: C) -> FxResult<()>;
-
-//     // TODO: vec-like behavior, take it out to a new trait
-//     fn pop_chunk(&mut self) -> FxResult<()>;
-// }
-
-// #[doc(hidden)]
 pub trait InnerReceptacle<const SCHEMA: bool, I>
 where
     I: Hash + Eq,

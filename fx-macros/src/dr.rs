@@ -30,8 +30,9 @@ const CHUNK: &str = "chunk"; // Chunk<Arc<dyn Array>>
 const ARRAA: &str = "arraa"; // [Arc<dyn Array>; W]. 'arraa' denotes (Array of ArcArr)
 const BATCH: &str = "batch"; // FxBatch
 const BUNDLE: &str = "bundle"; // FxBundle<W; Arc<dyn Array>>
+const TABLE: &str = "table"; // FxTable
 
-const FX_OPTIONS: [&str; 3] = [CHUNK, BATCH, BUNDLE];
+const FX_OPTIONS: [&str; 4] = [CHUNK, BATCH, BUNDLE, TABLE];
 
 // Note: Array is a trait provided by [arrow](https://github.com/jorgecarleitao/arrow2)
 
@@ -79,6 +80,7 @@ fn gen_eclectic_type(schema_len: usize, s: &str) -> TokenStream {
         ARRAA => quote! {[ArcArr; #schema_len]},
         BATCH => quote! {FxBatch},
         BUNDLE => quote! {FxBundle::<#schema_len, ArcArr>},
+        TABLE => quote! {ArcArr::<#schema_len>},
         _ => quote! {FxBatch}, // default to FxBatch
     }
 }
@@ -90,6 +92,7 @@ fn gen_container_type(schema_len: usize, s: &str) -> TokenStream {
         CHUNK => quote! {Vec<ChunkArr>},
         BATCH => quote! {FxBatches::<ChunkArr>},
         BUNDLE => quote! {FxBundles::<#schema_len, ArcArr>},
+        TABLE => quote! {FxTable::<#schema_len>},
         _ => quote! {FxBatches::<ChunkArr>}, // default to FxBatches
     }
 }
@@ -145,8 +148,6 @@ fn gen_arrow_field(f: &Field) -> TokenStream {
 // ================================================================================================
 // Sql related Impl
 // ================================================================================================
-
-// TODO: generic container
 
 /// io: sql
 fn gen_impl_from_sql_row(struct_name: &Ident, named_fields: &NamedFields) -> TokenStream {
@@ -268,6 +269,9 @@ fn gen_bd_res(
         BUNDLE => quote! {
             Ok(FxBundle::<#schema_len, ArcArr>::new_with_names([ #(#build_ctt)* ], [ #(#names),* ]))
         },
+        TABLE => quote! {
+            FxTable::<#schema_len>::try_new_with_names(vec![ #(#build_ctt)* ], [ #(#names),* ])
+        },
         _ => panic!("Unsupported type"),
     }
 }
@@ -377,6 +381,12 @@ fn gen_multiple_impl_eclectic(
                 gen_impl_eclectic(BUNDLE, schema_len, struct_name, build_name, named_fields),
             ]
         }
+        TABLE => {
+            vec![
+                // no schema
+                gen_impl_eclectic(ARRAA, schema_len, struct_name, build_name, named_fields),
+            ]
+        }
         _ => panic!("Unsupported type"),
     };
 
@@ -411,6 +421,12 @@ fn gen_collection_builder_struct(
         BUNDLE => quote! {
             struct #container_build_name {
                 result: FxBundles::<#schema_len, ArcArr>,
+                buffer: Option<#eclectic_build_name<[ArcArr; #schema_len]>>
+            }
+        },
+        TABLE => quote! {
+            struct #container_build_name {
+                result: FxTable::<#schema_len>,
                 buffer: Option<#eclectic_build_name<[ArcArr; #schema_len]>>
             }
         },
@@ -463,6 +479,16 @@ fn gen_collection_type(
                 let buffer = Some(#struct_name::gen_arraa_builder());
             },
         ),
+        TABLE => (
+            true,
+            quote! { [ArcArr; #schema_len] },
+            quote! { FxTable::<#schema_len> },
+            quote! {
+                let schema = ::arrow2::datatypes::Schema::from(vec![#(#fields_ctt),*]);
+                let result = FxTable::<#schema_len>::empty_with_schema(schema);
+                let buffer = Some(#struct_name::gen_arraa_builder());
+            },
+        ),
         _ => panic!("Unsupported type"),
     }
 }
@@ -495,6 +521,13 @@ fn gen_impl_cbg(
                 type ArraaBuilder = #eclectic_build_name<[ArcArr; #schema_len]>;
 
                 type BundlesBuilder = #collection_build_name;
+            }
+        },
+        TABLE => quote! {
+            impl FxArraaTableGenerator<#schema_len> for #struct_name {
+                type ArraaBuilder = #eclectic_build_name<[ArcArr; #schema_len]>;
+
+                type TableBuilder = #collection_build_name;
             }
         },
         _ => panic!("Unsupported type"),
