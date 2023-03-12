@@ -672,7 +672,13 @@ impl Confined for Vec<ChunkArr> {
 // Default implementation for Vec<E> where E: Eclectic
 // ================================================================================================
 
-impl<E: Eclectic> private::InnerReceptacle<false, usize, E> for Vec<E> {
+impl<E: Eclectic + Confined> private::InnerReceptacle<false, usize> for Vec<E> {
+    type In = E;
+
+    type OutRef<'a> = &'a E where Self: 'a;
+
+    type OutMut<'a> = &'a mut E where Self: 'a;
+
     fn new_empty() -> Self {
         Vec::<E>::new()
     }
@@ -681,15 +687,15 @@ impl<E: Eclectic> private::InnerReceptacle<false, usize, E> for Vec<E> {
         None
     }
 
-    fn get_chunk(&self, key: usize) -> FxResult<&E> {
+    fn get_chunk<'a>(&'a self, key: usize) -> FxResult<Self::OutRef<'a>> {
         self.get(key).ok_or(FxError::OutBounds)
     }
 
-    fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut E> {
+    fn get_mut_chunk<'a>(&'a mut self, key: usize) -> FxResult<Self::OutMut<'a>> {
         self.get_mut(key).ok_or(FxError::OutBounds)
     }
 
-    fn insert_chunk_type_unchecked(&mut self, key: usize, data: E) -> FxResult<()> {
+    fn insert_chunk_type_unchecked(&mut self, key: usize, data: Self::In) -> FxResult<()> {
         if key > self.len() {
             return Err(FxError::OutBounds);
         }
@@ -709,7 +715,7 @@ impl<E: Eclectic> private::InnerReceptacle<false, usize, E> for Vec<E> {
         Ok(())
     }
 
-    fn push_chunk_type_unchecked(&mut self, data: E) -> FxResult<()> {
+    fn push_chunk_type_unchecked(&mut self, data: Self::In) -> FxResult<()> {
         self.push(data);
 
         Ok(())
@@ -733,11 +739,17 @@ where
 {
 }
 
-impl<IDX, E> private::InnerReceptacle<false, IDX, E> for HashMap<IDX, E>
+impl<IDX, E> private::InnerReceptacle<false, IDX> for HashMap<IDX, E>
 where
     IDX: Hash + Eq,
     E: Eclectic,
 {
+    type In = E;
+
+    type OutRef<'a> = &'a E where Self: 'a;
+
+    type OutMut<'a> = &'a mut E where Self: 'a;
+
     fn new_empty() -> Self {
         HashMap::<IDX, E>::new()
     }
@@ -746,15 +758,15 @@ where
         None
     }
 
-    fn get_chunk(&self, key: IDX) -> FxResult<&E> {
+    fn get_chunk<'a>(&'a self, key: IDX) -> FxResult<Self::OutRef<'a>> {
         self.get(&key).ok_or(FxError::NoKey)
     }
 
-    fn get_mut_chunk(&mut self, key: IDX) -> FxResult<&mut E> {
+    fn get_mut_chunk<'a>(&'a mut self, key: IDX) -> FxResult<Self::OutMut<'a>> {
         self.get_mut(&key).ok_or(FxError::NoKey)
     }
 
-    fn insert_chunk_type_unchecked(&mut self, key: IDX, data: E) -> FxResult<()> {
+    fn insert_chunk_type_unchecked(&mut self, key: IDX, data: Self::In) -> FxResult<()> {
         self.insert(key, data).ok_or(FxError::NoKey)?;
 
         Ok(())
@@ -766,7 +778,7 @@ where
         Ok(())
     }
 
-    fn push_chunk_type_unchecked(&mut self, _data: E) -> FxResult<()> {
+    fn push_chunk_type_unchecked(&mut self, _data: Self::In) -> FxResult<()> {
         unimplemented!()
     }
 

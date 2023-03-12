@@ -37,7 +37,13 @@ impl<E: Eclectic> Purport for FxBatches<E> {
 // ================================================================================================
 
 // ChunkArr -> FxBatches
-impl<E: Eclectic> private::InnerReceptacle<true, usize, E> for FxBatches<E> {
+impl<E: Eclectic + Confined> private::InnerReceptacle<true, usize> for FxBatches<E> {
+    type In = E;
+
+    type OutRef<'a> = &'a E where Self: 'a;
+
+    type OutMut<'a> = &'a mut E where Self: 'a;
+
     fn new_empty() -> Self {
         Self {
             schema: Schema::from(Vec::<Field>::new()),
@@ -49,15 +55,15 @@ impl<E: Eclectic> private::InnerReceptacle<true, usize, E> for FxBatches<E> {
         Some(&self.schema)
     }
 
-    fn get_chunk(&self, key: usize) -> FxResult<&E> {
+    fn get_chunk<'a>(&'a self, key: usize) -> FxResult<Self::OutRef<'a>> {
         self.data.get_chunk(key)
     }
 
-    fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut E> {
+    fn get_mut_chunk<'a>(&'a mut self, key: usize) -> FxResult<Self::OutMut<'a>> {
         self.data.get_mut_chunk(key)
     }
 
-    fn insert_chunk_type_unchecked(&mut self, key: usize, data: E) -> FxResult<()> {
+    fn insert_chunk_type_unchecked(&mut self, key: usize, data: Self::In) -> FxResult<()> {
         self.data.insert_chunk_type_unchecked(key, data)
     }
 
@@ -65,7 +71,7 @@ impl<E: Eclectic> private::InnerReceptacle<true, usize, E> for FxBatches<E> {
         self.data.remove_chunk(key)
     }
 
-    fn push_chunk_type_unchecked(&mut self, data: E) -> FxResult<()> {
+    fn push_chunk_type_unchecked(&mut self, data: Self::In) -> FxResult<()> {
         self.data.push_chunk_type_unchecked(data)
     }
 

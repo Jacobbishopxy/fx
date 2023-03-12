@@ -10,7 +10,7 @@
 use std::hash::Hash;
 
 use crate::ab::{Confined, Receptacle};
-use crate::cont::{ArcArr, ChunkArr, FxBatch, FxBatches, FxBundle, FxBundles};
+use crate::cont::{ArcArr, ChunkArr, FxBatch, FxBatches, FxBundle, FxBundles, FxTable};
 use crate::error::{FxError, FxResult};
 
 // ================================================================================================
@@ -87,7 +87,7 @@ pub trait FxBundleBuilderGenerator<const W: usize>: Sized {
 pub trait FxCollectionBuilder<const SCHEMA: bool, B, R, T, I, C>: Sized + Send
 where
     B: FxEclecticBuilder<R, C>,
-    T: Receptacle<SCHEMA, I, C>,
+    T: Receptacle<SCHEMA, I, In = C>,
     I: Hash + Eq,
     C: Confined,
 {
@@ -223,25 +223,23 @@ pub trait FxBundlesBuilderGenerator<const W: usize>: Sized {
     }
 }
 
-// TODO: impl Receptacle for `FxTable`
-
 // [ArcArr; W] -> Table
-// pub trait FxArraaTableGenerator<const W: usize>: Sized {
-//     type ArraaBuilder: FxEclecticBuilder<Self, [ArcArr; W]>;
+pub trait FxArraaTableGenerator<const W: usize>: Sized {
+    type ArraaBuilder: FxEclecticBuilder<Self, [ArcArr; W]>;
 
-//     type TableBuilder: FxCollectionBuilder<
-//         true,
-//         Self::ArraaBuilder,
-//         Self,
-//         FxTable<W>,
-//         usize,
-//         [ArcArr; W],
-//     >;
+    type TableBuilder: FxCollectionBuilder<
+        true,
+        Self::ArraaBuilder,
+        Self,
+        FxTable<W>,
+        usize,
+        [ArcArr; W],
+    >;
 
-//     fn gen_arraa_table_builder() -> FxResult<Self::TableBuilder> {
-//         Self::TableBuilder::new()
-//     }
-// }
+    fn gen_arraa_table_builder() -> FxResult<Self::TableBuilder> {
+        Self::TableBuilder::new()
+    }
+}
 
 // ChunkArr -> Table
 

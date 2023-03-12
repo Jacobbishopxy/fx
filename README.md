@@ -138,8 +138,6 @@ Structs and enums provided by Fx crate:
 
 ## Todo
 
-- Refactor `Receptacle` trait to satisfy `FxTable`
-
 - `io::parquet` needs parallel read/write and flexible data param, i.e. `impl FxBatchBuilderGenerator`
 
 - Better conversion among ArcArr/BoxArr/ArcVec/BoxVec
