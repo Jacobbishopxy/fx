@@ -94,6 +94,10 @@ impl<A: AsRef<dyn Array>> Deque<A> {
         }
     }
 
+    pub fn datatype(&self) -> Option<&DataType> {
+        self.datatype.as_ref()
+    }
+
     /// Returns the length of this [`Deque<A>`]
     pub fn len(&self) -> usize {
         self.deque.len()
@@ -149,10 +153,18 @@ impl<A: AsRef<dyn Array>> Deque<A> {
         self.deque.get(index)
     }
 
+    pub fn get_ok(&self, index: usize) -> FxResult<&A> {
+        self.deque.get(index).ok_or(FxError::OutBounds)
+    }
+
     /// Provides a mutable reference of A to the element at the given index.
     /// Returns `None` if index out of bounds
     pub fn get_mut(&mut self, index: usize) -> Option<&mut A> {
         self.deque.get_mut(index)
+    }
+
+    pub fn get_mut_ok(&mut self, index: usize) -> FxResult<&mut A> {
+        self.deque.get_mut(index).ok_or(FxError::OutBounds)
     }
 
     /// Inserts an A at the index
@@ -257,6 +269,10 @@ impl<A: AsRef<dyn Array>> Deque<A> {
         }
 
         Ok(())
+    }
+
+    pub fn remove(&mut self, index: usize) -> Option<A> {
+        self.deque.remove(index)
     }
 
     /// Shortens the deque

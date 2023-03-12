@@ -38,6 +38,10 @@ impl<const W: usize, S: FxSeq> Purport for FxBundles<W, S> {
 
 // [S; W] -> Bundles
 impl<const W: usize, S: FxSeq> private::InnerReceptacle<true, usize, [S; W]> for FxBundles<W, S> {
+    type OutRef<'a> = &'a [S; W] where Self: 'a;
+
+    type OutMut<'a> = &'a mut [S; W] where Self: 'a;
+
     fn new_empty() -> Self {
         Self {
             schema: Schema::from(Vec::<Field>::new()),
@@ -49,11 +53,11 @@ impl<const W: usize, S: FxSeq> private::InnerReceptacle<true, usize, [S; W]> for
         Some(&self.schema)
     }
 
-    fn get_chunk(&self, key: usize) -> FxResult<&[S; W]> {
+    fn get_chunk<'a>(&'a self, key: usize) -> FxResult<Self::OutRef<'a>> {
         self.data.get(key)
     }
 
-    fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut [S; W]> {
+    fn get_mut_chunk<'a>(&'a mut self, key: usize) -> FxResult<Self::OutMut<'a>> {
         self.data.get_mut(key)
     }
 

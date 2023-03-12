@@ -138,7 +138,7 @@ Structs and enums provided by Fx crate:
 
 ## Todo
 
-- Refactor `Receptacle` trait to satisfy `FxTable`
+- `fx-macro` supports more builder options for `FxBundle`
 
 - `io::parquet` needs parallel read/write and flexible data param, i.e. `impl FxBatchBuilderGenerator`
 

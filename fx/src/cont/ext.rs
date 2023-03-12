@@ -672,7 +672,11 @@ impl Confined for Vec<ChunkArr> {
 // Default implementation for Vec<E> where E: Eclectic
 // ================================================================================================
 
-impl<E: Eclectic> private::InnerReceptacle<false, usize, E> for Vec<E> {
+impl<E: Eclectic + Confined> private::InnerReceptacle<false, usize, E> for Vec<E> {
+    type OutRef<'a> = &'a E where Self: 'a;
+
+    type OutMut<'a> = &'a mut E where Self: 'a;
+
     fn new_empty() -> Self {
         Vec::<E>::new()
     }
@@ -681,11 +685,11 @@ impl<E: Eclectic> private::InnerReceptacle<false, usize, E> for Vec<E> {
         None
     }
 
-    fn get_chunk(&self, key: usize) -> FxResult<&E> {
+    fn get_chunk<'a>(&'a self, key: usize) -> FxResult<Self::OutRef<'a>> {
         self.get(key).ok_or(FxError::OutBounds)
     }
 
-    fn get_mut_chunk(&mut self, key: usize) -> FxResult<&mut E> {
+    fn get_mut_chunk<'a>(&'a mut self, key: usize) -> FxResult<Self::OutMut<'a>> {
         self.get_mut(key).ok_or(FxError::OutBounds)
     }
 
@@ -738,6 +742,10 @@ where
     IDX: Hash + Eq,
     E: Eclectic,
 {
+    type OutRef<'a> = &'a E where Self: 'a;
+
+    type OutMut<'a> = &'a mut E where Self: 'a;
+
     fn new_empty() -> Self {
         HashMap::<IDX, E>::new()
     }
@@ -746,11 +754,11 @@ where
         None
     }
 
-    fn get_chunk(&self, key: IDX) -> FxResult<&E> {
+    fn get_chunk<'a>(&'a self, key: IDX) -> FxResult<Self::OutRef<'a>> {
         self.get(&key).ok_or(FxError::NoKey)
     }
 
-    fn get_mut_chunk(&mut self, key: IDX) -> FxResult<&mut E> {
+    fn get_mut_chunk<'a>(&'a mut self, key: IDX) -> FxResult<Self::OutMut<'a>> {
         self.get_mut(&key).ok_or(FxError::NoKey)
     }
 

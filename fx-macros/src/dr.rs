@@ -30,8 +30,9 @@ const CHUNK: &str = "chunk"; // Chunk<Arc<dyn Array>>
 const ARRAA: &str = "arraa"; // [Arc<dyn Array>; W]. 'arraa' denotes (Array of ArcArr)
 const BATCH: &str = "batch"; // FxBatch
 const BUNDLE: &str = "bundle"; // FxBundle<W; Arc<dyn Array>>
+const TABLE: &str = "table"; // FxTable
 
-const FX_OPTIONS: [&str; 3] = [CHUNK, BATCH, BUNDLE];
+const FX_OPTIONS: [&str; 4] = [CHUNK, BATCH, BUNDLE, TABLE];
 
 // Note: Array is a trait provided by [arrow](https://github.com/jorgecarleitao/arrow2)
 
@@ -79,6 +80,7 @@ fn gen_eclectic_type(schema_len: usize, s: &str) -> TokenStream {
         ARRAA => quote! {[ArcArr; #schema_len]},
         BATCH => quote! {FxBatch},
         BUNDLE => quote! {FxBundle::<#schema_len, ArcArr>},
+        TABLE => quote! {ArcArr::<#schema_len>},
         _ => quote! {FxBatch}, // default to FxBatch
     }
 }
@@ -90,6 +92,7 @@ fn gen_container_type(schema_len: usize, s: &str) -> TokenStream {
         CHUNK => quote! {Vec<ChunkArr>},
         BATCH => quote! {FxBatches::<ChunkArr>},
         BUNDLE => quote! {FxBundles::<#schema_len, ArcArr>},
+        TABLE => quote! {FxTable::<#schema_len>},
         _ => quote! {FxBatches::<ChunkArr>}, // default to FxBatches
     }
 }
@@ -145,8 +148,6 @@ fn gen_arrow_field(f: &Field) -> TokenStream {
 // ================================================================================================
 // Sql related Impl
 // ================================================================================================
-
-// TODO: generic container
 
 /// io: sql
 fn gen_impl_from_sql_row(struct_name: &Ident, named_fields: &NamedFields) -> TokenStream {
@@ -268,6 +269,9 @@ fn gen_bd_res(
         BUNDLE => quote! {
             Ok(FxBundle::<#schema_len, ArcArr>::new_with_names([ #(#build_ctt)* ], [ #(#names),* ]))
         },
+        TABLE => quote! {
+            FxTable::<#schema_len>::try_new_with_names(vec![ #(#build_ctt)* ], [ #(#names),* ])
+        },
         _ => panic!("Unsupported type"),
     }
 }
@@ -377,6 +381,13 @@ fn gen_multiple_impl_eclectic(
                 gen_impl_eclectic(BUNDLE, schema_len, struct_name, build_name, named_fields),
             ]
         }
+        TABLE => {
+            vec![
+                gen_impl_eclectic(ARRAA, schema_len, struct_name, build_name, named_fields),
+                gen_impl_eclectic(CHUNK, schema_len, struct_name, build_name, named_fields),
+                gen_impl_eclectic(BATCH, schema_len, struct_name, build_name, named_fields),
+            ]
+        }
         _ => panic!("Unsupported type"),
     };
 
@@ -390,29 +401,55 @@ fn gen_multiple_impl_eclectic(
 // ================================================================================================
 
 fn gen_collection_builder_struct(
-    e_type: &str,
+    collection_e_type: &str,
     schema_len: usize,
     eclectic_build_name: &Ident,
     container_build_name: &Ident,
 ) -> TokenStream {
-    match e_type {
+    match collection_e_type {
         CHUNK => quote! {
-            struct #container_build_name {
+            struct #container_build_name<T: Eclectic> {
                 result: Vec<ChunkArr>,
-                buffer: Option<#eclectic_build_name<ChunkArr>>
+                buffer: Option<#eclectic_build_name<ChunkArr>>,
+                _e: ::std::marker::PhantomData<T>,
             }
         },
         BATCH => quote! {
-            struct #container_build_name {
+            struct #container_build_name<T: Eclectic> {
                 result: FxBatches::<ChunkArr>,
-                buffer: Option<#eclectic_build_name<ChunkArr>>
+                buffer: Option<#eclectic_build_name<ChunkArr>>,
+                _e: ::std::marker::PhantomData<T>,
             }
         },
         BUNDLE => quote! {
-            struct #container_build_name {
+            struct #container_build_name<T: Eclectic> {
                 result: FxBundles::<#schema_len, ArcArr>,
-                buffer: Option<#eclectic_build_name<[ArcArr; #schema_len]>>
+                buffer: Option<#eclectic_build_name<T>>,
+                _e: ::std::marker::PhantomData<T>,
             }
+        },
+        TABLE => quote! {
+            struct #container_build_name<T: Eclectic> {
+                result: FxTable::<#schema_len>,
+                buffer: Option<#eclectic_build_name<T>>,
+                _e: ::std::marker::PhantomData<T>,
+            }
+        },
+        _ => panic!("Unsupported type"),
+    }
+}
+
+/// gen buffer struct, used in Bundle(not yet) & Table
+fn gen_buffer_struct(struct_name: &Ident, e_type: &str) -> TokenStream {
+    match e_type {
+        ARRAA => quote! {
+            #struct_name::gen_arraa_builder()
+        },
+        CHUNK => quote! {
+            #struct_name::gen_chunk_builder()
+        },
+        BATCH => quote! {
+            #struct_name::gen_batch_builder()
         },
         _ => panic!("Unsupported type"),
     }
@@ -426,14 +463,15 @@ fn gen_collection_builder_struct(
 /// 3. Receptacle;
 /// 4. result & buffer in `fn new()`.
 fn gen_collection_type(
-    e_type: &str,
+    base_builder_e_type: &str,
+    collection_e_type: &str,
     schema_len: usize,
     struct_name: &Ident,
     named_fields: &NamedFields,
 ) -> (bool, TokenStream, TokenStream, TokenStream) {
     let fields_ctt = named_fields.iter().map(gen_arrow_field).collect::<Vec<_>>();
 
-    match e_type {
+    match collection_e_type {
         CHUNK => (
             false,
             quote! { ChunkArr },
@@ -463,39 +501,78 @@ fn gen_collection_type(
                 let buffer = Some(#struct_name::gen_arraa_builder());
             },
         ),
+        TABLE => {
+            let buffer = gen_buffer_struct(struct_name, base_builder_e_type);
+            let marker_type = gen_eclectic_type(schema_len, base_builder_e_type);
+            (
+                true,
+                marker_type,
+                quote! { FxTable::<#schema_len> },
+                quote! {
+                    let schema = ::arrow2::datatypes::Schema::from(vec![#(#fields_ctt),*]);
+                    let result = FxTable::<#schema_len>::empty_with_schema(schema);
+                    let buffer = Some(#buffer);
+                },
+            )
+        }
         _ => panic!("Unsupported type"),
     }
 }
 
 /// Generate impl collection builder generator
 fn gen_impl_cbg(
-    e_type: &str,
+    base_builder_e_type: &str,
+    collection_e_type: &str,
     schema_len: usize,
     struct_name: &Ident,
     eclectic_build_name: &Ident,
     collection_build_name: &Ident,
 ) -> TokenStream {
-    match e_type {
+    match collection_e_type {
         CHUNK => quote! {
             impl FxChunksBuilderGenerator for #struct_name {
                 type ChunkBuilder = #eclectic_build_name<ChunkArr>;
 
-                type ChunksBuilder = #collection_build_name;
+                type ChunksBuilder = #collection_build_name<ChunkArr>;
             }
         },
         BATCH => quote! {
             impl FxChunkBatchesBuilderGenerator for #struct_name {
                 type ChunkBuilder = #eclectic_build_name<ChunkArr>;
 
-                type BatchesBuilder = #collection_build_name;
+                type BatchesBuilder = #collection_build_name<ChunkArr>;
             }
         },
         BUNDLE => quote! {
             impl FxBundlesBuilderGenerator<#schema_len> for #struct_name {
                 type ArraaBuilder = #eclectic_build_name<[ArcArr; #schema_len]>;
 
-                type BundlesBuilder = #collection_build_name;
+                type BundlesBuilder = #collection_build_name<[ArcArr; #schema_len]>;
             }
+        },
+        TABLE => match base_builder_e_type {
+            ARRAA => quote! {
+                impl FxArraaTableGenerator<#schema_len> for #struct_name {
+                    type ArraaBuilder = #eclectic_build_name<[ArcArr; #schema_len]>;
+
+                    type TableBuilder = #collection_build_name<[ArcArr; #schema_len]>;
+                }
+            },
+            CHUNK => quote! {
+                impl FxChunkTableGenerator<#schema_len> for #struct_name {
+                    type ChunkBuilder = #eclectic_build_name<ChunkArr>;
+
+                    type TableBuilder = #collection_build_name<ChunkArr>;
+                }
+            },
+            BATCH => quote! {
+                impl FxBatchTableGenerator<#schema_len> for #struct_name {
+                    type BatchBuilder = #eclectic_build_name<FxBatch>;
+
+                    type TableBuilder = #collection_build_name<FxBatch>;
+                }
+            },
+            _ => panic!("Unsupported type"),
         },
         _ => panic!("Unsupported type"),
     }
@@ -507,18 +584,25 @@ fn gen_impl_cbg(
 /// FxBatches
 /// FxBundles
 fn gen_impl_container(
-    e_type: &str,
+    base_builder_e_type: &str,
+    collection_e_type: &str,
     schema_len: usize,
     struct_name: &Ident,
     eclectic_build_name: &Ident,
     container_build_name: &Ident,
     named_fields: &NamedFields,
 ) -> TokenStream {
-    let (has_schema, eclectic_type, eclectic_collection, result_and_buffer) =
-        gen_collection_type(e_type, schema_len, struct_name, named_fields);
+    let (has_schema, eclectic_type, eclectic_collection, result_and_buffer) = gen_collection_type(
+        base_builder_e_type,
+        collection_e_type,
+        schema_len,
+        struct_name,
+        named_fields,
+    );
 
     let impl_build_gen = gen_impl_cbg(
-        e_type,
+        base_builder_e_type,
+        collection_e_type,
         schema_len,
         struct_name,
         eclectic_build_name,
@@ -528,12 +612,12 @@ fn gen_impl_container(
     quote! {
         impl FxCollectionBuilder<
             #has_schema, #eclectic_build_name<#eclectic_type>, #struct_name, #eclectic_collection, usize, #eclectic_type
-        > for #container_build_name
+        > for #container_build_name<#eclectic_type>
         {
             fn new() -> FxResult<Self> {
                 #result_and_buffer
 
-                Ok(Self { result, buffer })
+                Ok(Self { result, buffer, _e: ::std::marker::PhantomData })
             }
 
             fn mut_buffer(&mut self) -> Option<&mut #eclectic_build_name<#eclectic_type>> {
@@ -558,6 +642,96 @@ fn gen_impl_container(
         }
 
         #impl_build_gen
+    }
+}
+
+fn gen_multiple_impl_container(
+    e_type: &str,
+    schema_len: usize,
+    struct_name: &Ident,
+    eclectic_build_name: &Ident,
+    container_build_name: &Ident,
+    named_fields: &NamedFields,
+) -> TokenStream {
+    let impls = match e_type {
+        CHUNK => {
+            vec![
+                //
+                gen_impl_container(
+                    CHUNK,
+                    CHUNK,
+                    schema_len,
+                    struct_name,
+                    eclectic_build_name,
+                    container_build_name,
+                    named_fields,
+                ),
+            ]
+        }
+        BATCH => {
+            vec![
+                //
+                gen_impl_container(
+                    CHUNK,
+                    BATCH,
+                    schema_len,
+                    struct_name,
+                    eclectic_build_name,
+                    container_build_name,
+                    named_fields,
+                ),
+            ]
+        }
+        BUNDLE => {
+            vec![
+                // TODO: more options
+                gen_impl_container(
+                    CHUNK,
+                    BUNDLE,
+                    schema_len,
+                    struct_name,
+                    eclectic_build_name,
+                    container_build_name,
+                    named_fields,
+                ),
+            ]
+        }
+        TABLE => {
+            vec![
+                gen_impl_container(
+                    ARRAA,
+                    TABLE,
+                    schema_len,
+                    struct_name,
+                    eclectic_build_name,
+                    container_build_name,
+                    named_fields,
+                ),
+                gen_impl_container(
+                    CHUNK,
+                    TABLE,
+                    schema_len,
+                    struct_name,
+                    eclectic_build_name,
+                    container_build_name,
+                    named_fields,
+                ),
+                gen_impl_container(
+                    BATCH,
+                    TABLE,
+                    schema_len,
+                    struct_name,
+                    eclectic_build_name,
+                    container_build_name,
+                    named_fields,
+                ),
+            ]
+        }
+        _ => panic!("Unsupported type"),
+    };
+
+    quote! {
+        #(#impls)*
     }
 }
 
@@ -596,7 +770,7 @@ pub(crate) fn impl_fx(input: &DeriveInput) -> TokenStream {
         &eclectic_build_name,
         &container_build_name,
     );
-    let impl_container_row_build = gen_impl_container(
+    let impl_container_row_build = gen_multiple_impl_container(
         &e_type,
         schema_len,
         &struct_name,

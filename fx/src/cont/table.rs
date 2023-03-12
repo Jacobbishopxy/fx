@@ -9,7 +9,7 @@ use arrow2::datatypes::{DataType, Field, Schema};
 use inherent::inherent;
 
 use super::{ArcArr, DequeArr, DequeIter, DequeIterMut};
-use crate::ab::{Eclectic, FxSeq, Purport, StaticPurport};
+use crate::ab::{private, Confined, Eclectic, FxSeq, Purport, StaticPurport};
 use crate::error::{FxError, FxResult};
 
 // ================================================================================================
@@ -20,6 +20,24 @@ use crate::error::{FxError, FxResult};
 pub struct FxTable<const W: usize> {
     schema: Schema,
     data: [DequeArr; W],
+}
+
+// ================================================================================================
+// impl Confined for [DequeArr; W]
+//
+// used for Receptacle
+// ================================================================================================
+
+impl<const W: usize> Confined for [DequeArr; W] {
+    fn width(&self) -> usize {
+        W
+    }
+
+    fn data_types(&self) -> Vec<&DataType> {
+        self.iter()
+            .map(|dq| dq.datatype().unwrap_or(&DataType::Null))
+            .collect()
+    }
 }
 
 // ================================================================================================
@@ -80,7 +98,6 @@ impl<const W: usize> FxTable<W> {
         Ok(Self { schema, data })
     }
 
-    #[allow(dead_code)]
     fn new_empty() -> Self {
         Self {
             schema: Schema::from(Vec::<Field>::new()),
@@ -257,8 +274,36 @@ impl<const W: usize> FxTable<W> {
         self.data.each_ref().map(|dq| dq.get(index))
     }
 
+    pub fn deque_get_ok(&self, index: usize) -> FxResult<[&ArcArr; W]> {
+        let min_len = self.min_deque_len();
+
+        if min_len.is_none() {
+            return Err(FxError::EmptyContent);
+        }
+
+        if index > min_len.unwrap() {
+            return Err(FxError::OutBounds);
+        }
+
+        Ok(self.data.each_ref().map(|dq| dq.get(index).unwrap()))
+    }
+
     pub fn deque_get_mut(&mut self, index: usize) -> [Option<&mut ArcArr>; W] {
         self.data.each_mut().map(|dq| dq.get_mut(index))
+    }
+
+    pub fn deque_get_mut_ok(&mut self, index: usize) -> FxResult<[&mut ArcArr; W]> {
+        let min_len = self.min_deque_len();
+
+        if min_len.is_none() {
+            return Err(FxError::EmptyContent);
+        }
+
+        if index > min_len.unwrap() {
+            return Err(FxError::OutBounds);
+        }
+
+        Ok(self.data.each_mut().map(|dq| dq.get_mut(index).unwrap()))
     }
 
     pub fn deque_insert<E: Eclectic>(&mut self, index: usize, value: E) -> FxResult<()> {
@@ -321,6 +366,10 @@ impl<const W: usize> FxTable<W> {
         Ok(())
     }
 
+    pub fn deque_remove(&mut self, index: usize) -> [Option<ArcArr>; W] {
+        self.data.each_mut().map(|dq| dq.remove(index))
+    }
+
     pub fn deque_truncate(&mut self, len: usize) {
         self.data.each_mut().map(|dq| dq.truncate(len));
     }
@@ -345,5 +394,54 @@ impl<const W: usize> FxTable<W> {
 
     pub fn deque_iter_mut(&mut self) -> [DequeIterMut<ArcArr>; W] {
         self.data.each_mut().map(|dq| dq.iter_mut())
+    }
+}
+
+// ================================================================================================
+// impl Receptacle
+// ================================================================================================
+
+// E -> FxTable
+impl<const W: usize, E> private::InnerReceptacle<true, usize, E> for FxTable<W>
+where
+    E: Eclectic + Confined,
+{
+    type OutRef<'a> = [&'a ArcArr; W] where Self: 'a;
+    type OutMut<'a> = [&'a mut ArcArr; W] where Self : 'a;
+
+    fn new_empty() -> Self {
+        Self::new_empty()
+    }
+
+    fn ref_schema(&self) -> Option<&Schema> {
+        Some(&self.schema)
+    }
+
+    fn get_chunk<'a>(&'a self, key: usize) -> FxResult<Self::OutRef<'a>> {
+        self.deque_get_ok(key)
+    }
+
+    fn get_mut_chunk<'a>(&'a mut self, key: usize) -> FxResult<Self::OutMut<'a>> {
+        self.deque_get_mut_ok(key)
+    }
+
+    fn insert_chunk_type_unchecked(&mut self, key: usize, data: E) -> FxResult<()> {
+        self.deque_insert(key, data)
+    }
+
+    fn remove_chunk(&mut self, key: usize) -> FxResult<()> {
+        self.deque_remove(key);
+
+        Ok(())
+    }
+
+    fn push_chunk_type_unchecked(&mut self, data: E) -> FxResult<()> {
+        self.deque_push_back(data)
+    }
+
+    fn pop_chunk(&mut self) -> FxResult<()> {
+        self.deque_pop_back();
+
+        Ok(())
     }
 }
