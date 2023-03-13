@@ -78,4 +78,12 @@ impl<E: Eclectic> StaticPurport for E {}
 
 pub trait Purport: StaticPurport {
     fn schema(&self) -> &Schema;
+
+    fn names(&self) -> Vec<String> {
+        self.schema()
+            .fields
+            .iter()
+            .map(|f| f.name.clone())
+            .collect::<Vec<_>>()
+    }
 }
