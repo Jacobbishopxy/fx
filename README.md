@@ -138,7 +138,7 @@ Structs and enums provided by Fx crate:
 
 ## Todo
 
-- IO CSV
+- Reader/Writer for `Eclectic` (single thread) & `Receptacle` (parallel)
 
 - `fx-macro` supports more builder options for `FxBundle`
 
