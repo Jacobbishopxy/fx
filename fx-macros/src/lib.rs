@@ -6,8 +6,12 @@
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput};
 
+mod constant;
 mod dr;
+mod eclectic_builder;
 mod helper;
+mod receptacle_builder;
+mod sql_impl;
 
 use dr::*;
 
