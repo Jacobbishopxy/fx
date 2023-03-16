@@ -6,12 +6,14 @@
 pub mod ab;
 pub mod arvo;
 pub mod csv;
+pub mod ec;
 pub mod ipc;
 pub mod parquet;
 pub mod sql;
 
 pub use arvo::*;
 pub use csv::*;
+pub use ec::*;
 pub use ipc::*;
 pub use parquet::*;
 pub use sql::*;

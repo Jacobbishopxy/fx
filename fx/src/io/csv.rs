@@ -3,46 +3,46 @@
 //! date: 2023/03/13 22:53:42 Monday
 //! brief: CSV I/O
 
-use std::io::{Read, Seek, Write};
-use std::sync::Arc;
+use std::io::Write;
+use std::ops::Deref;
 
 use arrow2::io::csv::read as csv_read;
 use arrow2::io::csv::write as csv_write;
 
-use super::FxIO;
-use crate::ab::{Congruent, Eclectic, Purport};
-use crate::error::FxResult;
-use crate::row_builder::EclecticMutChunk;
+use super::{ec::ReadSeek, FxIO, SimpleIO};
+use crate::ab::{Congruent, Eclectic, FxSeq, Purport};
+use crate::error::{FxError, FxResult};
 
 // ================================================================================================
 // CSV
 // ================================================================================================
 
 impl FxIO {
-    pub fn write_csv<W: Write, D: Eclectic + Purport + Congruent>(
+    pub fn write_csv<D: Eclectic + Purport, W: Write>(
         data: D,
         writer: &mut W,
-        options: csv_write::SerializeOptions,
+        options: Option<&csv_write::SerializeOptions>,
     ) -> FxResult<()> {
         let names = data.names();
+        let default_opt = csv_write::SerializeOptions::default();
+        let opt = options.unwrap_or(&default_opt);
 
-        csv_write::write_header(writer, &names, &options)?;
+        csv_write::write_header(writer, &names, opt)?;
 
         let columns = data.take_shortest_to_chunk()?;
-        csv_write::write_chunk(writer, &columns, &options)?;
+        csv_write::write_chunk(writer, &columns, opt)?;
 
         Ok(())
     }
 
-    pub fn read_csv<R: Read + Seek, D: Eclectic + Purport + EclecticMutChunk>(
-        data: &mut D,
+    pub fn read_csv<D: Eclectic + Purport, R: ReadSeek>(
         reader: R,
         projection: Option<&[usize]>,
-    ) -> FxResult<()> {
+    ) -> FxResult<D> {
         let mut cr = csv_read::ReaderBuilder::new().from_reader(reader);
-        let (fields, _) = csv_read::infer_schema(&mut cr, None, true, &csv_read::infer)?;
+        let (fields, s) = csv_read::infer_schema(&mut cr, None, true, &csv_read::infer)?;
 
-        let mut rows = vec![csv_read::ByteRecord::default(); 100];
+        let mut rows = vec![csv_read::ByteRecord::default(); s];
 
         let rows_read = csv_read::read_rows(&mut cr, 0, &mut rows)?;
         let rows = &rows[..rows_read];
@@ -53,14 +53,41 @@ impl FxIO {
             projection,
             0,
             csv_read::deserialize_column,
-        )?;
-        let chunk = res
-            .into_arrays()
-            .into_iter()
-            .map(Arc::from)
-            .collect::<Vec<_>>();
+        )?
+        .arrays()
+        .iter()
+        .map(|a| FxSeq::from_ref(a.deref()))
+        .collect::<Vec<_>>();
 
-        data.try_extent(&chunk)?;
+        D::from_slice_seq(&res)
+    }
+}
+
+// ================================================================================================
+// SimpleIO
+// ================================================================================================
+
+impl<T: Eclectic + Purport> SimpleIO<T> {
+    // notice after writing complete, data & writer both turn to None
+    pub fn write_csv(&mut self, options: Option<&csv_write::SerializeOptions>) -> FxResult<()> {
+        if self.data.is_none() || self.writer.is_none() {
+            return Err(FxError::EmptyContent);
+        }
+
+        let mut writer = self.writer.take().unwrap();
+        let data = self.take_data().unwrap();
+
+        FxIO::write_csv(data, &mut writer, options)
+    }
+
+    pub fn read_csv(&mut self, projection: Option<&[usize]>) -> FxResult<()> {
+        if self.reader.is_none() {
+            return Err(FxError::EmptyContent);
+        }
+
+        let reader = self.reader.take().unwrap();
+
+        FxIO::read_csv::<T, _>(reader, projection)?;
 
         Ok(())
     }
@@ -72,7 +99,6 @@ impl FxIO {
 
 #[cfg(test)]
 mod test_csv {
-    use arrow2::datatypes::{DataType, Field, Schema};
 
     use crate::ab::FromSlice;
     use crate::cont::{ArcArr, FxBatch};
@@ -92,24 +118,16 @@ mod test_csv {
 
         let mut file = std::fs::File::create(FILE_CSV).unwrap();
 
-        FxIO::write_csv(data, &mut file, csv_write::SerializeOptions::default())
-            .expect("write success");
+        FxIO::write_csv(data, &mut file, None).expect("write success");
     }
 
     #[test]
     fn csv_read_success() {
-        let schema = Schema::from(vec![
-            Field::new("c1", DataType::Int64, true),
-            Field::new("c2", DataType::Float64, true),
-            Field::new("c1", DataType::Utf8, false),
-        ]);
-        let mut batch = FxBatch::empty_with_schema(schema);
-
         let mut file = std::fs::File::open(FILE_CSV).unwrap();
 
-        let res = FxIO::read_csv(&mut batch, &mut file, None);
+        let res = FxIO::read_csv::<FxBatch, _>(&mut file, None);
         assert!(res.is_ok());
 
-        println!("{batch:?}");
+        println!("{:?}", res.unwrap());
     }
 }
