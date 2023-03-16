@@ -6,6 +6,7 @@
 use std::any::Any;
 use std::fmt::Debug;
 
+use arrow2::array::Array;
 use arrow2::datatypes::DataType;
 
 use crate::cont::{ArcArr, ArcVec, BoxArr, BoxVec};
@@ -16,6 +17,8 @@ use crate::error::{FxError, FxResult};
 // ================================================================================================
 
 pub trait FxSeq: Debug + Clone {
+    fn from_ref(data: &dyn Array) -> Self;
+
     fn new_nulls(datatype: DataType, length: usize) -> Self;
 
     fn new_empty(datatype: DataType) -> Self;

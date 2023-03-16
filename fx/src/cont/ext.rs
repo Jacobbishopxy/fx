@@ -35,6 +35,10 @@ pub type ChunkArr = Chunk<ArcArr>;
 // ================================================================================================
 
 impl FxSeq for ArcArr {
+    fn from_ref(data: &dyn Array) -> Self {
+        Arc::from(data.to_boxed())
+    }
+
     fn new_nulls(data_type: DataType, length: usize) -> Self {
         match data_type {
             DataType::Boolean => BA::new_null(data_type, length).arced(),
@@ -161,6 +165,10 @@ impl FxSeq for ArcArr {
 // ================================================================================================
 
 impl FxSeq for BoxArr {
+    fn from_ref(data: &dyn Array) -> Self {
+        data.to_boxed()
+    }
+
     fn new_nulls(data_type: DataType, length: usize) -> Self {
         match data_type {
             DataType::Boolean => BA::new_null(data_type, length).boxed(),
