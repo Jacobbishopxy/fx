@@ -8,7 +8,7 @@ use std::sync::Arc;
 use arrow2::chunk::Chunk;
 
 use super::{Eclectic, FxSeq};
-use crate::cont::ArcArr;
+use crate::cont::{ArcArr, ChunkArr};
 use crate::error::{FxError, FxResult};
 
 // ================================================================================================
@@ -18,7 +18,7 @@ use crate::error::{FxError, FxResult};
 // ================================================================================================
 
 pub trait Congruent: Eclectic + Sized {
-    fn take_longest_to_chunk(self) -> FxResult<Chunk<ArcArr>> {
+    fn take_longest_to_chunk(self) -> FxResult<ChunkArr> {
         let len = self.max_len().ok_or(FxError::EmptyContent)?;
 
         let vec_arc_arr = self
@@ -40,7 +40,7 @@ pub trait Congruent: Eclectic + Sized {
         Ok(Chunk::try_new(vec_arc_arr)?)
     }
 
-    fn take_shortest_to_chunk(self) -> FxResult<Chunk<ArcArr>> {
+    fn take_shortest_to_chunk(self) -> FxResult<ChunkArr> {
         let len = self.min_len().ok_or(FxError::EmptyContent)?;
 
         let vec_arc_arr = self
@@ -57,7 +57,24 @@ pub trait Congruent: Eclectic + Sized {
         Ok(Chunk::try_new(vec_arc_arr)?)
     }
 
-    fn take_len_to_chunk(self, len: usize) -> FxResult<Chunk<ArcArr>> {
+    fn ref_shortest_to_chunk(&self) -> FxResult<ChunkArr> {
+        let len = self.min_len().ok_or(FxError::EmptyContent)?;
+
+        let vec_arc_arr = self
+            .ref_sequences()
+            .into_iter()
+            .map(|s| {
+                s.clone().to_arc_array().map(|arr| {
+                    // no panic, Box<dyn Array>
+                    Arc::from(arr.slice(0, len))
+                })
+            })
+            .collect::<FxResult<Vec<_>>>()?;
+
+        Ok(Chunk::try_new(vec_arc_arr)?)
+    }
+
+    fn take_len_to_chunk(self, len: usize) -> FxResult<ChunkArr> {
         let vec_arc_arr = self
             .take_sequences()
             .into_iter()

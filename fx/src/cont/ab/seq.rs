@@ -4,6 +4,7 @@
 //! brief: Seq
 
 use std::any::Any;
+use std::fmt::Debug;
 
 use arrow2::datatypes::DataType;
 
@@ -14,7 +15,7 @@ use crate::error::{FxError, FxResult};
 // Seq
 // ================================================================================================
 
-pub trait FxSeq {
+pub trait FxSeq: Debug + Clone {
     fn new_nulls(datatype: DataType, length: usize) -> Self;
 
     fn new_empty(datatype: DataType) -> Self;
@@ -63,14 +64,6 @@ pub trait FxSeq {
     fn to_arc_vector(self) -> FxResult<ArcVec>;
 
     fn to_box_vector(self) -> FxResult<BoxVec>;
-
-    // fn set_value<T>(&mut self, index: usize, value: T);
-
-    // fn set_null(&mut self, index: usize);
-
-    // fn slice_range(&self, offset: usize, length: usize) -> FxResult<&Self>;
-
-    // fn take_range(self, offset: usize, length: usize) -> FxResult<Self>;
 
     fn extend(&mut self, s: &Self) -> FxResult<&mut Self>;
 

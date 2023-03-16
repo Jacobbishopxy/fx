@@ -42,6 +42,13 @@ impl Purport for FxBatch {
 impl private::InnerEclectic for FxBatch {
     type Seq = ArcArr;
 
+    fn from_slice_seq(data: &[Self::Seq]) -> FxResult<Self>
+    where
+        Self: Sized,
+    {
+        Self::try_new(data.to_vec())
+    }
+
     fn ref_sequences(&self) -> &[Self::Seq] {
         self.data.arrays()
     }

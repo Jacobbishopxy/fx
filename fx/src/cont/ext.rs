@@ -10,7 +10,7 @@ use std::ops::Deref;
 use std::sync::Arc;
 
 // use arrow2::array::TryPush;
-use arrow2::array::{Array, MutableArray, TryExtendFromSelf};
+use arrow2::array::{Array, MutableArray};
 use arrow2::chunk::Chunk;
 use arrow2::compute::concatenate::concatenate;
 use arrow2::datatypes::{DataType, Schema};
@@ -286,206 +286,206 @@ impl FxSeq for BoxArr {
 // Arc<dyn MutableArray>
 // ================================================================================================
 
-impl FxSeq for ArcVec {
-    fn new_nulls(data_type: DataType, len: usize) -> Self {
-        match data_type {
-            DataType::Boolean => Arc::new(BV::from(vec![None; len])),
-            DataType::Int8 => Arc::new(PVi8::from(vec![None; len])),
-            DataType::Int16 => Arc::new(PVi16::from(vec![None; len])),
-            DataType::Int32 => Arc::new(PVi32::from(vec![None; len])),
-            DataType::Int64 => Arc::new(PVi64::from(vec![None; len])),
-            DataType::UInt8 => Arc::new(PVu8::from(vec![None; len])),
-            DataType::UInt16 => Arc::new(PVu16::from(vec![None; len])),
-            DataType::UInt32 => Arc::new(PVu32::from(vec![None; len])),
-            DataType::UInt64 => Arc::new(PVu64::from(vec![None; len])),
-            DataType::Float32 => Arc::new(PVf32::from(vec![None; len])),
-            DataType::Float64 => Arc::new(PVf64::from(vec![None; len])),
-            DataType::Utf8 => Arc::new(UV::from(vec![Option::<&str>::None; len])),
-            _ => unimplemented!(),
-        }
-    }
+// impl FxSeq for ArcVec {
+//     fn new_nulls(data_type: DataType, len: usize) -> Self {
+//         match data_type {
+//             DataType::Boolean => Arc::new(BV::from(vec![None; len])),
+//             DataType::Int8 => Arc::new(PVi8::from(vec![None; len])),
+//             DataType::Int16 => Arc::new(PVi16::from(vec![None; len])),
+//             DataType::Int32 => Arc::new(PVi32::from(vec![None; len])),
+//             DataType::Int64 => Arc::new(PVi64::from(vec![None; len])),
+//             DataType::UInt8 => Arc::new(PVu8::from(vec![None; len])),
+//             DataType::UInt16 => Arc::new(PVu16::from(vec![None; len])),
+//             DataType::UInt32 => Arc::new(PVu32::from(vec![None; len])),
+//             DataType::UInt64 => Arc::new(PVu64::from(vec![None; len])),
+//             DataType::Float32 => Arc::new(PVf32::from(vec![None; len])),
+//             DataType::Float64 => Arc::new(PVf64::from(vec![None; len])),
+//             DataType::Utf8 => Arc::new(UV::from(vec![Option::<&str>::None; len])),
+//             _ => unimplemented!(),
+//         }
+//     }
 
-    fn new_empty(data_type: DataType) -> Self {
-        Self::new_nulls(data_type, 0)
-    }
+//     fn new_empty(data_type: DataType) -> Self {
+//         Self::new_nulls(data_type, 0)
+//     }
 
-    fn is_arr() -> bool {
-        false
-    }
+//     fn is_arr() -> bool {
+//         false
+//     }
 
-    fn is_vec() -> bool {
-        true
-    }
+//     fn is_vec() -> bool {
+//         true
+//     }
 
-    fn as_any(&self) -> &dyn Any {
-        (**self).as_any()
-    }
+//     fn as_any(&self) -> &dyn Any {
+//         (**self).as_any()
+//     }
 
-    fn as_any_mut(&mut self) -> Option<&mut dyn Any> {
-        Arc::get_mut(self).map(|a| a.as_mut_any())
-    }
+//     fn as_any_mut(&mut self) -> Option<&mut dyn Any> {
+//         Arc::get_mut(self).map(|a| a.as_mut_any())
+//     }
 
-    fn len(&self) -> usize {
-        (**self).len()
-    }
+//     fn len(&self) -> usize {
+//         (**self).len()
+//     }
 
-    fn is_empty(&self) -> bool {
-        (**self).is_empty()
-    }
+//     fn is_empty(&self) -> bool {
+//         (**self).is_empty()
+//     }
 
-    fn data_type(&self) -> &DataType {
-        (**self).data_type()
-    }
+//     fn data_type(&self) -> &DataType {
+//         (**self).data_type()
+//     }
 
-    fn get_nulls(&self) -> Option<Vec<bool>> {
-        self.validity().as_ref().map(|bm| bm.iter().collect())
-    }
+//     fn get_nulls(&self) -> Option<Vec<bool>> {
+//         self.validity().as_ref().map(|bm| bm.iter().collect())
+//     }
 
-    fn is_null(&self, idx: usize) -> Option<bool> {
-        self.get_nulls().and_then(|e| e.get(idx).copied())
-    }
+//     fn is_null(&self, idx: usize) -> Option<bool> {
+//         self.get_nulls().and_then(|e| e.get(idx).copied())
+//     }
 
-    fn to_arc_array(mut self) -> FxResult<ArcArr> {
-        let res = Arc::get_mut(&mut self)
-            .ok_or(FxError::FailedToConvert)?
-            .as_arc();
+//     fn to_arc_array(mut self) -> FxResult<ArcArr> {
+//         let res = Arc::get_mut(&mut self)
+//             .ok_or(FxError::FailedToConvert)?
+//             .as_arc();
 
-        Ok(res)
-    }
+//         Ok(res)
+//     }
 
-    fn to_box_array(mut self) -> FxResult<BoxArr> {
-        let res = Arc::get_mut(&mut self)
-            .ok_or(FxError::FailedToConvert)?
-            .as_box();
+//     fn to_box_array(mut self) -> FxResult<BoxArr> {
+//         let res = Arc::get_mut(&mut self)
+//             .ok_or(FxError::FailedToConvert)?
+//             .as_box();
 
-        Ok(res)
-    }
+//         Ok(res)
+//     }
 
-    fn to_arc_vector(self) -> FxResult<ArcVec> {
-        Ok(self)
-    }
+//     fn to_arc_vector(self) -> FxResult<ArcVec> {
+//         Ok(self)
+//     }
 
-    fn to_box_vector(self) -> FxResult<BoxVec> {
-        self.to_box_array()?.to_box_vector()
-    }
+//     fn to_box_vector(self) -> FxResult<BoxVec> {
+//         self.to_box_array()?.to_box_vector()
+//     }
 
-    fn extend(&mut self, s: &Self) -> FxResult<&mut Self> {
-        match &self.data_type() {
-            DataType::Boolean => try_ext_from_slf!(self, s, BV),
-            DataType::Int8 => try_ext_from_slf!(self, s, PVi8),
-            DataType::Int16 => try_ext_from_slf!(self, s, PVi16),
-            DataType::Int32 => try_ext_from_slf!(self, s, PVi32),
-            DataType::Int64 => try_ext_from_slf!(self, s, PVi64),
-            DataType::UInt8 => try_ext_from_slf!(self, s, PVu8),
-            DataType::UInt16 => try_ext_from_slf!(self, s, PVu16),
-            DataType::UInt32 => try_ext_from_slf!(self, s, PVu32),
-            DataType::UInt64 => try_ext_from_slf!(self, s, PVu64),
-            DataType::Float32 => try_ext_from_slf!(self, s, PVf32),
-            DataType::Float64 => try_ext_from_slf!(self, s, PVf64),
-            DataType::Utf8 => try_ext_from_slf!(self, s, UV),
-            _ => Err(FxError::FailedToConvert),
-        }
-    }
-}
+//     fn extend(&mut self, s: &Self) -> FxResult<&mut Self> {
+//         match &self.data_type() {
+//             DataType::Boolean => try_ext_from_slf!(self, s, BV),
+//             DataType::Int8 => try_ext_from_slf!(self, s, PVi8),
+//             DataType::Int16 => try_ext_from_slf!(self, s, PVi16),
+//             DataType::Int32 => try_ext_from_slf!(self, s, PVi32),
+//             DataType::Int64 => try_ext_from_slf!(self, s, PVi64),
+//             DataType::UInt8 => try_ext_from_slf!(self, s, PVu8),
+//             DataType::UInt16 => try_ext_from_slf!(self, s, PVu16),
+//             DataType::UInt32 => try_ext_from_slf!(self, s, PVu32),
+//             DataType::UInt64 => try_ext_from_slf!(self, s, PVu64),
+//             DataType::Float32 => try_ext_from_slf!(self, s, PVf32),
+//             DataType::Float64 => try_ext_from_slf!(self, s, PVf64),
+//             DataType::Utf8 => try_ext_from_slf!(self, s, UV),
+//             _ => Err(FxError::FailedToConvert),
+//         }
+//     }
+// }
 
 // ================================================================================================
 // Box<dyn MutableArray>
 // ================================================================================================
 
-impl FxSeq for BoxVec {
-    fn new_nulls(data_type: DataType, length: usize) -> Self {
-        match data_type {
-            DataType::Boolean => Box::new(BV::from(vec![None; length])),
-            DataType::Int8 => Box::new(PVi8::from(vec![None; length])),
-            DataType::Int16 => Box::new(PVi16::from(vec![None; length])),
-            DataType::Int32 => Box::new(PVi32::from(vec![None; length])),
-            DataType::Int64 => Box::new(PVi64::from(vec![None; length])),
-            DataType::UInt8 => Box::new(PVu8::from(vec![None; length])),
-            DataType::UInt16 => Box::new(PVu16::from(vec![None; length])),
-            DataType::UInt32 => Box::new(PVu32::from(vec![None; length])),
-            DataType::UInt64 => Box::new(PVu64::from(vec![None; length])),
-            DataType::Float32 => Box::new(PVf32::from(vec![None; length])),
-            DataType::Float64 => Box::new(PVf64::from(vec![None; length])),
-            DataType::Utf8 => Box::new(UV::from(vec![Option::<&str>::None; length])),
-            _ => unimplemented!(),
-        }
-    }
+// impl FxSeq for BoxVec {
+//     fn new_nulls(data_type: DataType, length: usize) -> Self {
+//         match data_type {
+//             DataType::Boolean => Box::new(BV::from(vec![None; length])),
+//             DataType::Int8 => Box::new(PVi8::from(vec![None; length])),
+//             DataType::Int16 => Box::new(PVi16::from(vec![None; length])),
+//             DataType::Int32 => Box::new(PVi32::from(vec![None; length])),
+//             DataType::Int64 => Box::new(PVi64::from(vec![None; length])),
+//             DataType::UInt8 => Box::new(PVu8::from(vec![None; length])),
+//             DataType::UInt16 => Box::new(PVu16::from(vec![None; length])),
+//             DataType::UInt32 => Box::new(PVu32::from(vec![None; length])),
+//             DataType::UInt64 => Box::new(PVu64::from(vec![None; length])),
+//             DataType::Float32 => Box::new(PVf32::from(vec![None; length])),
+//             DataType::Float64 => Box::new(PVf64::from(vec![None; length])),
+//             DataType::Utf8 => Box::new(UV::from(vec![Option::<&str>::None; length])),
+//             _ => unimplemented!(),
+//         }
+//     }
 
-    fn new_empty(data_type: DataType) -> Self {
-        Self::new_nulls(data_type, 0)
-    }
+//     fn new_empty(data_type: DataType) -> Self {
+//         Self::new_nulls(data_type, 0)
+//     }
 
-    fn is_arr() -> bool {
-        false
-    }
+//     fn is_arr() -> bool {
+//         false
+//     }
 
-    fn is_vec() -> bool {
-        true
-    }
+//     fn is_vec() -> bool {
+//         true
+//     }
 
-    fn as_any(&self) -> &dyn Any {
-        (**self).as_any()
-    }
+//     fn as_any(&self) -> &dyn Any {
+//         (**self).as_any()
+//     }
 
-    fn as_any_mut(&mut self) -> Option<&mut dyn Any> {
-        Some((**self).as_mut_any())
-    }
+//     fn as_any_mut(&mut self) -> Option<&mut dyn Any> {
+//         Some((**self).as_mut_any())
+//     }
 
-    fn len(&self) -> usize {
-        (**self).len()
-    }
+//     fn len(&self) -> usize {
+//         (**self).len()
+//     }
 
-    fn is_empty(&self) -> bool {
-        (**self).is_empty()
-    }
+//     fn is_empty(&self) -> bool {
+//         (**self).is_empty()
+//     }
 
-    fn data_type(&self) -> &DataType {
-        (**self).data_type()
-    }
+//     fn data_type(&self) -> &DataType {
+//         (**self).data_type()
+//     }
 
-    fn get_nulls(&self) -> Option<Vec<bool>> {
-        self.validity().as_ref().map(|bm| bm.iter().collect())
-    }
+//     fn get_nulls(&self) -> Option<Vec<bool>> {
+//         self.validity().as_ref().map(|bm| bm.iter().collect())
+//     }
 
-    fn is_null(&self, idx: usize) -> Option<bool> {
-        self.get_nulls().and_then(|e| e.get(idx).copied())
-    }
+//     fn is_null(&self, idx: usize) -> Option<bool> {
+//         self.get_nulls().and_then(|e| e.get(idx).copied())
+//     }
 
-    fn to_arc_array(mut self) -> FxResult<ArcArr> {
-        let res = self.as_arc();
-        Ok(res)
-    }
+//     fn to_arc_array(mut self) -> FxResult<ArcArr> {
+//         let res = self.as_arc();
+//         Ok(res)
+//     }
 
-    fn to_box_array(mut self) -> FxResult<BoxArr> {
-        Ok(self.as_box())
-    }
+//     fn to_box_array(mut self) -> FxResult<BoxArr> {
+//         Ok(self.as_box())
+//     }
 
-    fn to_arc_vector(self) -> FxResult<ArcVec> {
-        Ok(Arc::from(self))
-    }
+//     fn to_arc_vector(self) -> FxResult<ArcVec> {
+//         Ok(Arc::from(self))
+//     }
 
-    fn to_box_vector(self) -> FxResult<BoxVec> {
-        Ok(self)
-    }
+//     fn to_box_vector(self) -> FxResult<BoxVec> {
+//         Ok(self)
+//     }
 
-    fn extend(&mut self, s: &Self) -> FxResult<&mut Self> {
-        match (**self).data_type() {
-            DataType::Boolean => try_ext_from_slf!(self, s, BV),
-            DataType::Int8 => try_ext_from_slf!(self, s, PVi8),
-            DataType::Int16 => try_ext_from_slf!(self, s, PVi16),
-            DataType::Int32 => try_ext_from_slf!(self, s, PVi32),
-            DataType::Int64 => try_ext_from_slf!(self, s, PVi64),
-            DataType::UInt8 => try_ext_from_slf!(self, s, PVu8),
-            DataType::UInt16 => try_ext_from_slf!(self, s, PVu16),
-            DataType::UInt32 => try_ext_from_slf!(self, s, PVu32),
-            DataType::UInt64 => try_ext_from_slf!(self, s, PVu64),
-            DataType::Float32 => try_ext_from_slf!(self, s, PVf32),
-            DataType::Float64 => try_ext_from_slf!(self, s, PVf64),
-            DataType::Utf8 => try_ext_from_slf!(self, s, UV),
-            _ => Err(FxError::FailedToConvert),
-        }
-    }
-}
+//     fn extend(&mut self, s: &Self) -> FxResult<&mut Self> {
+//         match (**self).data_type() {
+//             DataType::Boolean => try_ext_from_slf!(self, s, BV),
+//             DataType::Int8 => try_ext_from_slf!(self, s, PVi8),
+//             DataType::Int16 => try_ext_from_slf!(self, s, PVi16),
+//             DataType::Int32 => try_ext_from_slf!(self, s, PVi32),
+//             DataType::Int64 => try_ext_from_slf!(self, s, PVi64),
+//             DataType::UInt8 => try_ext_from_slf!(self, s, PVu8),
+//             DataType::UInt16 => try_ext_from_slf!(self, s, PVu16),
+//             DataType::UInt32 => try_ext_from_slf!(self, s, PVu32),
+//             DataType::UInt64 => try_ext_from_slf!(self, s, PVu64),
+//             DataType::Float32 => try_ext_from_slf!(self, s, PVf32),
+//             DataType::Float64 => try_ext_from_slf!(self, s, PVf64),
+//             DataType::Utf8 => try_ext_from_slf!(self, s, UV),
+//             _ => Err(FxError::FailedToConvert),
+//         }
+//     }
+// }
 
 // ================================================================================================
 // Default implementation for [FxSeq; W]
@@ -496,6 +496,17 @@ where
     S: FxSeq,
 {
     type Seq = S;
+
+    fn from_slice_seq(data: &[Self::Seq]) -> FxResult<Self>
+    where
+        Self: Sized,
+    {
+        if data.len() != W {
+            return Err(FxError::LengthMismatch(data.len(), W));
+        }
+
+        Ok(data.to_vec().try_into().unwrap())
+    }
 
     fn ref_sequences(&self) -> &[Self::Seq] {
         self.as_slice()
@@ -573,6 +584,13 @@ where
 {
     type Seq = S;
 
+    fn from_slice_seq(data: &[Self::Seq]) -> FxResult<Self>
+    where
+        Self: Sized,
+    {
+        Ok(data.to_vec())
+    }
+
     fn ref_sequences(&self) -> &[Self::Seq] {
         self.as_slice()
     }
@@ -617,6 +635,12 @@ where
 impl private::InnerEclectic for ChunkArr {
     type Seq = ArcArr;
 
+    fn from_slice_seq(data: &[Self::Seq]) -> FxResult<Self>
+    where
+        Self: Sized,
+    {
+        Ok(ChunkArr::try_new(data.to_vec())?)
+    }
     fn ref_sequences(&self) -> &[Self::Seq] {
         self.arrays()
     }

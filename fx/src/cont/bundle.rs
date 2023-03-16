@@ -44,6 +44,18 @@ where
 {
     type Seq = S;
 
+    fn from_slice_seq(data: &[Self::Seq]) -> FxResult<Self>
+    where
+        Self: Sized,
+    {
+        if data.len() != W {
+            return Err(FxError::LengthMismatch(data.len(), W));
+        }
+
+        let d = data.to_vec().try_into().unwrap();
+        Ok(FxBundle::new(d))
+    }
+
     fn ref_sequences(&self) -> &[Self::Seq] {
         &self.data
     }
