@@ -23,7 +23,7 @@ use crate::error::FxResult;
 pub trait InnerEclectic: Confined {
     type Seq: FxSeq; // Arc<Array>/Arc<MutableArray>/Box<Array>/Box<MutableArray>
 
-    fn from_slice_seq(data: &[Self::Seq]) -> FxResult<Self>
+    fn from_vec_seq(data: Vec<Self::Seq>) -> FxResult<Self>
     where
         Self: Sized;
 
@@ -68,9 +68,9 @@ where
 
     fn ref_schema(&self) -> Option<&Schema>;
 
-    fn get_chunk<'a>(&'a self, key: I) -> FxResult<Self::OutRef<'a>>;
+    fn get_chunk(&self, key: I) -> FxResult<Self::OutRef<'_>>;
 
-    fn get_mut_chunk<'a>(&'a mut self, key: I) -> FxResult<Self::OutMut<'a>>;
+    fn get_mut_chunk(&mut self, key: I) -> FxResult<Self::OutMut<'_>>;
 
     fn insert_chunk_type_unchecked(&mut self, key: I, data: E) -> FxResult<()>;
 

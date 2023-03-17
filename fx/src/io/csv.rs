@@ -59,7 +59,7 @@ impl FxIO {
         .map(|a| FxSeq::from_ref(a.deref()))
         .collect::<Vec<_>>();
 
-        D::from_slice_seq(&res)
+        D::from_vec_seq(res)
     }
 }
 

@@ -44,7 +44,7 @@ where
 {
     type Seq = S;
 
-    fn from_slice_seq(data: &[Self::Seq]) -> FxResult<Self>
+    fn from_vec_seq(data: Vec<Self::Seq>) -> FxResult<Self>
     where
         Self: Sized,
     {
@@ -52,7 +52,7 @@ where
             return Err(FxError::LengthMismatch(data.len(), W));
         }
 
-        let d = data.to_vec().try_into().unwrap();
+        let d: [S; W] = data.try_into().unwrap();
         Ok(FxBundle::new(d))
     }
 
@@ -143,7 +143,7 @@ where
 mod test_table {
     use super::*;
     use crate::ab::{Confined, Congruent, Eclectic, FromSlice, FromVec};
-    use crate::cont::ArcArr;
+    use crate::cont::{ArcArr, ArcVec};
 
     #[test]
     fn create_new_table_success() {
@@ -171,10 +171,8 @@ mod test_table {
 
     #[test]
     fn create_new_table_name_more_success() {
-        // let a = ArcVec::from_slice(&[None, Some("x")]);
-        let a = ArcArr::from_slice(&[None, Some("x")]);
-        // let b = ArcVec::from_slice(&[None, Some(2), None]);
-        let b = ArcArr::from_slice(&[None, Some(2), None]);
+        let a = ArcVec::from_slice(&[None, Some("x")]);
+        let b = ArcVec::from_slice(&[None, Some(2), None]);
 
         let vaa = [a, b];
 
@@ -196,10 +194,8 @@ mod test_table {
 
     #[test]
     fn test_vec_of_arc_vec() {
-        // let a = ArcVec::from_vec(vec![None, Some(1)]);
-        let a = ArcArr::from_vec(vec![None, Some(1)]);
-        // let b = ArcVec::from_vec(vec![None, Some("y"), None]);
-        let b = ArcArr::from_vec(vec![None, Some("y"), None]);
+        let a = ArcVec::from_vec(vec![None, Some(1)]);
+        let b = ArcVec::from_vec(vec![None, Some("y"), None]);
 
         let vam = vec![a, b];
 
@@ -221,10 +217,8 @@ mod test_table {
 
     #[test]
     fn test_bundle_of_arc_vec() {
-        // let a = ArcVec::from_vec(vec![None, Some(1)]);
-        let a = ArcArr::from_vec(vec![None, Some(1)]);
-        // let b = ArcVec::from_vec(vec![None, Some("y"), None]);
-        let b = ArcArr::from_vec(vec![None, Some("y"), None]);
+        let a = ArcVec::from_vec(vec![None, Some(1)]);
+        let b = ArcVec::from_vec(vec![None, Some("y"), None]);
 
         let vam = [a, b];
 
@@ -235,10 +229,8 @@ mod test_table {
 
     #[test]
     fn test_bundle_to_chunk() {
-        // let a = ArcVec::from_vec(vec![Some(1)]);
-        let a = ArcArr::from_vec(vec![Some(1)]);
-        // let b = ArcVec::from_vec(vec![None, Some("y"), None]);
-        let b = ArcArr::from_vec(vec![None, Some("y"), None]);
+        let a = ArcVec::from_vec(vec![Some(1)]);
+        let b = ArcVec::from_vec(vec![None, Some("y"), None]);
 
         let vam = [a, b];
 

@@ -30,11 +30,11 @@ where
         self.width() == d.width() && self.data_types() == d.data_types()
     }
 
-    fn get<'a>(&'a self, key: I) -> FxResult<Self::OutRef<'a>> {
+    fn get(&self, key: I) -> FxResult<Self::OutRef<'_>> {
         self.get_chunk(key)
     }
 
-    fn get_mut<'a>(&'a mut self, key: I) -> FxResult<Self::OutMut<'a>> {
+    fn get_mut(&mut self, key: I) -> FxResult<Self::OutMut<'_>> {
         self.get_mut_chunk(key)
     }
 

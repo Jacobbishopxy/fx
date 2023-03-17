@@ -53,11 +53,11 @@ impl<const W: usize, S: FxSeq> private::InnerReceptacle<true, usize, [S; W]> for
         Some(&self.schema)
     }
 
-    fn get_chunk<'a>(&'a self, key: usize) -> FxResult<Self::OutRef<'a>> {
+    fn get_chunk(&self, key: usize) -> FxResult<Self::OutRef<'_>> {
         self.data.get(key)
     }
 
-    fn get_mut_chunk<'a>(&'a mut self, key: usize) -> FxResult<Self::OutMut<'a>> {
+    fn get_mut_chunk(&mut self, key: usize) -> FxResult<Self::OutMut<'_>> {
         self.data.get_mut(key)
     }
 

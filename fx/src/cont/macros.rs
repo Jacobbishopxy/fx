@@ -55,16 +55,16 @@ pub(crate) use box_arr_to_vec;
 pub(crate) use box_arr_to_vec_p;
 
 // used for MutableArray `concat`
-// macro_rules! try_ext_from_slf {
-//     ($arr:expr, $s:expr, $dwn_cst_r:ident) => {{
-//         let ma = $arr.as_typed_mut::<$dwn_cst_r>()?;
+macro_rules! try_ext_from_slf {
+    ($arr:expr, $s:expr, $dwn_cst_r:ident) => {{
+        let ma = $arr.as_typed_mut::<$dwn_cst_r>()?;
 
-//         let s = $s.as_typed::<$dwn_cst_r>()?;
+        let s = $s.as_typed::<$dwn_cst_r>()?;
 
-//         ma.try_extend_from_self(s)?;
+        ma.try_extend_from_self(s)?;
 
-//         Ok($arr)
-//     }};
-// }
+        Ok($arr)
+    }};
+}
 
-// pub(crate) use try_ext_from_slf;
+pub(crate) use try_ext_from_slf;

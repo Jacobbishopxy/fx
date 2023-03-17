@@ -16,7 +16,7 @@ use crate::error::{FxError, FxResult};
 // Seq
 // ================================================================================================
 
-pub trait FxSeq: Debug + Clone {
+pub trait FxSeq: Debug {
     fn from_ref(data: &dyn Array) -> Self;
 
     fn new_nulls(datatype: DataType, length: usize) -> Self;
