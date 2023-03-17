@@ -39,6 +39,10 @@ where
         }
     }
 
+    pub fn data(&self) -> Option<&T> {
+        self.data.as_ref()
+    }
+
     pub fn take_data(&mut self) -> Option<T> {
         self.data.take()
     }

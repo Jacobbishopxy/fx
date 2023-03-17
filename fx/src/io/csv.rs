@@ -87,7 +87,7 @@ impl<T: Eclectic + Purport> SimpleIO<T> {
 
         let reader = self.reader.take().unwrap();
 
-        FxIO::read_csv::<T, _>(reader, projection)?;
+        self.data = Some(FxIO::read_csv::<T, _>(reader, projection)?);
 
         Ok(())
     }
@@ -129,5 +129,40 @@ mod test_csv {
         assert!(res.is_ok());
 
         println!("{:?}", res.unwrap());
+    }
+
+    #[test]
+    fn simple_write() {
+        let arrays = vec![
+            ArcArr::from_slice(&["a", "c", "x"]),
+            ArcArr::from_slice(&[Some("x"), None, Some("y")]),
+            ArcArr::from_slice(&[Some(2.1), None, Some(6.2)]),
+            ArcArr::from_slice(&[true, false, false]),
+        ];
+        let batch = FxBatch::new(arrays);
+
+        let mut simple = SimpleIO::new_with_data(batch);
+
+        let fw = simple.set_file_writer(FILE_CSV);
+        assert!(fw.is_ok());
+
+        let w = simple.write_csv(None);
+        assert!(w.is_ok());
+    }
+
+    #[test]
+    fn simple_read() {
+        let mut simple = SimpleIO::<FxBatch>::new();
+
+        let fr = simple.set_file_reader(FILE_CSV);
+        assert!(fr.is_ok());
+
+        let r = simple.read_csv(None);
+        assert!(r.is_ok());
+
+        let ref_data = simple.data();
+        assert!(ref_data.is_some());
+
+        println!("{:?}", ref_data.unwrap());
     }
 }
