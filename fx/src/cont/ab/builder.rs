@@ -23,7 +23,7 @@ use crate::error::{FxError, FxResult};
 //
 // Based on a named struct, generate a new struct with several vector fields, and each of them
 // denotes its original data type (`Option` is supported).
-// And this process has been concluded in `fx-macros`, which used procedure macro to auto generate
+// And this process has been concluded in `fx-derive`, which used procedure macro to auto generate
 // all the required implementations for a struct who represents a schema.
 // ================================================================================================
 

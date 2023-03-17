@@ -23,7 +23,6 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   │   ├── batches.rs
     │   │   │   ├── bundle.rs
     │   │   │   ├── bundles.rs
-    │   │   │   ├── cvt.rs
     │   │   │   ├── deque.rs
     │   │   │   ├── ext.rs
     │   │   │   ├── macros.rs
@@ -33,6 +32,10 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   ├── io
     │   │   │   ├── ab
     │   │   │   │   └── mod.rs
+    │   │   │   ├── ec
+    │   │   │   │   ├── mod.rs
+    │   │   │   │   ├── parallel.rs
+    │   │   │   │   └── simple.rs
     │   │   │   ├── arvo.rs
     │   │   │   ├── csv.rs
     │   │   │   ├── ipc.rs
@@ -51,7 +54,7 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │       ├── fx_iter_test.rs
     │       ├── fx_macros_test.rs
     │       └── fx_seq_test.rs
-    ├── fx-macros
+    ├── fx-derive
     │   └── src
     │       ├── constant.rs
     │       ├── dr.rs
@@ -130,7 +133,7 @@ Structs and enums provided by Fx crate:
   - `ref-cast`
   - `inherent`
 
-- fx-macros
+- fx-derive
 
   - `proc-macro2`
   - `quote`

@@ -6,7 +6,7 @@ edition = "2021"
 
 
 [dependencies]
-fx-macros = { path = "../fx-macros" }
+fx-derive = { path = "../fx-derive" }
 
 arrow2 = { version = "0", features = [
   "io_csv",

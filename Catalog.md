@@ -16,7 +16,6 @@
     │   │   │   ├── batches.rs
     │   │   │   ├── bundle.rs
     │   │   │   ├── bundles.rs
-    │   │   │   ├── cvt.rs
     │   │   │   ├── deque.rs
     │   │   │   ├── ext.rs
     │   │   │   ├── macros.rs
@@ -26,6 +25,10 @@
     │   │   ├── io
     │   │   │   ├── ab
     │   │   │   │   └── mod.rs
+    │   │   │   ├── ec
+    │   │   │   │   ├── mod.rs
+    │   │   │   │   ├── parallel.rs
+    │   │   │   │   └── simple.rs
     │   │   │   ├── arvo.rs
     │   │   │   ├── csv.rs
     │   │   │   ├── ipc.rs
@@ -44,7 +47,7 @@
     │       ├── fx_iter_test.rs
     │       ├── fx_macros_test.rs
     │       └── fx_seq_test.rs
-    ├── fx-macros
+    ├── fx-derive
     │   └── src
     │       ├── constant.rs
     │       ├── dr.rs

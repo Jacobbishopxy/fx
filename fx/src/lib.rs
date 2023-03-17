@@ -16,7 +16,7 @@ mod types;
 pub mod value;
 
 // derived proc-macro
-pub use fx_macros::FX;
+pub use fx_derive::FX;
 
 // re-export
 pub use arrow2::*;
