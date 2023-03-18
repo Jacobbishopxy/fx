@@ -7,7 +7,7 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
-use syn::{Data, DeriveInput, Field, Fields, Ident, Type};
+use syn::{Data, DeriveInput, Field, Fields, Ident, Meta, Token, Type};
 
 use crate::constant::*;
 
@@ -64,22 +64,26 @@ pub(crate) fn get_option_type_name(ty: &Type) -> (bool, String) {
 /// extract attributes from a specified `attr_mark`.
 /// For instance, if chk = Some(FxBatches), then use ChunkArr as Eclectic param in row-builders;
 pub(crate) fn get_attributes(input: &DeriveInput, attr_mark: &str) -> Option<Vec<String>> {
-    input
-        .attrs
-        .iter()
-        .find(|a| a.path.segments[0].ident == attr_mark)
-        .map(|a| match a.parse_meta().unwrap() {
-            syn::Meta::List(syn::MetaList { nested, .. }) => match nested.first().unwrap() {
-                syn::NestedMeta::Meta(m) => m
-                    .path()
-                    .segments
-                    .iter()
-                    .map(|s| s.ident.to_string())
-                    .collect::<Vec<_>>(),
+    for attr in &input.attrs {
+        if attr.path().is_ident(attr_mark) {
+            let n = attr
+                .parse_args_with(Punctuated::<Meta, Token!(,)>::parse_terminated)
+                .unwrap();
+            match n.first().unwrap() {
+                Meta::Path(p) => {
+                    let s = p
+                        .segments
+                        .iter()
+                        .map(|s| s.ident.to_string())
+                        .collect::<Vec<_>>();
+                    return Some(s);
+                }
                 _ => panic!("Unsupported nested"),
-            },
-            _ => panic!("Unsupported attribute form"),
-        })
+            }
+        }
+    }
+
+    None
 }
 
 pub(crate) fn get_first_attribute(input: &DeriveInput, attr_mark: &str) -> Option<String> {
