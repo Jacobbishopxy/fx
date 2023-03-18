@@ -4,7 +4,6 @@
 //! brief: CSV I/O
 
 use std::io::Write;
-use std::ops::Deref;
 
 use arrow2::io::csv::read as csv_read;
 use arrow2::io::csv::write as csv_write;
@@ -20,17 +19,17 @@ use crate::error::{FxError, FxResult};
 impl FxIO {
     pub fn write_csv<D: Eclectic + Purport, W: Write>(
         data: D,
-        writer: &mut W,
+        mut writer: W,
         options: Option<&csv_write::SerializeOptions>,
     ) -> FxResult<()> {
         let names = data.names();
         let default_opt = csv_write::SerializeOptions::default();
         let opt = options.unwrap_or(&default_opt);
 
-        csv_write::write_header(writer, &names, opt)?;
+        csv_write::write_header(&mut writer, &names, opt)?;
 
         let columns = data.take_shortest_to_chunk()?;
-        csv_write::write_chunk(writer, &columns, opt)?;
+        csv_write::write_chunk(&mut writer, &columns, opt)?;
 
         Ok(())
     }
@@ -54,9 +53,9 @@ impl FxIO {
             0,
             csv_read::deserialize_column,
         )?
-        .arrays()
-        .iter()
-        .map(|a| FxSeq::from_ref(a.deref()))
+        .into_arrays()
+        .into_iter()
+        .map(FxSeq::from_box_arr)
         .collect::<Vec<_>>();
 
         D::from_vec_seq(res)
@@ -116,9 +115,9 @@ mod test_csv {
         let data = FxBatch::new_with_names(vec![a, b, c], ["c1", "c2", "c3"]);
         println!("{:?}", data.schema());
 
-        let mut file = std::fs::File::create(FILE_CSV).unwrap();
+        let file = std::fs::File::create(FILE_CSV).unwrap();
 
-        FxIO::write_csv(data, &mut file, None).expect("write success");
+        FxIO::write_csv(data, file, None).expect("write success");
     }
 
     #[test]

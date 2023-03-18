@@ -39,6 +39,10 @@ impl FxSeq for ArcArr {
         Arc::from(data.to_boxed())
     }
 
+    fn from_box_arr(data: Box<dyn Array>) -> Self {
+        Arc::from(data)
+    }
+
     fn new_nulls(data_type: DataType, length: usize) -> Self {
         match data_type {
             DataType::Boolean => BA::new_null(data_type, length).arced(),
@@ -167,6 +171,10 @@ impl FxSeq for ArcArr {
 impl FxSeq for BoxArr {
     fn from_ref(data: &dyn Array) -> Self {
         data.to_boxed()
+    }
+
+    fn from_box_arr(data: Box<dyn Array>) -> Self {
+        data
     }
 
     fn new_nulls(data_type: DataType, length: usize) -> Self {
@@ -299,6 +307,10 @@ impl FxSeq for ArcVec {
         data.to_boxed().to_arc_vector().unwrap()
     }
 
+    fn from_box_arr(data: Box<dyn Array>) -> Self {
+        data.to_arc_vector().unwrap()
+    }
+
     fn new_nulls(data_type: DataType, len: usize) -> Self {
         match data_type {
             DataType::Boolean => Arc::new(BV::from(vec![None; len])),
@@ -407,6 +419,10 @@ impl FxSeq for ArcVec {
 impl FxSeq for BoxVec {
     fn from_ref(data: &dyn Array) -> Self {
         data.to_boxed().to_box_vector().unwrap()
+    }
+
+    fn from_box_arr(data: Box<dyn Array>) -> Self {
+        data.to_box_vector().unwrap()
     }
 
     fn new_nulls(data_type: DataType, length: usize) -> Self {

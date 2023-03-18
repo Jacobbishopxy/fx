@@ -56,4 +56,12 @@ where
         self.reader = Some(Box::new(std::fs::File::open(path)?));
         Ok(())
     }
+
+    // pub fn set_buf_writer(&mut self) {}
+
+    // pub fn set_buf_reader(&mut self) {}
+
+    // pub fn set_cursor_writer(&mut self) {}
+
+    // pub fn set_cursor_reader(&mut self) {}
 }

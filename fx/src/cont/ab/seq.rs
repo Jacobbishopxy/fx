@@ -19,6 +19,8 @@ use crate::error::{FxError, FxResult};
 pub trait FxSeq: Debug {
     fn from_ref(data: &dyn Array) -> Self;
 
+    fn from_box_arr(data: Box<dyn Array>) -> Self;
+
     fn new_nulls(datatype: DataType, length: usize) -> Self;
 
     fn new_empty(datatype: DataType) -> Self;
