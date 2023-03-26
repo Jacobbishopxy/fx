@@ -32,7 +32,7 @@ pub mod ab {
 
     pub trait FromSlice<S, T, D>
     where
-        S: AsRef<T> + Sized,
+        S: AsRef<T> + ?Sized,
         T: ?Sized,
     {
         fn from_slice(slice: S) -> D;
@@ -53,7 +53,7 @@ pub mod prelude {
 
     pub use super::cont::ab::*;
     pub use super::cont::*;
-    pub use super::{aar, avc};
+    pub use super::{arc_arr, arc_vec, box_arr, box_vec};
 
     pub use super::error::*;
 

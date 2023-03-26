@@ -126,8 +126,8 @@ impl<T: Eclectic + Purport> SimpleIO<T> {
 #[cfg(test)]
 mod test_parquet {
 
-    use crate::aar;
     use crate::ab::FromSlice;
+    use crate::arc_arr;
     use crate::cont::FxBatch;
 
     use super::*;
@@ -136,9 +136,9 @@ mod test_parquet {
 
     #[test]
     fn parquet_write_success() {
-        let a = aar!([Some(1), None, Some(3)]);
-        let b = aar!([Some(2.1), None, Some(6.2)]);
-        let c = aar!([Some("a"), Some("b"), Some("c")]);
+        let a = arc_arr!([Some(1), None, Some(3)]);
+        let b = arc_arr!([Some(2.1), None, Some(6.2)]);
+        let c = arc_arr!([Some("a"), Some("b"), Some("c")]);
 
         let data = FxBatch::new_with_names(vec![a, b, c], ["c1", "c2", "c3"]);
         println!("{:?}", data.schema());
@@ -161,10 +161,10 @@ mod test_parquet {
     #[test]
     fn simple_write() {
         let arrays = vec![
-            aar!(["a", "c", "x"]),
-            aar!([Some("x"), None, Some("y")]),
-            aar!([Some(2.1), None, Some(6.2)]),
-            aar!([true, false, false]),
+            arc_arr!(["a", "c", "x"]),
+            arc_arr!([Some("x"), None, Some("y")]),
+            arc_arr!([Some(2.1), None, Some(6.2)]),
+            arc_arr!([true, false, false]),
         ];
         let batch = FxBatch::new(arrays);
 

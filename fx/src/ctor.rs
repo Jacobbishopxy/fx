@@ -3,9 +3,7 @@
 //! date: 2023/02/18 11:13:15 Saturday
 //! brief:
 
-use crate::ab::FromSlice;
 use crate::macros::*;
-use crate::prelude::{ArcArr, ArcVec, BoxArr, BoxVec};
 
 // ================================================================================================
 // Impl
@@ -34,136 +32,10 @@ vec_impl_from_native!(f64);
 
 arr_impl_from_str!(&str);
 vec_impl_from_str!(&str);
+arr_vec_impl_from_str_slice!();
 arr_impl_from_str!(String);
 vec_impl_from_str!(String);
-
-// &str
-impl<'a, S: AsRef<[&'a str]>> FromSlice<S, [&'a str], ArcArr> for ArcArr {
-    fn from_slice(slice: S) -> ArcArr {
-        arrow2::array::Utf8Array::<i32>::from_slice(slice.as_ref()).arced()
-    }
-}
-
-// &str
-impl<'a, S: AsRef<[Option<&'a str>]>> FromSlice<S, [Option<&'a str>], ArcArr> for ArcArr {
-    fn from_slice(slice: S) -> ArcArr {
-        let vec = slice.as_ref().to_vec();
-        arrow2::array::Utf8Array::<i32>::from(vec).arced()
-    }
-}
-
-// &str
-impl<'a, S: AsRef<[&'a str]>> FromSlice<S, [&'a str], ArcVec> for ArcVec {
-    fn from_slice(slice: S) -> ArcVec {
-        std::sync::Arc::new(arrow2::array::MutableUtf8Array::<i32>::from_iter_values(
-            slice.as_ref().iter(),
-        ))
-    }
-}
-
-// &str
-impl<'a, S: AsRef<[Option<&'a str>]>> FromSlice<S, [Option<&'a str>], ArcVec> for ArcVec {
-    fn from_slice(slice: S) -> ArcVec {
-        let vec = slice.as_ref().to_vec();
-        std::sync::Arc::new(arrow2::array::MutableUtf8Array::<i32>::from(vec))
-    }
-}
-
-// &str
-impl<'a, S: AsRef<[&'a str]>> FromSlice<S, [&'a str], BoxArr> for BoxArr {
-    fn from_slice(slice: S) -> BoxArr {
-        arrow2::array::Utf8Array::<i32>::from_slice(slice.as_ref()).boxed()
-    }
-}
-
-// &str
-impl<'a, S: AsRef<[Option<&'a str>]>> FromSlice<S, [Option<&'a str>], BoxArr> for BoxArr {
-    fn from_slice(slice: S) -> BoxArr {
-        let vec = slice.as_ref().to_vec();
-        arrow2::array::Utf8Array::<i32>::from(vec).boxed()
-    }
-}
-
-// &str
-impl<'a, S: AsRef<[&'a str]>> FromSlice<S, [&'a str], BoxVec> for BoxVec {
-    fn from_slice(slice: S) -> BoxVec {
-        Box::new(arrow2::array::MutableUtf8Array::<i32>::from_iter_values(
-            slice.as_ref().iter(),
-        ))
-    }
-}
-
-// &str
-impl<'a, S: AsRef<[Option<&'a str>]>> FromSlice<S, [Option<&'a str>], BoxVec> for BoxVec {
-    fn from_slice(slice: S) -> BoxVec {
-        let vec = slice.as_ref().to_vec();
-        Box::new(arrow2::array::MutableUtf8Array::<i32>::from(vec))
-    }
-}
-
-// String
-impl<S: AsRef<[String]>> FromSlice<S, [String], ArcArr> for ArcArr {
-    fn from_slice(slice: S) -> ArcArr {
-        arrow2::array::Utf8Array::<i32>::from_slice(slice.as_ref()).arced()
-    }
-}
-
-// String
-impl<S: AsRef<[Option<String>]>> FromSlice<S, [Option<String>], ArcArr> for ArcArr {
-    fn from_slice(slice: S) -> ArcArr {
-        let vec = slice.as_ref().to_vec();
-        arrow2::array::Utf8Array::<i32>::from(vec).arced()
-    }
-}
-
-// String
-impl<S: AsRef<[String]>> FromSlice<S, [String], ArcVec> for ArcVec {
-    fn from_slice(slice: S) -> ArcVec {
-        std::sync::Arc::new(arrow2::array::MutableUtf8Array::<i32>::from_iter_values(
-            slice.as_ref().iter(),
-        ))
-    }
-}
-
-// String
-impl<S: AsRef<[Option<String>]>> FromSlice<S, [Option<String>], ArcVec> for ArcVec {
-    fn from_slice(slice: S) -> ArcVec {
-        let vec = slice.as_ref().to_vec();
-        std::sync::Arc::new(arrow2::array::MutableUtf8Array::<i32>::from(vec))
-    }
-}
-
-// String
-impl<S: AsRef<[String]>> FromSlice<S, [String], BoxArr> for BoxArr {
-    fn from_slice(slice: S) -> BoxArr {
-        arrow2::array::Utf8Array::<i32>::from_slice(slice.as_ref()).boxed()
-    }
-}
-
-// String
-impl<S: AsRef<[Option<String>]>> FromSlice<S, [Option<String>], BoxArr> for BoxArr {
-    fn from_slice(slice: S) -> BoxArr {
-        let vec = slice.as_ref().to_vec();
-        arrow2::array::Utf8Array::<i32>::from(vec).boxed()
-    }
-}
-
-// String
-impl<S: AsRef<[String]>> FromSlice<S, [String], BoxVec> for BoxVec {
-    fn from_slice(slice: S) -> BoxVec {
-        Box::new(arrow2::array::MutableUtf8Array::<i32>::from_iter_values(
-            slice.as_ref().iter(),
-        ))
-    }
-}
-
-// String
-impl<S: AsRef<[Option<String>]>> FromSlice<S, [Option<String>], BoxVec> for BoxVec {
-    fn from_slice(slice: S) -> BoxVec {
-        let vec = slice.as_ref().to_vec();
-        Box::new(arrow2::array::MutableUtf8Array::<i32>::from(vec))
-    }
-}
+arr_vec_impl_from_string_slice!();
 
 arr_impl_from_bool!();
 vec_impl_from_bool!();
@@ -173,16 +45,30 @@ vec_impl_from_bool!();
 // ================================================================================================
 
 #[macro_export]
-macro_rules! aar {
+macro_rules! arc_arr {
     ($slice:expr) => {
         $crate::cont::ArcArr::from_slice($slice)
     };
 }
 
 #[macro_export]
-macro_rules! avc {
+macro_rules! box_arr {
+    ($slice:expr) => {
+        $crate::cont::BoxArr::from_slice($slice)
+    };
+}
+
+#[macro_export]
+macro_rules! arc_vec {
     ($slice:expr) => {
         $crate::cont::ArcVec::from_slice($slice)
+    };
+}
+
+#[macro_export]
+macro_rules! box_vec {
+    ($slice:expr) => {
+        $crate::cont::BoxVec::from_slice($slice)
     };
 }
 
@@ -193,7 +79,7 @@ macro_rules! avc {
 #[cfg(test)]
 mod test_ctor {
     use crate::ab::{FromSlice, FromVec};
-    use crate::cont::{ArcArr, ArcVec};
+    use crate::cont::{ArcArr, ArcVec, BoxArr, BoxVec};
 
     #[test]
     fn arc_arr_from_is_successful() {
@@ -204,6 +90,15 @@ mod test_ctor {
         let a3 = ArcArr::from_vec(vec![Some(1u8), None, Some(3)]);
         println!("{a3:?}");
         let a4 = ArcArr::from_vec(vec![1u8, 2, 3]);
+        println!("{a4:?}");
+
+        let a1 = BoxArr::from_slice([Some(1u8), None, Some(3)]);
+        println!("{a1:?}");
+        let a2 = BoxArr::from_slice([1u8, 2, 3]);
+        println!("{a2:?}");
+        let a3 = BoxArr::from_vec(vec![Some(1u8), None, Some(3)]);
+        println!("{a3:?}");
+        let a4 = BoxArr::from_vec(vec![1u8, 2, 3]);
         println!("{a4:?}");
     }
 
@@ -217,6 +112,15 @@ mod test_ctor {
         println!("{a3:?}");
         let a4 = ArcVec::from_vec(vec![1u8, 2, 3]);
         println!("{a4:?}");
+
+        let a1 = BoxVec::from_slice([Some(1u8), None, Some(3)]);
+        println!("{a1:?}");
+        let a2 = BoxVec::from_slice([1u8, 2, 3]);
+        println!("{a2:?}");
+        let a3 = BoxVec::from_vec(vec![Some(1u8), None, Some(3)]);
+        println!("{a3:?}");
+        let a4 = BoxVec::from_vec(vec![1u8, 2, 3]);
+        println!("{a4:?}");
     }
 
     #[test]
@@ -228,6 +132,15 @@ mod test_ctor {
         let a3 = ArcArr::from_vec(vec![Some("x"), None, Some("y")]);
         println!("{a3:?}");
         let a4 = ArcArr::from_vec(vec!["a", "x", "z"]);
+        println!("{a4:?}");
+
+        let a1 = BoxArr::from_slice([Some("a"), None, Some("c")]);
+        println!("{a1:?}");
+        let a2 = BoxArr::from_slice(["a", "d", "h"]);
+        println!("{a2:?}");
+        let a3 = BoxArr::from_vec(vec![Some("x"), None, Some("y")]);
+        println!("{a3:?}");
+        let a4 = BoxArr::from_vec(vec!["a", "x", "z"]);
         println!("{a4:?}");
     }
 
@@ -241,29 +154,56 @@ mod test_ctor {
         println!("{a3:?}");
         let a4 = ArcVec::from_vec(vec!["a", "x", "z"]);
         println!("{a4:?}");
-    }
 
-    #[test]
-    fn macro_aar_success() {
-        let a1 = aar!([Some(1u8), None, Some(3)]);
+        let a1 = BoxVec::from_slice([Some("a"), None, Some("c")]);
         println!("{a1:?}");
-        let a2 = aar!([1u8, 2, 3]);
+        let a2 = BoxVec::from_slice(["a", "d", "h"]);
         println!("{a2:?}");
-        let a3 = aar!(vec![Some(1u8), None, Some(3)]);
+        let a3 = BoxVec::from_vec(vec![Some("x"), None, Some("y")]);
         println!("{a3:?}");
-        let a4 = aar!(vec![1u8, 2, 3]);
+        let a4 = BoxVec::from_vec(vec!["a", "x", "z"]);
         println!("{a4:?}");
     }
 
     #[test]
-    fn macro_avc_success() {
-        let a1 = avc!([Some("a"), None, Some("c")]);
+    fn macro_arr_success() {
+        let a1 = arc_arr!([Some(1u8), None, Some(3)]);
         println!("{a1:?}");
-        let a2 = avc!(["a", "d", "h"]);
+        let a2 = arc_arr!([1u8, 2, 3]);
         println!("{a2:?}");
-        let a3 = avc!(vec![Some("x"), None, Some("y")]);
+        let a3 = arc_arr!(vec![Some(1u8), None, Some(3)]);
         println!("{a3:?}");
-        let a4 = avc!(vec!["a", "x", "z"]);
+        let a4 = arc_arr!(vec![1u8, 2, 3]);
+        println!("{a4:?}");
+
+        let a1 = box_arr!([Some(1u8), None, Some(3)]);
+        println!("{a1:?}");
+        let a2 = box_arr!([1u8, 2, 3]);
+        println!("{a2:?}");
+        let a3 = box_arr!(vec![Some(1u8), None, Some(3)]);
+        println!("{a3:?}");
+        let a4 = box_arr!(vec![1u8, 2, 3]);
+        println!("{a4:?}");
+    }
+
+    #[test]
+    fn macro_vec_success() {
+        let a1 = arc_vec!([Some("a"), None, Some("c")]);
+        println!("{a1:?}");
+        let a2 = arc_vec!(["a", "d", "h"]);
+        println!("{a2:?}");
+        let a3 = arc_vec!(vec![Some("x"), None, Some("y")]);
+        println!("{a3:?}");
+        let a4 = arc_vec!(vec!["a", "x", "z"]);
+        println!("{a4:?}");
+
+        let a1 = box_vec!([Some("a"), None, Some("c")]);
+        println!("{a1:?}");
+        let a2 = box_vec!(["a", "d", "h"]);
+        println!("{a2:?}");
+        let a3 = box_vec!(vec![Some("x"), None, Some("y")]);
+        println!("{a3:?}");
+        let a4 = box_vec!(vec!["a", "x", "z"]);
         println!("{a4:?}");
     }
 }

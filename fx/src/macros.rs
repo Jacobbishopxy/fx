@@ -230,6 +230,94 @@ macro_rules! arr_impl_from_str {
     };
 }
 
+macro_rules! arr_vec_impl_from_str_slice {
+    () => {
+        // &str
+        impl<'a, S: AsRef<[&'a str]>> $crate::ab::FromSlice<S, [&'a str], $crate::cont::ArcArr>
+            for $crate::cont::ArcArr
+        {
+            fn from_slice(slice: S) -> $crate::cont::ArcArr {
+                ::arrow2::array::Utf8Array::<i32>::from_slice(slice.as_ref()).arced()
+            }
+        }
+
+        // &str
+        impl<'a, S: AsRef<[Option<&'a str>]>>
+            $crate::ab::FromSlice<S, [Option<&'a str>], $crate::cont::ArcArr>
+            for $crate::cont::ArcArr
+        {
+            fn from_slice(slice: S) -> $crate::cont::ArcArr {
+                let vec = slice.as_ref().to_vec();
+                ::arrow2::array::Utf8Array::<i32>::from(vec).arced()
+            }
+        }
+
+        // &str
+        impl<'a, S: AsRef<[&'a str]>> $crate::ab::FromSlice<S, [&'a str], $crate::cont::ArcVec>
+            for $crate::cont::ArcVec
+        {
+            fn from_slice(slice: S) -> $crate::cont::ArcVec {
+                ::std::sync::Arc::new(arrow2::array::MutableUtf8Array::<i32>::from_iter_values(
+                    slice.as_ref().iter(),
+                ))
+            }
+        }
+
+        // &str
+        impl<'a, S: AsRef<[Option<&'a str>]>>
+            $crate::ab::FromSlice<S, [Option<&'a str>], $crate::cont::ArcVec>
+            for $crate::cont::ArcVec
+        {
+            fn from_slice(slice: S) -> $crate::cont::ArcVec {
+                let vec = slice.as_ref().to_vec();
+                ::std::sync::Arc::new(arrow2::array::MutableUtf8Array::<i32>::from(vec))
+            }
+        }
+
+        // &str
+        impl<'a, S: AsRef<[&'a str]>> $crate::ab::FromSlice<S, [&'a str], $crate::cont::BoxArr>
+            for $crate::cont::BoxArr
+        {
+            fn from_slice(slice: S) -> $crate::cont::BoxArr {
+                ::arrow2::array::Utf8Array::<i32>::from_slice(slice.as_ref()).boxed()
+            }
+        }
+
+        // &str
+        impl<'a, S: AsRef<[Option<&'a str>]>>
+            $crate::ab::FromSlice<S, [Option<&'a str>], $crate::cont::BoxArr>
+            for $crate::cont::BoxArr
+        {
+            fn from_slice(slice: S) -> $crate::cont::BoxArr {
+                let vec = slice.as_ref().to_vec();
+                ::arrow2::array::Utf8Array::<i32>::from(vec).boxed()
+            }
+        }
+
+        // &str
+        impl<'a, S: AsRef<[&'a str]>> $crate::ab::FromSlice<S, [&'a str], $crate::cont::BoxVec>
+            for $crate::cont::BoxVec
+        {
+            fn from_slice(slice: S) -> $crate::cont::BoxVec {
+                ::std::boxed::Box::new(arrow2::array::MutableUtf8Array::<i32>::from_iter_values(
+                    slice.as_ref().iter(),
+                ))
+            }
+        }
+
+        // &str
+        impl<'a, S: AsRef<[Option<&'a str>]>>
+            $crate::ab::FromSlice<S, [Option<&'a str>], $crate::cont::BoxVec>
+            for $crate::cont::BoxVec
+        {
+            fn from_slice(slice: S) -> $crate::cont::BoxVec {
+                let vec = slice.as_ref().to_vec();
+                ::std::boxed::Box::new(arrow2::array::MutableUtf8Array::<i32>::from(vec))
+            }
+        }
+    };
+}
+
 macro_rules! vec_impl_from_str {
     ($t:ty) => {
         impl $crate::ab::FromVec<$t, $crate::cont::ArcVec> for $crate::cont::ArcVec {
@@ -262,7 +350,97 @@ macro_rules! vec_impl_from_str {
     };
 }
 
+macro_rules! arr_vec_impl_from_string_slice {
+    () => {
+        // String
+        impl<S: AsRef<[String]>> $crate::ab::FromSlice<S, [String], $crate::cont::ArcArr>
+            for $crate::cont::ArcArr
+        {
+            fn from_slice(slice: S) -> $crate::cont::ArcArr {
+                ::arrow2::array::Utf8Array::<i32>::from_slice(slice.as_ref()).arced()
+            }
+        }
+
+        // String
+        impl<S: AsRef<[Option<String>]>>
+            $crate::ab::FromSlice<S, [Option<String>], $crate::cont::ArcArr>
+            for $crate::cont::ArcArr
+        {
+            fn from_slice(slice: S) -> $crate::cont::ArcArr {
+                let vec = slice.as_ref().to_vec();
+                ::arrow2::array::Utf8Array::<i32>::from(vec).arced()
+            }
+        }
+
+        // String
+        impl<S: AsRef<[String]>> $crate::ab::FromSlice<S, [String], $crate::cont::ArcVec>
+            for $crate::cont::ArcVec
+        {
+            fn from_slice(slice: S) -> $crate::cont::ArcVec {
+                std::sync::Arc::new(arrow2::array::MutableUtf8Array::<i32>::from_iter_values(
+                    slice.as_ref().iter(),
+                ))
+            }
+        }
+
+        // String
+        impl<S: AsRef<[Option<String>]>>
+            $crate::ab::FromSlice<S, [Option<String>], $crate::cont::ArcVec>
+            for $crate::cont::ArcVec
+        {
+            fn from_slice(slice: S) -> $crate::cont::ArcVec {
+                let vec = slice.as_ref().to_vec();
+                std::sync::Arc::new(arrow2::array::MutableUtf8Array::<i32>::from(vec))
+            }
+        }
+
+        // String
+        impl<S: AsRef<[String]>> $crate::ab::FromSlice<S, [String], $crate::cont::BoxArr>
+            for $crate::cont::BoxArr
+        {
+            fn from_slice(slice: S) -> $crate::cont::BoxArr {
+                ::arrow2::array::Utf8Array::<i32>::from_slice(slice.as_ref()).boxed()
+            }
+        }
+
+        // String
+        impl<S: AsRef<[Option<String>]>>
+            $crate::ab::FromSlice<S, [Option<String>], $crate::cont::BoxArr>
+            for $crate::cont::BoxArr
+        {
+            fn from_slice(slice: S) -> $crate::cont::BoxArr {
+                let vec = slice.as_ref().to_vec();
+                ::arrow2::array::Utf8Array::<i32>::from(vec).boxed()
+            }
+        }
+
+        // String
+        impl<S: AsRef<[String]>> $crate::ab::FromSlice<S, [String], $crate::cont::BoxVec>
+            for $crate::cont::BoxVec
+        {
+            fn from_slice(slice: S) -> $crate::cont::BoxVec {
+                Box::new(arrow2::array::MutableUtf8Array::<i32>::from_iter_values(
+                    slice.as_ref().iter(),
+                ))
+            }
+        }
+
+        // String
+        impl<S: AsRef<[Option<String>]>>
+            $crate::ab::FromSlice<S, [Option<String>], $crate::cont::BoxVec>
+            for $crate::cont::BoxVec
+        {
+            fn from_slice(slice: S) -> $crate::cont::BoxVec {
+                let vec = slice.as_ref().to_vec();
+                Box::new(arrow2::array::MutableUtf8Array::<i32>::from(vec))
+            }
+        }
+    };
+}
+
 pub(crate) use arr_impl_from_str;
+pub(crate) use arr_vec_impl_from_str_slice;
+pub(crate) use arr_vec_impl_from_string_slice;
 pub(crate) use vec_impl_from_str;
 
 // ================================================================================================

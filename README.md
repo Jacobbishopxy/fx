@@ -133,6 +133,16 @@ Structs and enums provided by Fx crate:
 
 - `sql`
 
+### Macros
+
+- `arc_arr`
+
+- `arc_vec`
+
+- `box_arr`
+
+- `box_vec`
+
 ## Dependencies
 
 - fx
