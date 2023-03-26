@@ -122,9 +122,9 @@ mod test_batches {
     #[test]
     fn new_fx_batches() {
         let ca = ChunkArr::new(vec![
-            ArcArr::from_slice(&["a", "c", "z"]),
-            ArcArr::from_slice(&[Some("x"), None, Some("y")]),
-            ArcArr::from_slice(&[true, false, false]),
+            ArcArr::from_slice(["a", "c", "z"]),
+            ArcArr::from_slice([Some("x"), None, Some("y")]),
+            ArcArr::from_slice([true, false, false]),
         ]);
         // FxBatches<Chunk<Arc<dyn Array>>>
         let b = FxBatches::new(vec![ca]);
@@ -132,9 +132,9 @@ mod test_batches {
         println!("{b:?}");
 
         let ca = ChunkArr::new(vec![
-            ArcArr::from_slice(&["a", "c", "z"]),
-            ArcArr::from_slice(&[Some("x"), None, Some("y")]),
-            ArcArr::from_slice(&[true, false, false]),
+            ArcArr::from_slice(["a", "c", "z"]),
+            ArcArr::from_slice([Some("x"), None, Some("y")]),
+            ArcArr::from_slice([true, false, false]),
         ]);
         // FxBatches<Chunk<Arc<dyn Array>>>
         let b = FxBatches::new_with_names(vec![ca], ["c1", "c2"]);
@@ -145,9 +145,9 @@ mod test_batches {
     #[test]
     fn new_fx_batches2() {
         let ca = FxBatch::new(vec![
-            ArcArr::from_slice(&["a", "c", "z"]),
-            ArcArr::from_slice(&[Some("x"), None, Some("y")]),
-            ArcArr::from_slice(&[true, false, false]),
+            ArcArr::from_slice(["a", "c", "z"]),
+            ArcArr::from_slice([Some("x"), None, Some("y")]),
+            ArcArr::from_slice([true, false, false]),
         ]);
         // FxBatches<FxBatch>
         let b = FxBatches::new(vec![ca]);
@@ -155,9 +155,9 @@ mod test_batches {
         println!("{b:?}");
 
         let ca = FxBatch::new(vec![
-            ArcArr::from_slice(&["a", "c", "z"]),
-            ArcArr::from_slice(&[Some("x"), None, Some("y")]),
-            ArcArr::from_slice(&[true, false, false]),
+            ArcArr::from_slice(["a", "c", "z"]),
+            ArcArr::from_slice([Some("x"), None, Some("y")]),
+            ArcArr::from_slice([true, false, false]),
         ]);
         // FxBatches<FxBatch>
         let b = FxBatches::new_with_names(vec![ca], ["c1", "c2"]);

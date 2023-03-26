@@ -147,8 +147,8 @@ mod test_table {
 
     #[test]
     fn create_new_table_success() {
-        let a = ArcArr::from_slice(&[None, Some("x")]);
-        let b = ArcArr::from_slice(&[None, Some(2), None]);
+        let a = ArcArr::from_slice([None, Some("x")]);
+        let b = ArcArr::from_slice([None, Some(2), None]);
 
         let vaa = [a, b];
 
@@ -171,8 +171,8 @@ mod test_table {
 
     #[test]
     fn create_new_table_name_more_success() {
-        let a = ArcVec::from_slice(&[None, Some("x")]);
-        let b = ArcVec::from_slice(&[None, Some(2), None]);
+        let a = ArcVec::from_slice([None, Some("x")]);
+        let b = ArcVec::from_slice([None, Some(2), None]);
 
         let vaa = [a, b];
 

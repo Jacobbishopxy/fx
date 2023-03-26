@@ -70,15 +70,19 @@ macro_rules! arc_arr_impl_from_native {
             }
         }
 
-        impl $crate::ab::FromSlice<$t, $crate::cont::ArcArr> for $crate::cont::ArcArr {
-            fn from_slice(slice: &[$t]) -> $crate::cont::ArcArr {
-                ::arrow2::array::PrimitiveArray::from_slice(slice).arced()
+        impl<S: AsRef<[$t]>> $crate::ab::FromSlice<S, [$t], $crate::cont::ArcArr>
+            for $crate::cont::ArcArr
+        {
+            fn from_slice(slice: S) -> $crate::cont::ArcArr {
+                ::arrow2::array::PrimitiveArray::from_slice(slice.as_ref()).arced()
             }
         }
 
-        impl $crate::ab::FromSlice<Option<$t>, $crate::cont::ArcArr> for $crate::cont::ArcArr {
-            fn from_slice(slice: &[Option<$t>]) -> $crate::cont::ArcArr {
-                let vec = slice.to_vec();
+        impl<S: AsRef<[Option<$t>]>> $crate::ab::FromSlice<S, [Option<$t>], $crate::cont::ArcArr>
+            for $crate::cont::ArcArr
+        {
+            fn from_slice(slice: S) -> $crate::cont::ArcArr {
+                let vec = slice.as_ref().to_vec();
                 ::arrow2::array::PrimitiveArray::from(vec).arced()
             }
         }
@@ -103,15 +107,21 @@ macro_rules! arc_vec_impl_from_native {
             }
         }
 
-        impl $crate::ab::FromSlice<$t, $crate::cont::ArcVec> for $crate::cont::ArcVec {
-            fn from_slice(slice: &[$t]) -> $crate::cont::ArcVec {
-                ::std::sync::Arc::new(::arrow2::array::MutablePrimitiveArray::from_slice(slice))
+        impl<S: AsRef<[$t]>> $crate::ab::FromSlice<S, [$t], $crate::cont::ArcVec>
+            for $crate::cont::ArcVec
+        {
+            fn from_slice(slice: S) -> $crate::cont::ArcVec {
+                ::std::sync::Arc::new(::arrow2::array::MutablePrimitiveArray::from_slice(
+                    slice.as_ref(),
+                ))
             }
         }
 
-        impl $crate::ab::FromSlice<Option<$t>, $crate::cont::ArcVec> for $crate::cont::ArcVec {
-            fn from_slice(slice: &[Option<$t>]) -> $crate::cont::ArcVec {
-                let vec = slice.to_vec();
+        impl<S: AsRef<[Option<$t>]>> $crate::ab::FromSlice<S, [Option<$t>], $crate::cont::ArcVec>
+            for $crate::cont::ArcVec
+        {
+            fn from_slice(slice: S) -> $crate::cont::ArcVec {
+                let vec = slice.as_ref().to_vec();
                 ::std::sync::Arc::new(::arrow2::array::MutablePrimitiveArray::from(vec))
             }
         }
@@ -139,19 +149,6 @@ macro_rules! arc_arr_impl_from_str {
                 ::arrow2::array::Utf8Array::<i32>::from(vec).arced()
             }
         }
-
-        impl $crate::ab::FromSlice<$t, $crate::cont::ArcArr> for $crate::cont::ArcArr {
-            fn from_slice(slice: &[$t]) -> $crate::cont::ArcArr {
-                ::arrow2::array::Utf8Array::<i32>::from_slice(slice).arced()
-            }
-        }
-
-        impl $crate::ab::FromSlice<Option<$t>, $crate::cont::ArcArr> for $crate::cont::ArcArr {
-            fn from_slice(slice: &[Option<$t>]) -> $crate::cont::ArcArr {
-                let vec = slice.to_vec();
-                ::arrow2::array::Utf8Array::<i32>::from(vec).arced()
-            }
-        }
     };
 }
 
@@ -167,21 +164,6 @@ macro_rules! arc_vec_impl_from_str {
 
         impl $crate::ab::FromVec<Option<$t>, $crate::cont::ArcVec> for $crate::cont::ArcVec {
             fn from_vec(vec: Vec<Option<$t>>) -> $crate::cont::ArcVec {
-                ::std::sync::Arc::new(::arrow2::array::MutableUtf8Array::<i32>::from(vec))
-            }
-        }
-
-        impl $crate::ab::FromSlice<$t, $crate::cont::ArcVec> for $crate::cont::ArcVec {
-            fn from_slice(slice: &[$t]) -> $crate::cont::ArcVec {
-                ::std::sync::Arc::new(::arrow2::array::MutableUtf8Array::<i32>::from_iter_values(
-                    slice.into_iter(),
-                ))
-            }
-        }
-
-        impl $crate::ab::FromSlice<Option<$t>, $crate::cont::ArcVec> for $crate::cont::ArcVec {
-            fn from_slice(slice: &[Option<$t>]) -> $crate::cont::ArcVec {
-                let vec = slice.to_vec();
                 ::std::sync::Arc::new(::arrow2::array::MutableUtf8Array::<i32>::from(vec))
             }
         }
@@ -210,15 +192,20 @@ macro_rules! arc_arr_impl_from_bool {
             }
         }
 
-        impl $crate::ab::FromSlice<bool, $crate::cont::ArcArr> for $crate::cont::ArcArr {
-            fn from_slice(slice: &[bool]) -> $crate::cont::ArcArr {
-                ::arrow2::array::BooleanArray::from_slice(slice).arced()
+        impl<S: AsRef<[bool]>> $crate::ab::FromSlice<S, [bool], $crate::cont::ArcArr>
+            for $crate::cont::ArcArr
+        {
+            fn from_slice(slice: S) -> $crate::cont::ArcArr {
+                ::arrow2::array::BooleanArray::from_slice(slice.as_ref()).arced()
             }
         }
 
-        impl $crate::ab::FromSlice<Option<bool>, $crate::cont::ArcArr> for $crate::cont::ArcArr {
-            fn from_slice(slice: &[Option<bool>]) -> $crate::cont::ArcArr {
-                let vec = slice.to_vec();
+        impl<S: AsRef<[Option<bool>]>>
+            $crate::ab::FromSlice<S, [Option<bool>], $crate::cont::ArcArr>
+            for $crate::cont::ArcArr
+        {
+            fn from_slice(slice: S) -> $crate::cont::ArcArr {
+                let vec = slice.as_ref().to_vec();
                 ::arrow2::array::BooleanArray::from(vec).arced()
             }
         }
@@ -241,15 +228,20 @@ macro_rules! arc_vec_impl_from_bool {
             }
         }
 
-        impl $crate::ab::FromSlice<bool, $crate::cont::ArcVec> for $crate::cont::ArcVec {
-            fn from_slice(slice: &[bool]) -> $crate::cont::ArcVec {
+        impl<S: AsRef<[bool]>> $crate::ab::FromSlice<S, [bool], $crate::cont::ArcVec>
+            for $crate::cont::ArcVec
+        {
+            fn from_slice(slice: S) -> $crate::cont::ArcVec {
                 ::std::sync::Arc::new(::arrow2::array::MutableBooleanArray::from_slice(slice))
             }
         }
 
-        impl $crate::ab::FromSlice<Option<bool>, $crate::cont::ArcVec> for $crate::cont::ArcVec {
-            fn from_slice(slice: &[Option<bool>]) -> $crate::cont::ArcVec {
-                let vec = slice.to_vec();
+        impl<S: AsRef<[Option<bool>]>>
+            $crate::ab::FromSlice<S, [Option<bool>], $crate::cont::ArcVec>
+            for $crate::cont::ArcVec
+        {
+            fn from_slice(slice: S) -> $crate::cont::ArcVec {
+                let vec = slice.as_ref().to_vec();
                 ::std::sync::Arc::new(::arrow2::array::MutableBooleanArray::from(vec))
             }
         }

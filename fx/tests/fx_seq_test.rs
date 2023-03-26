@@ -9,7 +9,7 @@ use fx::cont::{ArcArr, ArcVec};
 
 #[test]
 fn downcast_test() {
-    let arc_arr_bool = ArcArr::from_slice(&[true, false, true]);
+    let arc_arr_bool = ArcArr::from_slice([true, false, true]);
 
     println!("{:?}", arc_arr_bool.data_type());
 
@@ -19,7 +19,7 @@ fn downcast_test() {
         println!("{:?}", i);
     }
 
-    let arc_vec_bool = ArcVec::from_slice(&[true, false, true]);
+    let arc_vec_bool = ArcVec::from_slice([true, false, true]);
 
     println!("{:?}", arc_vec_bool.data_type());
 

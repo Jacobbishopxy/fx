@@ -4,7 +4,7 @@
 //! brief:
 
 use fx::cont::*;
-use fx::row_builder::*;
+use fx::prelude::*;
 
 #[test]
 fn fx_default_builder_success() {
@@ -131,7 +131,7 @@ fn fx_table_builder_success() {
     assert!(d2.is_ok());
     println!("{:?}", d2.unwrap());
 
-    let mut bd3 = Users::gen_chunk_builder();
+    let mut bd3 = Users::gen_batch_builder();
     bd3.stack(r1).stack(r2);
     let d3 = bd3.build();
     assert!(d3.is_ok());

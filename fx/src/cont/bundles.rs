@@ -123,18 +123,18 @@ mod test_tables {
     #[test]
     fn new_fx_tables() {
         let ca = [
-            ArcArr::from_slice(&["a", "c", "z"]),
-            ArcArr::from_slice(&[Some("x"), None, Some("y")]),
-            ArcArr::from_slice(&[true, false, false]),
+            ArcArr::from_slice(["a", "c", "z"]),
+            ArcArr::from_slice([Some("x"), None, Some("y")]),
+            ArcArr::from_slice([true, false, false]),
         ];
         let t = FxBundles::new(vec![ca]);
 
         println!("{t:?}");
 
         let ca = [
-            ArcArr::from_slice(&["a", "c", "z"]),
-            ArcArr::from_slice(&[Some("x"), None, Some("y")]),
-            ArcArr::from_slice(&[true, false, false]),
+            ArcArr::from_slice(["a", "c", "z"]),
+            ArcArr::from_slice([Some("x"), None, Some("y")]),
+            ArcArr::from_slice([true, false, false]),
         ];
         let t = FxBundles::new_with_names(vec![ca], ["c1", "c2"]);
 

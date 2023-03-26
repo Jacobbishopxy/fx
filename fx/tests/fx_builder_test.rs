@@ -8,7 +8,7 @@
 //! 3. multiple_schemed_builder
 
 use fx::cont::*;
-use fx::row_builder::*;
+use fx::prelude::*;
 
 // This test mod is a prototype for derived proc-macro.
 #[cfg(test)]
@@ -45,9 +45,9 @@ mod simple_procedure {
         }
 
         fn build(self) -> FxResult<ChunkArr> {
-            let c1 = ArcArr::from_vec(self.id);
-            let c2 = ArcArr::from_vec(self.name);
-            let c3 = ArcArr::from_vec(self.check);
+            let c1 = aar!(self.id);
+            let c2 = aar!(self.name);
+            let c3 = aar!(self.check);
 
             Ok(ChunkArr::try_new(vec![c1, c2, c3])?)
         }
@@ -187,9 +187,9 @@ mod schemed_builder {
         }
 
         fn build(self) -> FxResult<FxBatch> {
-            let c1 = ArcArr::from_vec(self.id);
-            let c2 = ArcArr::from_vec(self.name);
-            let c3 = ArcArr::from_vec(self.check);
+            let c1 = aar!(self.id);
+            let c2 = aar!(self.name);
+            let c3 = aar!(self.check);
 
             FxBatch::try_new_with_names(vec![c1, c2, c3], ["c1", "c2", "c3"])
         }
@@ -342,9 +342,9 @@ mod multiple_schemed_builder {
         }
 
         fn build(self) -> FxResult<ChunkArr> {
-            let c1 = ArcArr::from_vec(self.id);
-            let c2 = ArcArr::from_vec(self.name);
-            let c3 = ArcArr::from_vec(self.check);
+            let c1 = aar!(self.id);
+            let c2 = aar!(self.name);
+            let c3 = aar!(self.check);
 
             Ok(ChunkArr::try_new(vec![c1, c2, c3])?)
         }
@@ -406,9 +406,9 @@ mod multiple_schemed_builder {
         }
 
         fn build(self) -> FxResult<[ArcArr; 3]> {
-            let c1 = ArcArr::from_vec(self.id);
-            let c2 = ArcArr::from_vec(self.name);
-            let c3 = ArcArr::from_vec(self.check);
+            let c1 = aar!(self.id);
+            let c2 = aar!(self.name);
+            let c3 = aar!(self.check);
 
             Ok([c1, c2, c3])
         }
@@ -438,9 +438,9 @@ mod multiple_schemed_builder {
         }
 
         fn build(self) -> FxResult<FxBundle<3, ArcArr>> {
-            let c1 = ArcArr::from_vec(self.id);
-            let c2 = ArcArr::from_vec(self.name);
-            let c3 = ArcArr::from_vec(self.check);
+            let c1 = aar!(self.id);
+            let c2 = aar!(self.name);
+            let c3 = aar!(self.check);
 
             Ok(FxBundle::new_with_names(
                 [c1, c2, c3],

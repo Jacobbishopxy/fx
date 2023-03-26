@@ -7,10 +7,9 @@ use arrow2::chunk::Chunk;
 use arrow2::datatypes::Schema;
 use inherent::inherent;
 
-use crate::ab::{private, Purport, StaticPurport};
+use crate::ab::{private, FxSeq, Purport, StaticPurport};
 use crate::cont::ArcArr;
 use crate::error::FxResult;
-use crate::row_builder::FxSeq;
 
 use super::ChunkArr;
 
@@ -133,9 +132,9 @@ mod test_batch {
     #[test]
     fn new_fx_batch_should_be_successful() {
         let arrays = vec![
-            ArcArr::from_slice(&["a", "c", "x"]),
-            ArcArr::from_slice(&[Some("x"), None, Some("y")]),
-            ArcArr::from_slice(&[true, false, false]),
+            ArcArr::from_slice(["a", "c", "x"]),
+            ArcArr::from_slice([Some("x"), None, Some("y")]),
+            ArcArr::from_slice([true, false, false]),
         ];
 
         let batch = FxBatch::try_new(arrays);
@@ -150,17 +149,17 @@ mod test_batch {
     #[test]
     fn extend_should_be_successful() {
         let arrays = vec![
-            ArcArr::from_slice(&["a", "c", "x"]),
-            ArcArr::from_slice(&[Some("x"), None, Some("y")]),
-            ArcArr::from_slice(&[true, false, false]),
+            ArcArr::from_slice(["a", "c", "x"]),
+            ArcArr::from_slice([Some("x"), None, Some("y")]),
+            ArcArr::from_slice([true, false, false]),
         ];
 
         let mut batch1 = FxBatch::new(arrays);
 
         let arrays = vec![
-            ArcArr::from_slice(&["a", "c", "x"]),
-            ArcArr::from_slice(&[Some("x"), None, Some("y")]),
-            ArcArr::from_slice(&[true, false, false]),
+            ArcArr::from_slice(["a", "c", "x"]),
+            ArcArr::from_slice([Some("x"), None, Some("y")]),
+            ArcArr::from_slice([true, false, false]),
         ];
 
         let batch2 = FxBatch::new(arrays);

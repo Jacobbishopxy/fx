@@ -30,8 +30,12 @@ pub mod ab {
     pub use super::cont::ab::*;
     pub use super::io::ab::*;
 
-    pub trait FromSlice<T, D> {
-        fn from_slice(slice: &[T]) -> D;
+    pub trait FromSlice<S, T, D>
+    where
+        S: AsRef<T> + Sized,
+        T: ?Sized,
+    {
+        fn from_slice(slice: S) -> D;
     }
 
     pub trait FromVec<T, D> {
@@ -40,16 +44,18 @@ pub mod ab {
 }
 
 // ================================================================================================
-// Crate namespace row_builder
+// Crate namespace prelude
 // ================================================================================================
 
 // an easier way for using `FX` derived proc-macro, see `tests/fx_macros_test.rs`
-pub mod row_builder {
+pub mod prelude {
     pub use super::FX;
 
     pub use super::cont::ab::*;
+    pub use super::cont::*;
+    pub use super::{aar, avc};
 
-    pub use super::error::FxResult;
+    pub use super::error::*;
 
     pub use super::ab::{FromSlice, FromVec};
 }

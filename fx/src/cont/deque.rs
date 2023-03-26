@@ -430,22 +430,22 @@ impl<'a, A: AsRef<dyn Array>> Iterator for DequeMutIterator<'a, A> {
 
 #[cfg(test)]
 mod deque_test {
-    use crate::row_builder::FromSlice;
+    use crate::ab::FromSlice;
 
     use super::*;
 
     #[test]
     fn into_arrays_success() {
-        let aa = ArcArr::from_slice(&[1, 2, 3]);
+        let aa = ArcArr::from_slice([1, 2, 3]);
 
         let mut deque = Deque::new(vec![aa]);
 
-        let aa2 = ArcArr::from_slice(&[4, 5]);
+        let aa2 = ArcArr::from_slice([4, 5]);
 
         let res = deque.push_back(aa2);
         assert!(res.is_ok());
 
-        let aa3 = ArcArr::from_slice(&[9, 10]);
+        let aa3 = ArcArr::from_slice([9, 10]);
         let res = deque.push_front(aa3);
         assert!(res.is_ok());
 
