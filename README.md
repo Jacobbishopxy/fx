@@ -121,6 +121,18 @@ Structs and enums provided by Fx crate:
 
 - `Table`: array of `Deque`
 
+### IO
+
+- `arvo`
+
+- `csv`
+
+- `ipc`
+
+- `parquet`
+
+- `sql`
+
 ## Dependencies
 
 - fx
