@@ -55,7 +55,7 @@ pub(crate) use impl_from_x_for_value;
 // impl from native
 // ================================================================================================
 
-macro_rules! arc_arr_impl_from_native {
+macro_rules! arr_impl_from_native {
     ($t:ty) => {
         impl $crate::ab::FromVec<$t, $crate::cont::ArcArr> for $crate::cont::ArcArr {
             fn from_vec(vec: Vec<$t>) -> $crate::cont::ArcArr {
@@ -86,10 +86,40 @@ macro_rules! arc_arr_impl_from_native {
                 ::arrow2::array::PrimitiveArray::from(vec).arced()
             }
         }
+
+        impl $crate::ab::FromVec<$t, $crate::cont::BoxArr> for $crate::cont::BoxArr {
+            fn from_vec(vec: Vec<$t>) -> $crate::cont::BoxArr {
+                let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
+                ::arrow2::array::PrimitiveArray::from(v).boxed()
+            }
+        }
+
+        impl $crate::ab::FromVec<Option<$t>, $crate::cont::BoxArr> for $crate::cont::BoxArr {
+            fn from_vec(vec: Vec<Option<$t>>) -> $crate::cont::BoxArr {
+                ::arrow2::array::PrimitiveArray::from(vec).boxed()
+            }
+        }
+
+        impl<S: AsRef<[$t]>> $crate::ab::FromSlice<S, [$t], $crate::cont::BoxArr>
+            for $crate::cont::BoxArr
+        {
+            fn from_slice(slice: S) -> $crate::cont::BoxArr {
+                ::arrow2::array::PrimitiveArray::from_slice(slice.as_ref()).boxed()
+            }
+        }
+
+        impl<S: AsRef<[Option<$t>]>> $crate::ab::FromSlice<S, [Option<$t>], $crate::cont::BoxArr>
+            for $crate::cont::BoxArr
+        {
+            fn from_slice(slice: S) -> $crate::cont::BoxArr {
+                let vec = slice.as_ref().to_vec();
+                ::arrow2::array::PrimitiveArray::from(vec).boxed()
+            }
+        }
     };
 }
 
-macro_rules! arc_vec_impl_from_native {
+macro_rules! vec_impl_from_native {
     ($t:ty) => {
         impl $crate::ab::FromVec<$t, $crate::cont::ArcVec> for $crate::cont::ArcVec {
             fn from_vec(vec: Vec<$t>) -> $crate::cont::ArcVec {
@@ -125,17 +155,52 @@ macro_rules! arc_vec_impl_from_native {
                 ::std::sync::Arc::new(::arrow2::array::MutablePrimitiveArray::from(vec))
             }
         }
+
+        impl $crate::ab::FromVec<$t, $crate::cont::BoxVec> for $crate::cont::BoxVec {
+            fn from_vec(vec: Vec<$t>) -> $crate::cont::BoxVec {
+                let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
+                let mut v = ::arrow2::array::MutablePrimitiveArray::from(v);
+                // since `$t` is never `None`, use `set_validity` to clear incorrect validity info
+                v.set_validity(None);
+                ::std::boxed::Box::new(v)
+            }
+        }
+
+        impl $crate::ab::FromVec<Option<$t>, $crate::cont::BoxVec> for $crate::cont::BoxVec {
+            fn from_vec(vec: Vec<Option<$t>>) -> $crate::cont::BoxVec {
+                ::std::boxed::Box::new(::arrow2::array::MutablePrimitiveArray::from(vec))
+            }
+        }
+
+        impl<S: AsRef<[$t]>> $crate::ab::FromSlice<S, [$t], $crate::cont::BoxVec>
+            for $crate::cont::BoxVec
+        {
+            fn from_slice(slice: S) -> $crate::cont::BoxVec {
+                ::std::boxed::Box::new(::arrow2::array::MutablePrimitiveArray::from_slice(
+                    slice.as_ref(),
+                ))
+            }
+        }
+
+        impl<S: AsRef<[Option<$t>]>> $crate::ab::FromSlice<S, [Option<$t>], $crate::cont::BoxVec>
+            for $crate::cont::BoxVec
+        {
+            fn from_slice(slice: S) -> $crate::cont::BoxVec {
+                let vec = slice.as_ref().to_vec();
+                ::std::boxed::Box::new(::arrow2::array::MutablePrimitiveArray::from(vec))
+            }
+        }
     };
 }
 
-pub(crate) use arc_arr_impl_from_native;
-pub(crate) use arc_vec_impl_from_native;
+pub(crate) use arr_impl_from_native;
+pub(crate) use vec_impl_from_native;
 
 // ================================================================================================
 // impl from str
 // ================================================================================================
 
-macro_rules! arc_arr_impl_from_str {
+macro_rules! arr_impl_from_str {
     ($t:ty) => {
         impl $crate::ab::FromVec<$t, $crate::cont::ArcArr> for $crate::cont::ArcArr {
             fn from_vec(vec: Vec<$t>) -> $crate::cont::ArcArr {
@@ -149,10 +214,23 @@ macro_rules! arc_arr_impl_from_str {
                 ::arrow2::array::Utf8Array::<i32>::from(vec).arced()
             }
         }
+
+        impl $crate::ab::FromVec<$t, $crate::cont::BoxArr> for $crate::cont::BoxArr {
+            fn from_vec(vec: Vec<$t>) -> $crate::cont::BoxArr {
+                let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
+                ::arrow2::array::Utf8Array::<i32>::from(v).boxed()
+            }
+        }
+
+        impl $crate::ab::FromVec<Option<$t>, $crate::cont::BoxArr> for $crate::cont::BoxArr {
+            fn from_vec(vec: Vec<Option<$t>>) -> $crate::cont::BoxArr {
+                ::arrow2::array::Utf8Array::<i32>::from(vec).boxed()
+            }
+        }
     };
 }
 
-macro_rules! arc_vec_impl_from_str {
+macro_rules! vec_impl_from_str {
     ($t:ty) => {
         impl $crate::ab::FromVec<$t, $crate::cont::ArcVec> for $crate::cont::ArcVec {
             fn from_vec(vec: Vec<$t>) -> $crate::cont::ArcVec {
@@ -167,17 +245,31 @@ macro_rules! arc_vec_impl_from_str {
                 ::std::sync::Arc::new(::arrow2::array::MutableUtf8Array::<i32>::from(vec))
             }
         }
+
+        impl $crate::ab::FromVec<$t, $crate::cont::BoxVec> for $crate::cont::BoxVec {
+            fn from_vec(vec: Vec<$t>) -> $crate::cont::BoxVec {
+                let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
+                let v = ::arrow2::array::MutableUtf8Array::<i32>::from(v);
+                ::std::boxed::Box::new(v)
+            }
+        }
+
+        impl $crate::ab::FromVec<Option<$t>, $crate::cont::BoxVec> for $crate::cont::BoxVec {
+            fn from_vec(vec: Vec<Option<$t>>) -> $crate::cont::BoxVec {
+                ::std::boxed::Box::new(::arrow2::array::MutableUtf8Array::<i32>::from(vec))
+            }
+        }
     };
 }
 
-pub(crate) use arc_arr_impl_from_str;
-pub(crate) use arc_vec_impl_from_str;
+pub(crate) use arr_impl_from_str;
+pub(crate) use vec_impl_from_str;
 
 // ================================================================================================
 // impl from bool
 // ================================================================================================
 
-macro_rules! arc_arr_impl_from_bool {
+macro_rules! arr_impl_from_bool {
     () => {
         impl $crate::ab::FromVec<bool, $crate::cont::ArcArr> for $crate::cont::ArcArr {
             fn from_vec(vec: Vec<bool>) -> $crate::cont::ArcArr {
@@ -209,10 +301,41 @@ macro_rules! arc_arr_impl_from_bool {
                 ::arrow2::array::BooleanArray::from(vec).arced()
             }
         }
+
+        impl $crate::ab::FromVec<bool, $crate::cont::BoxArr> for $crate::cont::BoxArr {
+            fn from_vec(vec: Vec<bool>) -> $crate::cont::BoxArr {
+                let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
+                ::arrow2::array::BooleanArray::from(v).boxed()
+            }
+        }
+
+        impl $crate::ab::FromVec<Option<bool>, $crate::cont::BoxArr> for $crate::cont::BoxArr {
+            fn from_vec(vec: Vec<Option<bool>>) -> $crate::cont::BoxArr {
+                ::arrow2::array::BooleanArray::from(vec).boxed()
+            }
+        }
+
+        impl<S: AsRef<[bool]>> $crate::ab::FromSlice<S, [bool], $crate::cont::BoxArr>
+            for $crate::cont::BoxArr
+        {
+            fn from_slice(slice: S) -> $crate::cont::BoxArr {
+                ::arrow2::array::BooleanArray::from_slice(slice.as_ref()).boxed()
+            }
+        }
+
+        impl<S: AsRef<[Option<bool>]>>
+            $crate::ab::FromSlice<S, [Option<bool>], $crate::cont::BoxArr>
+            for $crate::cont::BoxArr
+        {
+            fn from_slice(slice: S) -> $crate::cont::BoxArr {
+                let vec = slice.as_ref().to_vec();
+                ::arrow2::array::BooleanArray::from(vec).boxed()
+            }
+        }
     };
 }
 
-macro_rules! arc_vec_impl_from_bool {
+macro_rules! vec_impl_from_bool {
     () => {
         impl $crate::ab::FromVec<bool, $crate::cont::ArcVec> for $crate::cont::ArcVec {
             fn from_vec(vec: Vec<bool>) -> $crate::cont::ArcVec {
@@ -245,11 +368,43 @@ macro_rules! arc_vec_impl_from_bool {
                 ::std::sync::Arc::new(::arrow2::array::MutableBooleanArray::from(vec))
             }
         }
+
+        impl $crate::ab::FromVec<bool, $crate::cont::BoxVec> for $crate::cont::BoxVec {
+            fn from_vec(vec: Vec<bool>) -> $crate::cont::BoxVec {
+                let v = vec.into_iter().map(Option::from).collect::<Vec<_>>();
+                let v = ::arrow2::array::MutableBooleanArray::from(v);
+                ::std::boxed::Box::new(v)
+            }
+        }
+
+        impl $crate::ab::FromVec<Option<bool>, $crate::cont::BoxVec> for $crate::cont::BoxVec {
+            fn from_vec(vec: Vec<Option<bool>>) -> $crate::cont::BoxVec {
+                ::std::boxed::Box::new(::arrow2::array::MutableBooleanArray::from(vec))
+            }
+        }
+
+        impl<S: AsRef<[bool]>> $crate::ab::FromSlice<S, [bool], $crate::cont::BoxVec>
+            for $crate::cont::BoxVec
+        {
+            fn from_slice(slice: S) -> $crate::cont::BoxVec {
+                ::std::boxed::Box::new(::arrow2::array::MutableBooleanArray::from_slice(slice))
+            }
+        }
+
+        impl<S: AsRef<[Option<bool>]>>
+            $crate::ab::FromSlice<S, [Option<bool>], $crate::cont::BoxVec>
+            for $crate::cont::BoxVec
+        {
+            fn from_slice(slice: S) -> $crate::cont::BoxVec {
+                let vec = slice.as_ref().to_vec();
+                ::std::boxed::Box::new(::arrow2::array::MutableBooleanArray::from(vec))
+            }
+        }
     };
 }
 
-pub(crate) use arc_arr_impl_from_bool;
-pub(crate) use arc_vec_impl_from_bool;
+pub(crate) use arr_impl_from_bool;
+pub(crate) use vec_impl_from_bool;
 
 // ================================================================================================
 // Connector macros

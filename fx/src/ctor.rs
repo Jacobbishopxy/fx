@@ -5,37 +5,37 @@
 
 use crate::ab::FromSlice;
 use crate::macros::*;
-use crate::prelude::{ArcArr, ArcVec};
+use crate::prelude::{ArcArr, ArcVec, BoxArr, BoxVec};
 
 // ================================================================================================
 // Impl
 // ================================================================================================
 
-arc_arr_impl_from_native!(u8);
-arc_arr_impl_from_native!(u16);
-arc_arr_impl_from_native!(u32);
-arc_arr_impl_from_native!(u64);
-arc_arr_impl_from_native!(i8);
-arc_arr_impl_from_native!(i16);
-arc_arr_impl_from_native!(i32);
-arc_arr_impl_from_native!(i64);
-arc_arr_impl_from_native!(f32);
-arc_arr_impl_from_native!(f64);
-arc_vec_impl_from_native!(u8);
-arc_vec_impl_from_native!(u16);
-arc_vec_impl_from_native!(u32);
-arc_vec_impl_from_native!(u64);
-arc_vec_impl_from_native!(i8);
-arc_vec_impl_from_native!(i16);
-arc_vec_impl_from_native!(i32);
-arc_vec_impl_from_native!(i64);
-arc_vec_impl_from_native!(f32);
-arc_vec_impl_from_native!(f64);
+arr_impl_from_native!(u8);
+arr_impl_from_native!(u16);
+arr_impl_from_native!(u32);
+arr_impl_from_native!(u64);
+arr_impl_from_native!(i8);
+arr_impl_from_native!(i16);
+arr_impl_from_native!(i32);
+arr_impl_from_native!(i64);
+arr_impl_from_native!(f32);
+arr_impl_from_native!(f64);
+vec_impl_from_native!(u8);
+vec_impl_from_native!(u16);
+vec_impl_from_native!(u32);
+vec_impl_from_native!(u64);
+vec_impl_from_native!(i8);
+vec_impl_from_native!(i16);
+vec_impl_from_native!(i32);
+vec_impl_from_native!(i64);
+vec_impl_from_native!(f32);
+vec_impl_from_native!(f64);
 
-arc_arr_impl_from_str!(&str);
-arc_vec_impl_from_str!(&str);
-arc_arr_impl_from_str!(String);
-arc_vec_impl_from_str!(String);
+arr_impl_from_str!(&str);
+vec_impl_from_str!(&str);
+arr_impl_from_str!(String);
+vec_impl_from_str!(String);
 
 // &str
 impl<'a, S: AsRef<[&'a str]>> FromSlice<S, [&'a str], ArcArr> for ArcArr {
@@ -66,6 +66,38 @@ impl<'a, S: AsRef<[Option<&'a str>]>> FromSlice<S, [Option<&'a str>], ArcVec> fo
     fn from_slice(slice: S) -> ArcVec {
         let vec = slice.as_ref().to_vec();
         std::sync::Arc::new(arrow2::array::MutableUtf8Array::<i32>::from(vec))
+    }
+}
+
+// &str
+impl<'a, S: AsRef<[&'a str]>> FromSlice<S, [&'a str], BoxArr> for BoxArr {
+    fn from_slice(slice: S) -> BoxArr {
+        arrow2::array::Utf8Array::<i32>::from_slice(slice.as_ref()).boxed()
+    }
+}
+
+// &str
+impl<'a, S: AsRef<[Option<&'a str>]>> FromSlice<S, [Option<&'a str>], BoxArr> for BoxArr {
+    fn from_slice(slice: S) -> BoxArr {
+        let vec = slice.as_ref().to_vec();
+        arrow2::array::Utf8Array::<i32>::from(vec).boxed()
+    }
+}
+
+// &str
+impl<'a, S: AsRef<[&'a str]>> FromSlice<S, [&'a str], BoxVec> for BoxVec {
+    fn from_slice(slice: S) -> BoxVec {
+        Box::new(arrow2::array::MutableUtf8Array::<i32>::from_iter_values(
+            slice.as_ref().iter(),
+        ))
+    }
+}
+
+// &str
+impl<'a, S: AsRef<[Option<&'a str>]>> FromSlice<S, [Option<&'a str>], BoxVec> for BoxVec {
+    fn from_slice(slice: S) -> BoxVec {
+        let vec = slice.as_ref().to_vec();
+        Box::new(arrow2::array::MutableUtf8Array::<i32>::from(vec))
     }
 }
 
@@ -101,8 +133,40 @@ impl<S: AsRef<[Option<String>]>> FromSlice<S, [Option<String>], ArcVec> for ArcV
     }
 }
 
-arc_arr_impl_from_bool!();
-arc_vec_impl_from_bool!();
+// String
+impl<S: AsRef<[String]>> FromSlice<S, [String], BoxArr> for BoxArr {
+    fn from_slice(slice: S) -> BoxArr {
+        arrow2::array::Utf8Array::<i32>::from_slice(slice.as_ref()).boxed()
+    }
+}
+
+// String
+impl<S: AsRef<[Option<String>]>> FromSlice<S, [Option<String>], BoxArr> for BoxArr {
+    fn from_slice(slice: S) -> BoxArr {
+        let vec = slice.as_ref().to_vec();
+        arrow2::array::Utf8Array::<i32>::from(vec).boxed()
+    }
+}
+
+// String
+impl<S: AsRef<[String]>> FromSlice<S, [String], BoxVec> for BoxVec {
+    fn from_slice(slice: S) -> BoxVec {
+        Box::new(arrow2::array::MutableUtf8Array::<i32>::from_iter_values(
+            slice.as_ref().iter(),
+        ))
+    }
+}
+
+// String
+impl<S: AsRef<[Option<String>]>> FromSlice<S, [Option<String>], BoxVec> for BoxVec {
+    fn from_slice(slice: S) -> BoxVec {
+        let vec = slice.as_ref().to_vec();
+        Box::new(arrow2::array::MutableUtf8Array::<i32>::from(vec))
+    }
+}
+
+arr_impl_from_bool!();
+vec_impl_from_bool!();
 
 // ================================================================================================
 // Macro
