@@ -49,7 +49,7 @@ pub trait Congruent: Eclectic + Sized {
             .map(|s| {
                 s.to_arc_array().map(|arr| {
                     // no panic, Box<dyn Array>
-                    Arc::from(arr.slice(0, len))
+                    Arc::from(arr.sliced(0, len))
                 })
             })
             .collect::<FxResult<Vec<_>>>()?;
@@ -70,7 +70,7 @@ pub trait Congruent: Eclectic + Sized {
                     }
                     // case: over-length
                     if len < al {
-                        arr = Arc::from(arr.slice(0, len));
+                        arr = arr.sliced(0, len).into();
                     }
 
                     Ok(arr)
