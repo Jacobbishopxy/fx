@@ -9,7 +9,6 @@ use super::ReadSeek;
 use crate::ab::{Eclectic, Purport};
 use crate::error::FxResult;
 
-#[derive(Default)]
 pub struct SimpleIO<T>
 where
     T: Eclectic + Purport,
@@ -19,23 +18,31 @@ where
     pub(crate) reader: Option<Box<dyn ReadSeek>>,
 }
 
+impl<T> Default for SimpleIO<T>
+where
+    T: Eclectic + Purport,
+{
+    fn default() -> Self {
+        Self {
+            data: Default::default(),
+            writer: Default::default(),
+            reader: Default::default(),
+        }
+    }
+}
+
 impl<T> SimpleIO<T>
 where
     T: Eclectic + Purport,
 {
     pub fn new() -> Self {
-        Self {
-            data: None,
-            writer: None,
-            reader: None,
-        }
+        Self::default()
     }
 
     pub fn new_with_data(data: T) -> Self {
         Self {
             data: Some(data),
-            writer: None,
-            reader: None,
+            ..Default::default()
         }
     }
 
