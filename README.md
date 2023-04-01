@@ -1,6 +1,6 @@
 # FX
 
-Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Polars](https://github.com/pola-rs/polars)' `Series` and `DataFrame`. `Fx` currently tries to explore different type of data containers by some general auto impl traits (see [chunking.rs](./fx/src/containers/ab/chunking.rs) and [container.rs](./fx/src/containers/ab/container.rs)).
+Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Polars](https://github.com/pola-rs/polars)' `Series` and `DataFrame`. `Fx` currently tries to explore different types of data container by using some general auto impl traits (see [eclectic.rs](./fx/src/cont/ab/eclectic.rs) and [receptacle.rs](./fx/src/cont/ab/eclectic.rs)).
 
 ## Structure
 
@@ -28,7 +28,8 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   │   ├── macros.rs
     │   │   │   ├── mod.rs
     │   │   │   ├── nullopt.rs
-    │   │   │   └── table.rs
+    │   │   │   ├── table.rs
+    │   │   │   └── tabular.rs
     │   │   ├── io
     │   │   │   ├── ab
     │   │   │   │   └── mod.rs
@@ -121,6 +122,8 @@ Structs and enums provided by Fx crate:
 
 - `Table`: array of `Deque`
 
+- `Tabular`: vector of `Deque`
+
 ### IO
 
 - `arvo`
@@ -168,6 +171,8 @@ Structs and enums provided by Fx crate:
 ## Todo
 
 - Reader/Writer for `Eclectic` (single thread) & `Receptacle` (parallel)
+
+- Streaming I/O
 
 - `fx-macro` supports more builder options for `FxBundle`
 

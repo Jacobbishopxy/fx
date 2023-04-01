@@ -21,7 +21,8 @@
     │   │   │   ├── macros.rs
     │   │   │   ├── mod.rs
     │   │   │   ├── nullopt.rs
-    │   │   │   └── table.rs
+    │   │   │   ├── table.rs
+    │   │   │   └── tabular.rs
     │   │   ├── io
     │   │   │   ├── ab
     │   │   │   │   └── mod.rs

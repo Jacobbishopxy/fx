@@ -1,6 +1,6 @@
-//! file: table.rs
+//! file: tabular.rs
 //! author: Jacob Xie
-//! date: 2023/03/04 01:31:56 Saturday
+//! date: 2023/04/01 13:23:41 Saturday
 //! brief:
 
 use std::ops::RangeBounds;
@@ -13,24 +13,24 @@ use crate::ab::{private, Confined, Eclectic, FxSeq, Purport, StaticPurport};
 use crate::error::{FxError, FxResult};
 
 // ================================================================================================
-// FxTable
+// FxTabular
 // ================================================================================================
 
 #[derive(Debug, Clone)]
-pub struct FxTable<const W: usize> {
+pub struct FxTabular {
     schema: Schema,
-    data: [DequeArr; W],
+    data: Vec<DequeArr>,
 }
 
 // ================================================================================================
-// impl Confined for [DequeArr; W]
+// impl Confined for Vec<DequeArr>
 //
 // used for Receptacle
 // ================================================================================================
 
-impl<const W: usize> Confined for [DequeArr; W] {
+impl Confined for Vec<DequeArr> {
     fn width(&self) -> usize {
-        W
+        self.len()
     }
 
     fn data_types(&self) -> Vec<&DataType> {
@@ -44,10 +44,10 @@ impl<const W: usize> Confined for [DequeArr; W] {
 // impl Purport
 // ================================================================================================
 
-impl<const W: usize> StaticPurport for FxTable<W> {}
+impl StaticPurport for FxTabular {}
 
 #[inherent]
-impl<const W: usize> Purport for FxTable<W> {
+impl Purport for FxTabular {
     pub fn schema(&self) -> &Schema {
         &self.schema
     }
@@ -57,27 +57,21 @@ impl<const W: usize> Purport for FxTable<W> {
 // Table methods
 // ================================================================================================
 
-fn from_arraa<const W: usize>(arraa: [ArcArr; W]) -> [DequeArr; W] {
-    arraa.map(DequeArr::from)
+fn from_vecaa(vecaa: Vec<ArcArr>) -> Vec<DequeArr> {
+    vecaa.into_iter().map(DequeArr::from).collect()
 }
 
-impl<const W: usize> FxTable<W> {
+impl FxTabular {
     // ============================================================================================
     // private methods
     // ============================================================================================
 
-    fn _eclectic_into<E: Eclectic>(data: E) -> FxResult<[ArcArr; W]> {
-        if data.width() != W {
-            return Err(FxError::LengthMismatch(data.width(), W));
-        }
-
+    fn _eclectic_into<E: Eclectic>(data: E) -> FxResult<Vec<ArcArr>> {
         let res = data
             .into_sequences()
             .into_iter()
             .map(|s| s.to_arc_array())
-            .collect::<FxResult<Vec<_>>>()?
-            .try_into()
-            .unwrap();
+            .collect::<FxResult<Vec<_>>>()?;
 
         Ok(res)
     }
@@ -93,7 +87,7 @@ impl<const W: usize> FxTable<W> {
             None => Self::gen_schema(&data),
         };
 
-        let data = from_arraa(Self::_eclectic_into(data)?);
+        let data = from_vecaa(Self::_eclectic_into(data)?);
 
         Ok(Self { schema, data })
     }
@@ -101,7 +95,7 @@ impl<const W: usize> FxTable<W> {
     fn new_empty() -> Self {
         Self {
             schema: Schema::from(Vec::<Field>::new()),
-            data: [(); W].map(|_| DequeArr::new_empty()),
+            data: Vec::new(),
         }
     }
 
@@ -109,21 +103,21 @@ impl<const W: usize> FxTable<W> {
     // public methods
     // ============================================================================================
 
-    /// Creates a new [`FxTable`].
+    /// Creates a new [`FxTabular`].
     /// # Panics
     /// Panics if data length mismatch.
     pub fn new<E: Eclectic>(data: E) -> Self {
         Self::try_new(data).unwrap()
     }
 
-    /// Creates a new [`FxTable`].
+    /// Creates a new [`FxTabular`].
     /// # Errors
     /// This function will return an error if data length mismatch.
     pub fn try_new<E: Eclectic>(data: E) -> FxResult<Self> {
         Self::_new(data, Option::<&[&str]>::None)
     }
 
-    /// Creates a new [`FxTable`].
+    /// Creates a new [`FxTabular`].
     /// # Panics
     /// Panics if data length mismatch.
     pub fn new_with_names<E, I, T>(data: E, names: I) -> Self
@@ -135,7 +129,7 @@ impl<const W: usize> FxTable<W> {
         Self::try_new_with_names(data, names).unwrap()
     }
 
-    /// Creates a new [`FxTable`].
+    /// Creates a new [`FxTabular`].
     /// # Errors
     /// This function will return an error if data length mismatch.
     pub fn try_new_with_names<E, I, T>(data: E, names: I) -> FxResult<Self>
@@ -147,63 +141,58 @@ impl<const W: usize> FxTable<W> {
         Self::_new(data, Some(names))
     }
 
-    /// Creates an empty [`FxTable`].
+    /// Creates an empty [`FxTabular`].
     /// # Panics
     /// Panics if schema length mismatch.
     pub fn empty_with_schema(schema: Schema) -> Self {
         Self::try_empty_with_schema(schema).unwrap()
     }
 
-    /// Creates an empty [`FxTable`].
+    /// Creates an empty [`FxTabular`].
     /// # Errors
     /// This function will return an error if schema length mismatch.
     pub fn try_empty_with_schema(schema: Schema) -> FxResult<Self> {
-        if schema.fields.len() != W {
-            return Err(FxError::LengthMismatch(schema.fields.len(), W));
-        }
         let sch = schema.clone();
-
-        let mut idx = 0;
-        let data: [DequeArr; W] = [(); W].map(|_| {
-            let deque_arr = DequeArr::new_empty_with_type(schema.fields[idx].data_type().clone());
-            idx += 1;
-            deque_arr
-        });
+        let data = schema
+            .fields
+            .into_iter()
+            .map(|f| DequeArr::new_empty_with_type(f.data_type))
+            .collect();
 
         Ok(Self { schema: sch, data })
     }
 
-    /// Returns a reference to the data of this [`FxTable<W>`].
-    pub fn data(&self) -> &[DequeArr; W] {
+    /// Returns a reference to the data of this [`FxTabular`].
+    pub fn data(&self) -> &[DequeArr] {
         &self.data
     }
 
-    /// Returns the deque lens of this [`FxTable<W>`].
-    pub fn deque_lens(&self) -> [usize; W] {
-        self.data.each_ref().map(|dq| dq.len())
+    /// Returns the deque lens of this [`FxTabular`].
+    pub fn deque_lens(&self) -> Vec<usize> {
+        self.data.iter().map(|dq| dq.len()).collect()
     }
 
-    /// Returns the array lens of this [`FxTable<W>`].
-    pub fn array_lens(&self) -> [usize; W] {
-        self.data.each_ref().map(|dq| dq.array_len())
+    /// Returns the array lens of this [`FxTabular`].
+    pub fn array_lens(&self) -> Vec<usize> {
+        self.data.iter().map(|dq| dq.array_len()).collect()
     }
 
-    /// Returns the max deque len of this [`FxTable<W>`].
+    /// Returns the max deque len of this [`FxTabular`].
     pub fn max_deque_len(&self) -> Option<usize> {
         self.deque_lens().iter().max().cloned()
     }
 
-    /// Returns the max array len of this [`FxTable<W>`].
+    /// Returns the max array len of this [`FxTabular`].
     pub fn max_array_len(&self) -> Option<usize> {
         self.array_lens().iter().max().cloned()
     }
 
-    /// Returns the min deque len of this [`FxTable<W>`].
+    /// Returns the min deque len of this [`FxTabular`].
     pub fn min_deque_len(&self) -> Option<usize> {
         self.deque_lens().iter().min().cloned()
     }
 
-    /// Returns the min array len of this [`FxTable<W>`].
+    /// Returns the min array len of this [`FxTabular`].
     pub fn min_array_len(&self) -> Option<usize> {
         self.array_lens().iter().min().cloned()
     }
@@ -236,14 +225,14 @@ impl<const W: usize> FxTable<W> {
         self.data.iter().all(|dq| dq.has_type())
     }
 
-    /// Turns this [`FxTable<W>`] into a array of [`ArcArr`] vectors.
-    pub fn into_arrays(self) -> [Vec<ArcArr>; W] {
-        self.data.map(|dq| dq.into_arrays())
+    /// Turns this [`FxTabular`] into a array of [`ArcArr`] vectors.
+    pub fn into_arrays(self) -> Vec<Vec<ArcArr>> {
+        self.data.into_iter().map(|dq| dq.into_arrays()).collect()
     }
 
     /// True if datatypes equals to self.datatypes.
     pub fn data_types_match(&self, datatypes: &[DataType]) -> bool {
-        if datatypes.len() != W {
+        if datatypes.len() != self.width() {
             return false;
         }
 
@@ -254,27 +243,30 @@ impl<const W: usize> FxTable<W> {
     }
 
     /// Returns references to each deque.
-    pub fn as_slices(&self) -> [(&[ArcArr], &[ArcArr]); W] {
-        self.data.each_ref().map(|dq| dq.as_slices())
+    pub fn as_slices(&self) -> Vec<(&[ArcArr], &[ArcArr])> {
+        self.data.iter().map(|dq| dq.as_slices()).collect()
     }
 
     /// Makes all deque contiguos and returns their mutable references.
-    pub fn make_contiguous(&mut self) -> [&mut [ArcArr]; W] {
-        self.data.each_mut().map(|dq| dq.make_contiguous())
+    pub fn make_contiguous(&mut self) -> Vec<&mut [ArcArr]> {
+        self.data
+            .iter_mut()
+            .map(|dq| dq.make_contiguous())
+            .collect()
     }
 
     /// Makes all deque contiguous and returns their references.
-    pub fn make_as_slice(&mut self) -> [&[ArcArr]; W] {
+    pub fn make_as_slice(&mut self) -> Vec<&[ArcArr]> {
         self.make_contiguous();
 
-        self.as_slices().each_ref().map(|s| s.0)
+        self.as_slices().iter().map(|s| s.0).collect()
     }
 
-    pub fn deque_get(&self, index: usize) -> [Option<&ArcArr>; W] {
-        self.data.each_ref().map(|dq| dq.get(index))
+    pub fn deque_get(&self, index: usize) -> Vec<Option<&ArcArr>> {
+        self.data.iter().map(|dq| dq.get(index)).collect()
     }
 
-    pub fn deque_get_ok(&self, index: usize) -> FxResult<[&ArcArr; W]> {
+    pub fn deque_get_ok(&self, index: usize) -> FxResult<Vec<&ArcArr>> {
         let min_len = self.min_deque_len();
 
         if min_len.is_none() {
@@ -285,14 +277,14 @@ impl<const W: usize> FxTable<W> {
             return Err(FxError::OutBounds);
         }
 
-        Ok(self.data.each_ref().map(|dq| dq.get(index).unwrap()))
+        Ok(self.data.iter().map(|dq| dq.get(index).unwrap()).collect())
     }
 
-    pub fn deque_get_mut(&mut self, index: usize) -> [Option<&mut ArcArr>; W] {
-        self.data.each_mut().map(|dq| dq.get_mut(index))
+    pub fn deque_get_mut(&mut self, index: usize) -> Vec<Option<&mut ArcArr>> {
+        self.data.iter_mut().map(|dq| dq.get_mut(index)).collect()
     }
 
-    pub fn deque_get_mut_ok(&mut self, index: usize) -> FxResult<[&mut ArcArr; W]> {
+    pub fn deque_get_mut_ok(&mut self, index: usize) -> FxResult<Vec<&mut ArcArr>> {
         let min_len = self.min_deque_len();
 
         if min_len.is_none() {
@@ -303,7 +295,11 @@ impl<const W: usize> FxTable<W> {
             return Err(FxError::OutBounds);
         }
 
-        Ok(self.data.each_mut().map(|dq| dq.get_mut(index).unwrap()))
+        Ok(self
+            .data
+            .iter_mut()
+            .map(|dq| dq.get_mut(index).unwrap())
+            .collect())
     }
 
     pub fn deque_insert<E: Eclectic>(&mut self, index: usize, value: E) -> FxResult<()> {
@@ -318,28 +314,28 @@ impl<const W: usize> FxTable<W> {
         Ok(())
     }
 
-    pub fn deque_back(&self) -> [Option<&ArcArr>; W] {
-        self.data.each_ref().map(|dq| dq.back())
+    pub fn deque_back(&self) -> Vec<Option<&ArcArr>> {
+        self.data.iter().map(|dq| dq.back()).collect()
     }
 
-    pub fn deque_back_mut(&mut self) -> [Option<&mut ArcArr>; W] {
-        self.data.each_mut().map(|dq| dq.back_mut())
+    pub fn deque_back_mut(&mut self) -> Vec<Option<&mut ArcArr>> {
+        self.data.iter_mut().map(|dq| dq.back_mut()).collect()
     }
 
-    pub fn deque_front(&self) -> [Option<&ArcArr>; W] {
-        self.data.each_ref().map(|dq| dq.front())
+    pub fn deque_front(&self) -> Vec<Option<&ArcArr>> {
+        self.data.iter().map(|dq| dq.front()).collect()
     }
 
-    pub fn deque_front_mut(&mut self) -> [Option<&mut ArcArr>; W] {
-        self.data.each_mut().map(|dq| dq.front_mut())
+    pub fn deque_front_mut(&mut self) -> Vec<Option<&mut ArcArr>> {
+        self.data.iter_mut().map(|dq| dq.front_mut()).collect()
     }
 
-    pub fn deque_pop_back(&mut self) -> [Option<ArcArr>; W] {
-        self.data.each_mut().map(|dq| dq.pop_back())
+    pub fn deque_pop_back(&mut self) -> Vec<Option<ArcArr>> {
+        self.data.iter_mut().map(|dq| dq.pop_back()).collect()
     }
 
-    pub fn deque_pop_front(&mut self) -> [Option<ArcArr>; W] {
-        self.data.each_mut().map(|dq| dq.pop_front())
+    pub fn deque_pop_front(&mut self) -> Vec<Option<ArcArr>> {
+        self.data.iter_mut().map(|dq| dq.pop_front()).collect()
     }
 
     pub fn deque_push_back<E: Eclectic>(&mut self, value: E) -> FxResult<()> {
@@ -366,45 +362,48 @@ impl<const W: usize> FxTable<W> {
         Ok(())
     }
 
-    pub fn deque_remove(&mut self, index: usize) -> [Option<ArcArr>; W] {
-        self.data.each_mut().map(|dq| dq.remove(index))
+    pub fn deque_remove(&mut self, index: usize) -> Vec<Option<ArcArr>> {
+        self.data.iter_mut().map(|dq| dq.remove(index)).collect()
     }
 
     pub fn deque_truncate(&mut self, len: usize) {
-        self.data.each_mut().map(|dq| dq.truncate(len));
+        self.data.iter_mut().for_each(|dq| dq.truncate(len));
     }
 
-    pub fn deque_range<R>(&self, range: R) -> [DequeIter<ArcArr>; W]
+    pub fn deque_range<R>(&self, range: R) -> Vec<DequeIter<ArcArr>>
     where
         R: RangeBounds<usize> + Clone,
     {
-        self.data.each_ref().map(|dq| dq.range(range.clone()))
+        self.data.iter().map(|dq| dq.range(range.clone())).collect()
     }
 
-    pub fn deque_range_mut<R>(&mut self, range: R) -> [DequeIterMut<ArcArr>; W]
+    pub fn deque_range_mut<R>(&mut self, range: R) -> Vec<DequeIterMut<ArcArr>>
     where
         R: RangeBounds<usize> + Clone,
     {
-        self.data.each_mut().map(|dq| dq.range_mut(range.clone()))
+        self.data
+            .iter_mut()
+            .map(|dq| dq.range_mut(range.clone()))
+            .collect()
     }
 
-    pub fn deque_iter(&self) -> [DequeIter<ArcArr>; W] {
-        self.data.each_ref().map(|dq| dq.iter())
+    pub fn deque_iter(&self) -> Vec<DequeIter<ArcArr>> {
+        self.data.iter().map(|dq| dq.iter()).collect()
     }
 
-    pub fn deque_iter_mut(&mut self) -> [DequeIterMut<ArcArr>; W] {
-        self.data.each_mut().map(|dq| dq.iter_mut())
+    pub fn deque_iter_mut(&mut self) -> Vec<DequeIterMut<ArcArr>> {
+        self.data.iter_mut().map(|dq| dq.iter_mut()).collect()
     }
 
     // ================================================================================================
     // Functions with different name
     // ================================================================================================
 
-    pub fn pop_back(&mut self) -> [Option<ArcArr>; W] {
+    pub fn pop_back(&mut self) -> Vec<Option<ArcArr>> {
         self.deque_pop_back()
     }
 
-    pub fn pop_front(&mut self) -> [Option<ArcArr>; W] {
+    pub fn pop_front(&mut self) -> Vec<Option<ArcArr>> {
         self.deque_pop_front()
     }
 
@@ -421,13 +420,13 @@ impl<const W: usize> FxTable<W> {
 // impl Receptacle
 // ================================================================================================
 
-// E -> FxTable
-impl<const W: usize, E> private::InnerReceptacle<true, usize, E> for FxTable<W>
+// E -> FxTabular
+impl<E> private::InnerReceptacle<true, usize, E> for FxTabular
 where
     E: Eclectic + Confined,
 {
-    type OutRef<'a> = [&'a ArcArr; W] where Self: 'a;
-    type OutMut<'a> = [&'a mut ArcArr; W] where Self : 'a;
+    type OutRef<'a> = Vec<&'a ArcArr> where Self: 'a;
+    type OutMut<'a> = Vec<&'a mut ArcArr> where Self : 'a;
 
     fn new_empty() -> Self {
         Self::new_empty()
