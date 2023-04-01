@@ -94,6 +94,9 @@ fn gen_bd_res(
         TABLE => quote! {
             FxTable::<#schema_len>::try_new_with_names(vec![ #(#build_ctt)* ], [ #(#names),* ])
         },
+        TABULAR => quote! {
+            FxTabular::try_new_with_names(vec![ #(#build_ctt)* ], [ #(#names),* ])
+        },
         _ => panic!("Unsupported type"),
     }
 }
@@ -204,6 +207,13 @@ pub(crate) fn gen_multiple_impl_eclectic(
             ]
         }
         TABLE => {
+            vec![
+                gen_impl_eclectic(ARRAA, schema_len, struct_name, build_name, named_fields),
+                gen_impl_eclectic(CHUNK, schema_len, struct_name, build_name, named_fields),
+                gen_impl_eclectic(BATCH, schema_len, struct_name, build_name, named_fields),
+            ]
+        }
+        TABULAR => {
             vec![
                 gen_impl_eclectic(ARRAA, schema_len, struct_name, build_name, named_fields),
                 gen_impl_eclectic(CHUNK, schema_len, struct_name, build_name, named_fields),

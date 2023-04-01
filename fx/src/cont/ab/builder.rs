@@ -10,7 +10,7 @@
 use std::hash::Hash;
 
 use crate::ab::{Confined, Eclectic, Receptacle};
-use crate::cont::{ArcArr, ChunkArr, FxBatch, FxBatches, FxBundle, FxBundles, FxTable};
+use crate::cont::{ArcArr, ChunkArr, FxBatch, FxBatches, FxBundle, FxBundles, FxTable, FxTabular};
 use crate::error::{FxError, FxResult};
 
 // ================================================================================================
@@ -85,6 +85,9 @@ pub trait FxBundleBuilderGenerator<const W: usize>: Sized {
 // 6. FxArraaTableGenerator:            [ArcArr; W] -> Table
 // 7. FxChunkTableGenerator:            ChunkArr -> Table
 // 8. FxBatchTableGenerator:            Batch -> Table
+// 9. FxArraaTabularGenerator:          [ArcArr; W] -> Tabular
+// 10. FxChunkTabularGenerator:         ChunkArr -> Tabular
+// 11. FxBatchTabularGenerator:         Batch -> Tabular
 // ================================================================================================
 
 pub trait FxCollectionBuilder<const SCHEMA: bool, B, R, T, I, C>: Sized + Send
@@ -277,6 +280,60 @@ pub trait FxBatchTableGenerator<const W: usize>: Sized {
 
     fn gen_batch_table_builder() -> FxResult<Self::TableBuilder> {
         Self::TableBuilder::new()
+    }
+}
+
+// [ArcArr; W] -> Tabular
+pub trait FxArraaTabularGenerator<const W: usize>: Sized {
+    type ArraaBuilder: FxEclecticBuilder<Self, [ArcArr; W]>;
+
+    type TabularBuilder: FxCollectionBuilder<
+        true,
+        Self::ArraaBuilder,
+        Self,
+        FxTabular,
+        usize,
+        [ArcArr; W],
+    >;
+
+    fn gen_arraa_tabular_builder() -> FxResult<Self::TabularBuilder> {
+        Self::TabularBuilder::new()
+    }
+}
+
+// ChunkArr -> Tabular
+pub trait FxChunkTabularGenerator: Sized {
+    type ChunkBuilder: FxEclecticBuilder<Self, ChunkArr>;
+
+    type TabularBuilder: FxCollectionBuilder<
+        true,
+        Self::ChunkBuilder,
+        Self,
+        FxTabular,
+        usize,
+        ChunkArr,
+    >;
+
+    fn gen_chunk_tabular_builder() -> FxResult<Self::TabularBuilder> {
+        Self::TabularBuilder::new()
+    }
+}
+
+// Batch -> Tabular
+pub trait FxBatchTabularGenerator: Sized {
+    type BatchBuilder: FxEclecticBuilder<Self, FxBatch>;
+
+    type TabularBuilder: FxCollectionBuilder<
+        true,
+        Self::BatchBuilder,
+        Self,
+        FxTabular,
+        usize,
+        FxBatch,
+    >;
+
+    fn gen_batch_tabular_builder() -> FxResult<Self::TabularBuilder> {
+        Self::TabularBuilder::new()
     }
 }
 

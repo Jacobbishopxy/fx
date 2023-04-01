@@ -12,6 +12,7 @@
 //! 2. "batch": `FxBatch` as the Eclectic type, and `FxBatchs<ChunkArr>` as the Receptacle type;
 //! 3. "bundle": `FxBundle` as the Eclectic type, and `FxBundles` as the Receptacle type.
 //! 4. "table": 1, 2, and 3 as the Eclectic type, and `FxTable` as the Receptacle type.
+//! 5. "tabular": 1, 2, and 3 as the Eclectic type, and `FxTabular` as the Receptacle type.
 //!
 //! Note that `ARRAA` works for constructing `FxBundle` and `FxBundles`, and since we already have "chunk"
 //! option, which behaves pretty much the same as the "arraa" and has a stronger restriction (same length),

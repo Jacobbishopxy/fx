@@ -135,6 +135,7 @@ pub(crate) fn gen_eclectic_type(schema_len: usize, s: &str) -> TokenStream {
         BATCH => quote! {FxBatch},
         BUNDLE => quote! {FxBundle::<#schema_len, ArcArr>},
         TABLE => quote! {ArcArr::<#schema_len>},
+        TABULAR => quote! {ArcArr::<#schema_len>},
         _ => quote! {FxBatch}, // default to FxBatch
     }
 }
@@ -147,6 +148,7 @@ pub(crate) fn gen_container_type(schema_len: usize, s: &str) -> TokenStream {
         BATCH => quote! {FxBatches::<ChunkArr>},
         BUNDLE => quote! {FxBundles::<#schema_len, ArcArr>},
         TABLE => quote! {FxTable::<#schema_len>},
+        TABULAR => quote! {FxTabular},
         _ => quote! {FxBatches::<ChunkArr>}, // default to FxBatches
     }
 }

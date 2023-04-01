@@ -49,6 +49,13 @@ pub(crate) fn gen_collection_builder_struct(
                 _e: ::std::marker::PhantomData<T>,
             }
         },
+        TABULAR => quote! {
+            struct #container_build_name<T: Eclectic> {
+                result: FxTabular,
+                buffer: Option<#eclectic_build_name<T>>,
+                _e: ::std::marker::PhantomData<T>,
+            }
+        },
         _ => panic!("Unsupported type"),
     }
 }
@@ -129,6 +136,20 @@ fn gen_collection_type(
                 },
             )
         }
+        TABULAR => {
+            let buffer = gen_buffer_struct(struct_name, base_builder_e_type);
+            let marker_type = gen_eclectic_type(schema_len, base_builder_e_type);
+            (
+                true,
+                marker_type,
+                quote! { FxTabular },
+                quote! {
+                    let schema = ::arrow2::datatypes::Schema::from(vec![#(#fields_ctt),*]);
+                    let result = FxTabular::empty_with_schema(schema);
+                    let buffer = Some(#buffer);
+                },
+            )
+        }
         _ => panic!("Unsupported type"),
     }
 }
@@ -186,7 +207,31 @@ fn gen_impl_cbg(
                     type TableBuilder = #collection_build_name<FxBatch>;
                 }
             },
-            _ => panic!("Unsupported type"),
+            _ => panic!("Unsupported type for FxTable"),
+        },
+        TABULAR => match base_builder_e_type {
+            ARRAA => quote! {
+                impl FxArraaTabularGenerator<#schema_len> for #struct_name {
+                    type ArraaBuilder = #eclectic_build_name<[ArcArr; #schema_len]>;
+
+                    type TabularBuilder = #collection_build_name<[ArcArr; #schema_len]>;
+                }
+            },
+            CHUNK => quote! {
+                impl FxChunkTabularGenerator for #struct_name {
+                    type ChunkBuilder = #eclectic_build_name<ChunkArr>;
+
+                    type TabularBuilder = #collection_build_name<ChunkArr>;
+                }
+            },
+            BATCH => quote! {
+                impl FxBatchTabularGenerator for #struct_name {
+                    type BatchBuilder = #eclectic_build_name<FxBatch>;
+
+                    type TabularBuilder = #collection_build_name<FxBatch>;
+                }
+            },
+            _ => panic!("Unsupported type for FxTabular"),
         },
         _ => panic!("Unsupported type"),
     }
@@ -333,6 +378,37 @@ pub(crate) fn gen_multiple_impl_container(
                 gen_impl_container(
                     BATCH,
                     TABLE,
+                    schema_len,
+                    struct_name,
+                    eclectic_build_name,
+                    container_build_name,
+                    named_fields,
+                ),
+            ]
+        }
+        TABULAR => {
+            vec![
+                gen_impl_container(
+                    ARRAA,
+                    TABULAR,
+                    schema_len,
+                    struct_name,
+                    eclectic_build_name,
+                    container_build_name,
+                    named_fields,
+                ),
+                gen_impl_container(
+                    CHUNK,
+                    TABULAR,
+                    schema_len,
+                    struct_name,
+                    eclectic_build_name,
+                    container_build_name,
+                    named_fields,
+                ),
+                gen_impl_container(
+                    BATCH,
+                    TABULAR,
                     schema_len,
                     struct_name,
                     eclectic_build_name,
