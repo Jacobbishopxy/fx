@@ -165,21 +165,21 @@ fn gen_impl_cbg(
 ) -> TokenStream {
     match collection_e_type {
         CHUNK => quote! {
-            impl FxChunksBuilderGenerator for #struct_name {
+            impl FxChunksGenerator for #struct_name {
                 type ChunkBuilder = #eclectic_build_name<ChunkArr>;
 
                 type ChunksBuilder = #collection_build_name<ChunkArr>;
             }
         },
         BATCH => quote! {
-            impl FxChunkBatchesBuilderGenerator for #struct_name {
+            impl FxChunkBatchesGenerator for #struct_name {
                 type ChunkBuilder = #eclectic_build_name<ChunkArr>;
 
                 type BatchesBuilder = #collection_build_name<ChunkArr>;
             }
         },
         BUNDLE => quote! {
-            impl FxBundlesBuilderGenerator<#schema_len> for #struct_name {
+            impl FxArraaBundlesGenerator<#schema_len> for #struct_name {
                 type ArraaBuilder = #eclectic_build_name<[ArcArr; #schema_len]>;
 
                 type BundlesBuilder = #collection_build_name<[ArcArr; #schema_len]>;

@@ -17,15 +17,22 @@ use crate::error::{FxError, FxResult};
 // FxEclecticBuilder
 //
 // 1. FxChunkBuilderGenerator:  -> ChunkArr
-// 2. FxArrBuilderGenerator:    -> [ArcArr; W]
+// 2. FxArraaBuilderGenerator:  -> [ArcArr; W]
 // 3. FxBatchBuilderGenerator:  -> FxBatch
-// 4. FxBundleBuilderGenerator:  -> FxBundle<W, ArcArr>
+// 4. FxBundleBuilderGenerator: -> FxBundle<W, ArcArr>
 //
 // Based on a named struct, generate a new struct with several vector fields, and each of them
 // denotes its original data type (`Option` is supported).
 // And this process has been concluded in `fx-derive`, which used procedure macro to auto generate
 // all the required implementations for a struct who represents a schema.
 // ================================================================================================
+
+pub enum FxEclecticGeneratorType {
+    ChunkGenerator,
+    ArraaGenerator,
+    BatchGenerator,
+    BundleGenerator,
+}
 
 pub trait FxEclecticBuilder<R, T>: Sized + Send
 where
@@ -77,18 +84,45 @@ pub trait FxBundleBuilderGenerator<const W: usize>: Sized {
 // ================================================================================================
 // FxCollectionBuilder
 //
-// 1. FxChunksBuilderGenerator:         ChunkArr -> Vec<ChunkArr>
-// 2. FxChunkBatchesBuilderGenerator:   ChunkArr -> Batches
-// 3. FxBatchBatchesBuilderGenerator:   Batch -> Batches
-// 4. FxBundleBatchesBuilderGenerator:  Bundle -> Batches
-// 5. FxBundlesBuilderGenerator:        [ArcArr; W] -> Bundles
-// 6. FxArraaTableGenerator:            [ArcArr; W] -> Table
-// 7. FxChunkTableGenerator:            ChunkArr -> Table
-// 8. FxBatchTableGenerator:            Batch -> Table
-// 9. FxArraaTabularGenerator:          [ArcArr; W] -> Tabular
-// 10. FxChunkTabularGenerator:         ChunkArr -> Tabular
-// 11. FxBatchTabularGenerator:         Batch -> Tabular
+// 1. FxChunksGenerator:         ChunkArr -> Vec<ChunkArr>
+// 2. FxChunkBatchesGenerator:   ChunkArr -> Batches
+// 3. FxBatchBatchesGenerator:   Batch -> Batches
+// 4. FxBundleBatchesGenerator:  Bundle -> Batches
+// 5. FxBundlesGenerator:        [ArcArr; W] -> Bundles
+// 6. FxArraaTableGenerator:     [ArcArr; W] -> Table
+// 7. FxChunkTableGenerator:     ChunkArr -> Table
+// 8. FxBatchTableGenerator:     Batch -> Table
+// 9. FxArraaTabularGenerator:   [ArcArr; W] -> Tabular
+// 10. FxChunkTabularGenerator:  ChunkArr -> Tabular
+// 11. FxBatchTabularGenerator:  Batch -> Tabular
 // ================================================================================================
+
+// FxChunkChunksGenerator
+// FxChunkBatchesGenerator
+// FxBatchBatchesGenerator
+// FxBundleBatchesGenerator
+// FxArraaBundlesGenerator
+// FxArraaTableGenerator
+// FxChunkTableGenerator
+// FxBatchTableGenerator
+// FxArraaTabularGenerator
+// FxChunkTabularGenerator
+// FxBatchTabularGenerator
+
+#[derive(Debug)]
+pub enum FxCollectionGeneratorType {
+    ChunkChunksGenerator,
+    ChunkBatchesGenerator,
+    BatchBatchesGenerator,
+    BundleBatchesGenerator,
+    ArraaBundlesGenerator,
+    ArraaTableGenerator,
+    ChunkTableGenerator,
+    BatchTableGenerator,
+    ArraaTabularGenerator,
+    ChunkTabularGenerator,
+    BatchTabularGenerator,
+}
 
 pub trait FxCollectionBuilder<const SCHEMA: bool, B, R, T, I, C>: Sized + Send
 where
@@ -140,7 +174,7 @@ where
 }
 
 // ChunkArr -> Vec<ChunkArr>
-pub trait FxChunksBuilderGenerator: Sized {
+pub trait FxChunkChunksGenerator: Sized {
     type ChunkBuilder: FxEclecticBuilder<Self, ChunkArr>;
 
     type ChunksBuilder: FxCollectionBuilder<
@@ -158,7 +192,7 @@ pub trait FxChunksBuilderGenerator: Sized {
 }
 
 // ChunkArr -> Batches
-pub trait FxChunkBatchesBuilderGenerator: Sized {
+pub trait FxChunkBatchesGenerator: Sized {
     type ChunkBuilder: FxEclecticBuilder<Self, ChunkArr>;
 
     type BatchesBuilder: FxCollectionBuilder<
@@ -176,7 +210,7 @@ pub trait FxChunkBatchesBuilderGenerator: Sized {
 }
 
 // Batch -> Batches
-pub trait FxBatchBatchesBuilderGenerator: Sized {
+pub trait FxBatchBatchesGenerator: Sized {
     type BatchBuilder: FxEclecticBuilder<Self, FxBatch>;
 
     type BatchesBuilder: FxCollectionBuilder<
@@ -194,7 +228,7 @@ pub trait FxBatchBatchesBuilderGenerator: Sized {
 }
 
 // Bundle -> Batches
-pub trait FxBundleBatchesBuilderGenerator: Sized {
+pub trait FxBundleBatchesGenerator: Sized {
     type BundleBuilder<const W: usize>: FxEclecticBuilder<Self, FxBundle<W, ArcArr>>;
 
     type BatchesBuilder<const W: usize>: FxCollectionBuilder<
@@ -212,7 +246,7 @@ pub trait FxBundleBatchesBuilderGenerator: Sized {
 }
 
 // [ArcArr; W] -> Bundles
-pub trait FxBundlesBuilderGenerator<const W: usize>: Sized {
+pub trait FxArraaBundlesGenerator<const W: usize>: Sized {
     type ArraaBuilder: FxEclecticBuilder<Self, [ArcArr; W]>;
 
     type BundlesBuilder: FxCollectionBuilder<

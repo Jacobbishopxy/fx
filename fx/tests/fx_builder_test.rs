@@ -122,7 +122,7 @@ mod simple_procedure {
     }
 
     // 6. impl builder generator for the schema struct
-    impl FxChunksBuilderGenerator for Users {
+    impl FxChunkChunksGenerator for Users {
         type ChunkBuilder = UsersEBuild;
 
         type ChunksBuilder = UsersCBuild;
@@ -266,7 +266,7 @@ mod schemed_builder {
     }
 
     // 6. impl builder generator for the schema struct
-    impl FxBatchBatchesBuilderGenerator for Users {
+    impl FxBatchBatchesGenerator for Users {
         type BatchBuilder = UsersEBuild;
 
         type BatchesBuilder = UsersCBuild;
@@ -541,7 +541,7 @@ mod multiple_schemed_builder {
         }
     }
 
-    impl FxChunkBatchesBuilderGenerator for Users {
+    impl FxChunkBatchesGenerator for Users {
         type ChunkBuilder = UsersEBuild<ChunkArr>;
 
         type BatchesBuilder = UsersCSBuild;
