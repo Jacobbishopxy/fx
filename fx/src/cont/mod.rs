@@ -10,8 +10,8 @@ pub mod bundle;
 pub mod bundles;
 pub mod deque;
 pub mod ext;
-mod macros;
 pub mod nullopt;
+mod private;
 pub mod table;
 pub mod tabular;
 

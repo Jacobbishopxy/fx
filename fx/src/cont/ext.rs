@@ -16,7 +16,7 @@ use arrow2::compute::concatenate::concatenate;
 use arrow2::datatypes::{DataType, Schema};
 
 use crate::ab::{private, Confined, Eclectic, FxSeq, StaticPurport};
-use crate::cont::macros::*;
+use crate::cont::private::*;
 use crate::error::{FxError, FxResult};
 use crate::types::*;
 
