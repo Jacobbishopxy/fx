@@ -8,7 +8,8 @@ use std::{collections::VecDeque, ops::RangeBounds};
 
 use arrow2::{array::Array, datatypes::DataType};
 
-use super::ArcArr;
+use super::private::{chop_arc_arr, chop_box_arr, concat_arc_arr, concat_box_arr};
+use super::{ArcArr, BoxArr};
 use crate::error::{FxError, FxResult};
 
 // ================================================================================================
@@ -16,7 +17,8 @@ use crate::error::{FxError, FxResult};
 // ================================================================================================
 
 // Deque<dyn Array>
-pub type DequeArr = Deque<ArcArr>;
+pub type DequeArcArr = Deque<ArcArr>;
+pub type DequeBoxArr = Deque<BoxArr>;
 
 // Type alias for iter & iter_mut
 pub type DequeIter<'a, A> = std::collections::vec_deque::Iter<'a, A>;
@@ -425,14 +427,123 @@ impl<'a, A: AsRef<dyn Array>> Iterator for DequeMutIterator<'a, A> {
 }
 
 // ================================================================================================
+// Make same size
+// ================================================================================================
+
+impl DequeArcArr {
+    /// Make every Array into the same size, and
+    pub fn make_same_size(&mut self, len: usize) -> FxResult<SameSizedResult> {
+        let total_length = self.array_len();
+        if len > total_length {
+            return Err(FxError::OutBounds);
+        }
+
+        let mut buffer = Vec::<ArcArr>::new();
+        let mut cur_buffer_total_len = 0;
+        let mut res = Vec::<ArcArr>::new();
+
+        while !self.is_empty() {
+            let arr = self.pop_front().unwrap();
+            let arr_len = arr.len();
+            cur_buffer_total_len += arr_len;
+
+            if cur_buffer_total_len < len {
+                buffer.push(arr);
+                continue;
+            }
+
+            if cur_buffer_total_len >= len {
+                let r_len = cur_buffer_total_len - len;
+                let (l, r) = chop_arc_arr(&arr, arr_len - r_len)?;
+                buffer.push(l);
+                let concat = concat_arc_arr(&buffer)?;
+                res.push(concat);
+                buffer.clear();
+                cur_buffer_total_len = 0;
+                self.push_front(r)?;
+            }
+        }
+
+        res.push(concat_arc_arr(&buffer)?);
+
+        self.deque = VecDeque::from(res);
+
+        Ok(SameSizedResult {
+            each_array_size: len,
+            residual_array_size: total_length % len,
+            total_array_num: self.len(),
+        })
+    }
+}
+
+impl DequeBoxArr {
+    /// Make every Array into the same size, and
+    pub fn make_same_size(&mut self, len: usize) -> FxResult<SameSizedResult> {
+        let total_length = self.array_len();
+        if len > total_length {
+            return Err(FxError::OutBounds);
+        }
+
+        let mut buffer = Vec::<BoxArr>::new();
+        let mut cur_buffer_total_len = 0;
+        let mut res = Vec::<BoxArr>::new();
+
+        while !self.is_empty() {
+            let arr = self.pop_front().unwrap();
+            let arr_len = arr.len();
+            cur_buffer_total_len += arr_len;
+
+            if cur_buffer_total_len < len {
+                buffer.push(arr);
+                continue;
+            }
+
+            if cur_buffer_total_len >= len {
+                let r_len = cur_buffer_total_len - len;
+                let (l, r) = chop_box_arr(&arr, arr_len - r_len)?;
+                buffer.push(l);
+                let concat = concat_box_arr(&buffer)?;
+                res.push(concat);
+                buffer.clear();
+                cur_buffer_total_len = 0;
+                self.push_front(r)?;
+            }
+        }
+
+        res.push(concat_box_arr(&buffer)?);
+
+        self.deque = VecDeque::from(res);
+
+        Ok(SameSizedResult {
+            each_array_size: len,
+            residual_array_size: total_length % len,
+            total_array_num: self.len(),
+        })
+    }
+}
+
+// ================================================================================================
+// Misc
+// ================================================================================================
+
+#[derive(Debug)]
+pub struct SameSizedResult {
+    pub each_array_size: usize,
+    pub residual_array_size: usize,
+    pub total_array_num: usize,
+}
+
+// ================================================================================================
 // Test
 // ================================================================================================
 
 #[cfg(test)]
 mod deque_test {
-    use crate::ab::FromSlice;
 
     use super::*;
+
+    use crate::ab::FromSlice;
+    use crate::{arc_arr, box_arr};
 
     #[test]
     fn into_arrays_success() {
@@ -452,5 +563,35 @@ mod deque_test {
         println!("{:?}", deque.as_slices());
 
         println!("{:?}", deque.into_arrays());
+    }
+
+    #[test]
+    fn make_arc_arr_same_size_success() {
+        let mut dq = DequeArcArr::new(vec![
+            arc_arr!([1, 2, 3]),
+            arc_arr!([1, 2, 3, 4, 5, 6]),
+            arc_arr!([1, 2, 3, 4]),
+            arc_arr!([1, 2]),
+        ]);
+
+        let res = dq.make_same_size(4);
+
+        println!("{:?}", res);
+        println!("{:?}", dq);
+    }
+
+    #[test]
+    fn make_box_arr_same_size_success() {
+        let mut dq = DequeBoxArr::new(vec![
+            box_arr!([1, 2, 3]),
+            box_arr!([1, 2, 3, 4, 5, 6]),
+            box_arr!([1, 2, 3, 4]),
+            box_arr!([1, 2]),
+        ]);
+
+        let res = dq.make_same_size(4);
+
+        println!("{:?}", res);
+        println!("{:?}", dq);
     }
 }

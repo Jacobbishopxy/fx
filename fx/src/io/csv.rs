@@ -4,11 +4,12 @@
 //! brief: CSV I/O
 
 use std::io::Write;
+// use std::sync::mpsc as std_mpsc;
 
 use arrow2::io::csv::read as csv_read;
 use arrow2::io::csv::write as csv_write;
 
-use super::{ec::ReadSeek, FxIO, SimpleIO};
+use super::{ec::ReadSeek, FxIO, ParallelIO, SimpleIO};
 use crate::ab::{Congruent, Eclectic, FxSeq, Purport};
 use crate::error::{FxError, FxResult};
 
@@ -87,6 +88,37 @@ impl<T: Eclectic + Purport> SimpleIO<T> {
         let reader = self.reader.take().unwrap();
 
         self.data = Some(FxIO::read_csv::<T, _>(reader, projection)?);
+
+        Ok(())
+    }
+}
+
+// ================================================================================================
+// ParallelIO
+// ================================================================================================
+
+impl ParallelIO {
+    pub fn write_csv(&mut self, options: Option<&csv_write::SerializeOptions>) -> FxResult<()> {
+        if self.data.is_none() || self.writer.is_none() {
+            return Err(FxError::EmptyContent);
+        }
+
+        let mut _write = self.writer.take().unwrap();
+        let _data = self.task_data().unwrap();
+
+        // channel
+        // let (tx, rx): (std_mpsc::Sender<_>, std_mpsc::Receiver<_>) = std_mpsc::channel();
+        // let mut children = Vec::new();
+
+        // TODO: get `parallel_num` from `FxTabular` chunks
+        let parallel_num = 0;
+
+        (0..parallel_num).for_each(|_id| {
+            // let thread_tx = tx.clone();
+
+            let _options = options.clone();
+            // let batch =
+        });
 
         Ok(())
     }

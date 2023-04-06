@@ -8,7 +8,7 @@ use std::ops::RangeBounds;
 use arrow2::datatypes::{DataType, Field, Schema};
 use inherent::inherent;
 
-use super::{ArcArr, DequeArr, DequeIter, DequeIterMut};
+use super::{ArcArr, DequeArcArr, DequeIter, DequeIterMut};
 use crate::ab::{private, Confined, Eclectic, FxSeq, Purport, StaticPurport};
 use crate::error::{FxError, FxResult};
 
@@ -19,7 +19,7 @@ use crate::error::{FxError, FxResult};
 #[derive(Debug, Clone)]
 pub struct FxTable<const W: usize> {
     schema: Schema,
-    data: [DequeArr; W],
+    data: [DequeArcArr; W],
 }
 
 // ================================================================================================
@@ -28,7 +28,7 @@ pub struct FxTable<const W: usize> {
 // used for Receptacle
 // ================================================================================================
 
-impl<const W: usize> Confined for [DequeArr; W] {
+impl<const W: usize> Confined for [DequeArcArr; W] {
     fn width(&self) -> usize {
         W
     }
@@ -57,8 +57,8 @@ impl<const W: usize> Purport for FxTable<W> {
 // Table methods
 // ================================================================================================
 
-fn from_arraa<const W: usize>(arraa: [ArcArr; W]) -> [DequeArr; W] {
-    arraa.map(DequeArr::from)
+fn from_arraa<const W: usize>(arraa: [ArcArr; W]) -> [DequeArcArr; W] {
+    arraa.map(DequeArcArr::from)
 }
 
 impl<const W: usize> FxTable<W> {
@@ -101,7 +101,7 @@ impl<const W: usize> FxTable<W> {
     fn new_empty() -> Self {
         Self {
             schema: Schema::from(Vec::<Field>::new()),
-            data: [(); W].map(|_| DequeArr::new_empty()),
+            data: [(); W].map(|_| DequeArcArr::new_empty()),
         }
     }
 
@@ -164,8 +164,9 @@ impl<const W: usize> FxTable<W> {
         let sch = schema.clone();
 
         let mut idx = 0;
-        let data: [DequeArr; W] = [(); W].map(|_| {
-            let deque_arr = DequeArr::new_empty_with_type(schema.fields[idx].data_type().clone());
+        let data: [DequeArcArr; W] = [(); W].map(|_| {
+            let deque_arr =
+                DequeArcArr::new_empty_with_type(schema.fields[idx].data_type().clone());
             idx += 1;
             deque_arr
         });
@@ -174,7 +175,7 @@ impl<const W: usize> FxTable<W> {
     }
 
     /// Returns a reference to the data of this [`FxTable<W>`].
-    pub fn data(&self) -> &[DequeArr; W] {
+    pub fn data(&self) -> &[DequeArcArr; W] {
         &self.data
     }
 

@@ -8,7 +8,7 @@ use std::ops::RangeBounds;
 use arrow2::datatypes::{DataType, Field, Schema};
 use inherent::inherent;
 
-use super::{ArcArr, DequeArr, DequeIter, DequeIterMut};
+use super::{ArcArr, DequeArcArr, DequeIter, DequeIterMut};
 use crate::ab::{private, Confined, Eclectic, FxSeq, Purport, StaticPurport};
 use crate::error::{FxError, FxResult};
 
@@ -19,7 +19,7 @@ use crate::error::{FxError, FxResult};
 #[derive(Debug, Clone)]
 pub struct FxTabular {
     schema: Schema,
-    data: Vec<DequeArr>,
+    data: Vec<DequeArcArr>,
 }
 
 // ================================================================================================
@@ -28,7 +28,7 @@ pub struct FxTabular {
 // used for Receptacle
 // ================================================================================================
 
-impl Confined for Vec<DequeArr> {
+impl Confined for Vec<DequeArcArr> {
     fn width(&self) -> usize {
         self.len()
     }
@@ -57,8 +57,8 @@ impl Purport for FxTabular {
 // Table methods
 // ================================================================================================
 
-fn from_vecaa(vecaa: Vec<ArcArr>) -> Vec<DequeArr> {
-    vecaa.into_iter().map(DequeArr::from).collect()
+fn from_vecaa(vecaa: Vec<ArcArr>) -> Vec<DequeArcArr> {
+    vecaa.into_iter().map(DequeArcArr::from).collect()
 }
 
 impl FxTabular {
@@ -156,14 +156,14 @@ impl FxTabular {
         let data = schema
             .fields
             .into_iter()
-            .map(|f| DequeArr::new_empty_with_type(f.data_type))
+            .map(|f| DequeArcArr::new_empty_with_type(f.data_type))
             .collect();
 
         Ok(Self { schema: sch, data })
     }
 
     /// Returns a reference to the data of this [`FxTabular`].
-    pub fn data(&self) -> &[DequeArr] {
+    pub fn data(&self) -> &[DequeArcArr] {
         &self.data
     }
 
