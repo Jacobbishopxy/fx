@@ -75,12 +75,17 @@ pub(crate) mod macros {
 // Utils
 // ================================================================================================
 
+use arrow2::array::Array;
 use arrow2::compute::concatenate::concatenate;
 
-use crate::cont::{ArcArr, BoxArr};
+use crate::cont::BoxArr;
 use crate::error::{FxError, FxResult};
 
-pub(crate) fn chop_arc_arr(arr: &ArcArr, len: usize) -> FxResult<(ArcArr, ArcArr)> {
+pub(crate) fn chop_arr<A>(arr: A, len: usize) -> FxResult<(A, A)>
+where
+    A: AsRef<dyn Array> + From<BoxArr>,
+{
+    let arr = arr.as_ref();
     if len > arr.len() {
         return Err(FxError::OutBounds);
     }
@@ -91,25 +96,12 @@ pub(crate) fn chop_arc_arr(arr: &ArcArr, len: usize) -> FxResult<(ArcArr, ArcArr
     Ok((l.into(), r.into()))
 }
 
-pub(crate) fn chop_box_arr(arr: &BoxArr, len: usize) -> FxResult<(BoxArr, BoxArr)> {
-    if len > arr.len() {
-        return Err(FxError::OutBounds);
-    }
-
-    let l = arr.sliced(0, len);
-    let r = arr.sliced(len, arr.len() - len);
-
-    Ok((l, r))
-}
-
-pub(crate) fn concat_arc_arr(arrs: &[ArcArr]) -> FxResult<ArcArr> {
+pub(crate) fn concat_arr<A>(arrs: &[A]) -> FxResult<A>
+where
+    A: AsRef<dyn Array> + From<BoxArr>,
+{
     let arrs = arrs.iter().map(AsRef::as_ref).collect::<Vec<_>>();
     Ok(concatenate(&arrs)?.into())
-}
-
-pub(crate) fn concat_box_arr(arrs: &[BoxArr]) -> FxResult<BoxArr> {
-    let arrs = arrs.iter().map(AsRef::as_ref).collect::<Vec<_>>();
-    Ok(concatenate(&arrs)?)
 }
 
 #[cfg(test)]
@@ -121,16 +113,16 @@ mod test_private {
     #[test]
     fn chop_array_success() {
         let a = arc_arr!([1, 2, 3, 4, 5, 6]);
-        let (l, r) = chop_arc_arr(&a, 4).unwrap();
+        println!("{:?}", &a);
 
-        println!("{:?}", a);
+        let (l, r) = chop_arr(a, 4).unwrap();
         println!("{:?}", l);
         println!("{:?}", r);
 
         let b = box_arr!([1, 2, 3, 4, 5, 6]);
-        let (l, r) = chop_box_arr(&b, 4).unwrap();
+        println!("{:?}", &b);
 
-        println!("{:?}", b);
+        let (l, r) = chop_arr(b, 4).unwrap();
         println!("{:?}", l);
         println!("{:?}", r);
     }
@@ -138,11 +130,11 @@ mod test_private {
     #[test]
     fn concat_array_success() {
         let arrs = vec![arc_arr!([1, 2, 3]), arc_arr!([3, 2, 1]), arc_arr!([5, 6])];
-        let res = concat_arc_arr(&arrs).unwrap();
+        let res = concat_arr(&arrs).unwrap();
         println!("{:?}", res);
 
         let arrs = vec![box_arr!([1, 2, 3]), box_arr!([3, 2, 1]), box_arr!([5, 6])];
-        let res = concat_box_arr(&arrs).unwrap();
+        let res = concat_arr(&arrs).unwrap();
         println!("{:?}", res);
     }
 }

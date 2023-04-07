@@ -8,7 +8,7 @@ use std::{collections::VecDeque, ops::RangeBounds};
 
 use arrow2::{array::Array, datatypes::DataType};
 
-use super::private::{chop_arc_arr, chop_box_arr, concat_arc_arr, concat_box_arr};
+use super::private::{chop_arr, concat_arr};
 use super::{ArcArr, BoxArr};
 use crate::error::{FxError, FxResult};
 
@@ -430,7 +430,10 @@ impl<'a, A: AsRef<dyn Array>> Iterator for DequeMutIterator<'a, A> {
 // Make same size
 // ================================================================================================
 
-impl DequeArcArr {
+impl<A> Deque<A>
+where
+    A: AsRef<dyn Array> + From<BoxArr>,
+{
     /// Make every Array into the same size, and
     pub fn make_same_size(&mut self, len: usize) -> FxResult<SameSizedResult> {
         let total_length = self.array_len();
@@ -438,13 +441,13 @@ impl DequeArcArr {
             return Err(FxError::OutBounds);
         }
 
-        let mut buffer = Vec::<ArcArr>::new();
+        let mut buffer = Vec::<A>::new();
         let mut cur_buffer_total_len = 0;
-        let mut res = Vec::<ArcArr>::new();
+        let mut res = Vec::<A>::new();
 
         while !self.is_empty() {
             let arr = self.pop_front().unwrap();
-            let arr_len = arr.len();
+            let arr_len = arr.as_ref().len();
             cur_buffer_total_len += arr_len;
 
             if cur_buffer_total_len < len {
@@ -454,9 +457,9 @@ impl DequeArcArr {
 
             if cur_buffer_total_len >= len {
                 let r_len = cur_buffer_total_len - len;
-                let (l, r) = chop_arc_arr(&arr, arr_len - r_len)?;
+                let (l, r) = chop_arr(arr, arr_len - r_len)?;
                 buffer.push(l);
-                let concat = concat_arc_arr(&buffer)?;
+                let concat = concat_arr(&buffer)?;
                 res.push(concat);
                 buffer.clear();
                 cur_buffer_total_len = 0;
@@ -464,53 +467,7 @@ impl DequeArcArr {
             }
         }
 
-        res.push(concat_arc_arr(&buffer)?);
-
-        self.deque = VecDeque::from(res);
-
-        Ok(SameSizedResult {
-            each_array_size: len,
-            residual_array_size: total_length % len,
-            total_array_num: self.len(),
-        })
-    }
-}
-
-impl DequeBoxArr {
-    /// Make every Array into the same size, and
-    pub fn make_same_size(&mut self, len: usize) -> FxResult<SameSizedResult> {
-        let total_length = self.array_len();
-        if len > total_length {
-            return Err(FxError::OutBounds);
-        }
-
-        let mut buffer = Vec::<BoxArr>::new();
-        let mut cur_buffer_total_len = 0;
-        let mut res = Vec::<BoxArr>::new();
-
-        while !self.is_empty() {
-            let arr = self.pop_front().unwrap();
-            let arr_len = arr.len();
-            cur_buffer_total_len += arr_len;
-
-            if cur_buffer_total_len < len {
-                buffer.push(arr);
-                continue;
-            }
-
-            if cur_buffer_total_len >= len {
-                let r_len = cur_buffer_total_len - len;
-                let (l, r) = chop_box_arr(&arr, arr_len - r_len)?;
-                buffer.push(l);
-                let concat = concat_box_arr(&buffer)?;
-                res.push(concat);
-                buffer.clear();
-                cur_buffer_total_len = 0;
-                self.push_front(r)?;
-            }
-        }
-
-        res.push(concat_box_arr(&buffer)?);
+        res.push(concat_arr(&buffer)?);
 
         self.deque = VecDeque::from(res);
 
