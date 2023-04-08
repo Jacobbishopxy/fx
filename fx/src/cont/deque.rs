@@ -114,6 +114,11 @@ impl<A: AsRef<dyn Array>> Deque<A> {
         })
     }
 
+    /// Returns the len of arrays of this [`Deque<A>`].
+    pub fn len_of_arrays(&self) -> Vec<usize> {
+        self.deque.iter().map(|a| a.as_ref().len()).collect()
+    }
+
     /// Checks if this [`Deque<A>`] is empty
     pub fn is_empty(&self) -> bool {
         self.deque.is_empty()
@@ -472,7 +477,7 @@ where
     A: AsRef<dyn Array> + From<BoxArr>,
 {
     /// Make every Array into the same size, and the residual at the end
-    pub fn make_same_size(&mut self, len: usize) -> SameSizedResult {
+    pub fn size_arrays_equally(&mut self, len: usize) -> SameSizedResult {
         let total_length = self.array_len();
         // take deque and convert it into `Vec` type
         let d = Vec::from(std::mem::take(&mut self.deque));
@@ -501,7 +506,7 @@ where
             let arr_len = arr.as_ref().len();
             cur_buffer_total_len += arr_len;
 
-            // collecting `A`s until the `buffer`'s total len turns into greater than `len`
+            // collecting `A`s until the `buffer`'s total len is greater than `len`
             if cur_buffer_total_len < len {
                 buffer.push(arr);
                 continue;
@@ -550,6 +555,77 @@ where
             total_array_num: self.len(),
         }
     }
+
+    /// Make Array follows the sizes of the input `sequence`,
+    pub fn size_arrays_by_sequence<I>(&mut self, sequence: I) -> SequenceSizedResult
+    where
+        I: IntoIterator<Item = usize>,
+    {
+        let mut sequence = sequence.into_iter();
+        // if the `sequence` is empty, then early return
+        let mut cur_sequence_num = if let Some(csn) = sequence.next() {
+            csn
+        } else {
+            return SequenceSizedResult {
+                array_sizes: self.len_of_arrays(),
+                total_array_num: self.len(),
+            };
+        };
+
+        // same definition as the `size_arrays_equally` method
+        let mut buffer = Vec::<A>::new();
+        let mut cur_buffer_total_len = 0;
+        let mut res = Vec::<A>::new();
+
+        // `pop_front` the `deque` until it is empty or early exits if the `sequence` is empty
+        while !self.deque.is_empty() {
+            // handle with the first `A`
+            let arr = self.pop_front().unwrap();
+            let arr_len = arr.as_ref().len();
+            cur_buffer_total_len += arr_len;
+
+            // collecting `A`s until the `buffer`'s total len is greater than `cur_sequence_num`
+            if cur_buffer_total_len < cur_sequence_num {
+                buffer.push(arr);
+                continue;
+            } else {
+                // same operation as the `size_arrays_equally` method
+                let r_len = cur_buffer_total_len - cur_sequence_num;
+                let (l, r) = chop_arr(arr, arr_len - r_len).unwrap();
+                buffer.push(l);
+                let concat = concat_arr(&buffer).unwrap();
+                res.push(concat);
+                buffer.clear();
+                cur_buffer_total_len = 0;
+
+                // handle the rest part of the chopped arr in the next loop
+                self.deque.push_front(r);
+                // if sequence ends up earlier than `deque`'s operation, break the loop
+                match sequence.next() {
+                    Some(l) => cur_sequence_num = l,
+                    None => break,
+                }
+            }
+        }
+
+        // if sequence ends up earlier, take the rest of the `deque` and concat them with the `buffer`
+        if !self.deque.is_empty() {
+            let rest = Vec::from(std::mem::take(&mut self.deque));
+            buffer.extend(rest);
+        }
+
+        if !buffer.is_empty() {
+            let concat = concat_arr(&buffer).unwrap();
+            res.push(concat);
+        }
+
+        self.deque = VecDeque::from(res);
+
+        SequenceSizedResult {
+            array_sizes: self.len_of_arrays(),
+            total_array_num: self.len(),
+        }
+    }
 }
 
 // ================================================================================================
@@ -560,6 +636,12 @@ where
 pub struct SameSizedResult {
     pub each_array_size: usize,
     pub residual_array_size: usize,
+    pub total_array_num: usize,
+}
+
+#[derive(Debug)]
+pub struct SequenceSizedResult {
+    pub array_sizes: Vec<usize>,
     pub total_array_num: usize,
 }
 
@@ -596,7 +678,7 @@ mod deque_test {
     }
 
     #[test]
-    fn make_arc_arr_same_size_success() {
+    fn size_arrays_equally_success1() {
         let mut dq = DequeArcArr::new(vec![
             arc_arr!([1, 2, 3]),
             arc_arr!([1, 2, 3, 4, 5, 6]),
@@ -604,17 +686,17 @@ mod deque_test {
             arc_arr!([1, 2]),
         ]);
 
-        let res = dq.make_same_size(4);
+        let res = dq.size_arrays_equally(4);
         println!("{:?}", res);
         println!("{:?}", dq);
 
-        let res = dq.make_same_size(100);
+        let res = dq.size_arrays_equally(100);
         println!("{:?}", res);
         println!("{:?}", dq);
     }
 
     #[test]
-    fn make_box_arr_same_size_success() {
+    fn size_arrays_equally_success2() {
         let mut dq = DequeBoxArr::new(vec![
             box_arr!([1, 2, 3]),
             box_arr!([1, 2, 3, 4, 5, 6]),
@@ -622,11 +704,49 @@ mod deque_test {
             box_arr!([1, 2]),
         ]);
 
-        let res = dq.make_same_size(4);
+        let res = dq.size_arrays_equally(4);
         println!("{:?}", res);
         println!("{:?}", dq);
 
-        let res = dq.make_same_size(100);
+        let res = dq.size_arrays_equally(100);
+        println!("{:?}", res);
+        println!("{:?}", dq);
+    }
+
+    #[test]
+    fn size_arrays_by_sequence_success1() {
+        let mut dq = DequeArcArr::new(vec![
+            arc_arr!([1, 2, 3]),
+            arc_arr!([1, 2, 3, 4, 5, 6]),
+            arc_arr!([1, 2, 3, 4]),
+            arc_arr!([1, 2]),
+            arc_arr!([1, 2, 3]),
+            arc_arr!([1]),
+            arc_arr!([1, 2, 3, 4, 5, 6, 7]),
+            arc_arr!([1, 2]),
+        ]);
+
+        let seq = vec![2, 3, 4, 5];
+        let res = dq.size_arrays_by_sequence(seq);
+        println!("{:?}", res);
+        println!("{:?}", dq);
+    }
+
+    #[test]
+    fn size_arrays_by_sequence_success2() {
+        let mut dq = DequeBoxArr::new(vec![
+            box_arr!([1, 2, 3]),
+            box_arr!([1, 2, 3, 4, 5, 6]),
+            box_arr!([1, 2, 3, 4]),
+            box_arr!([1, 2]),
+            box_arr!([1, 2, 3]),
+            box_arr!([1]),
+            box_arr!([1, 2, 3, 4, 5, 6, 7]),
+            box_arr!([1, 2]),
+        ]);
+
+        let seq = vec![2, 3, 4, 5];
+        let res = dq.size_arrays_by_sequence(seq);
         println!("{:?}", res);
         println!("{:?}", dq);
     }
