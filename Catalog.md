@@ -18,9 +18,9 @@
     │   │   │   ├── bundles.rs
     │   │   │   ├── deque.rs
     │   │   │   ├── ext.rs
-    │   │   │   ├── macros.rs
     │   │   │   ├── mod.rs
     │   │   │   ├── nullopt.rs
+    │   │   │   ├── private.rs
     │   │   │   ├── table.rs
     │   │   │   └── tabular.rs
     │   │   ├── io
@@ -45,8 +45,8 @@
     │   └── tests
     │       ├── arrow_compute_test.rs
     │       ├── fx_builder_test.rs
+    │       ├── fx_derive_test.rs
     │       ├── fx_iter_test.rs
-    │       ├── fx_macros_test.rs
     │       └── fx_seq_test.rs
     ├── fx-derive
     │   └── src

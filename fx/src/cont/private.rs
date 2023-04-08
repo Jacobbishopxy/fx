@@ -81,19 +81,43 @@ use arrow2::compute::concatenate::concatenate;
 use crate::cont::BoxArr;
 use crate::error::{FxError, FxResult};
 
-pub(crate) fn chop_arr<A>(arr: A, len: usize) -> FxResult<(A, A)>
+pub(crate) fn chop_arr<A>(arr: A, at: usize) -> FxResult<(A, A)>
 where
     A: AsRef<dyn Array> + From<BoxArr>,
 {
     let arr = arr.as_ref();
-    if len > arr.len() {
+    if at > arr.len() {
         return Err(FxError::OutBounds);
     }
 
-    let l = arr.sliced(0, len);
-    let r = arr.sliced(len, arr.len() - len);
+    let l = arr.sliced(0, at);
+    let r = arr.sliced(at, arr.len() - at);
 
     Ok((l.into(), r.into()))
+}
+
+pub(crate) fn chop_arr_pieces<A>(arr: A, len: usize) -> Vec<A>
+where
+    A: AsRef<dyn Array> + From<BoxArr>,
+{
+    if len > arr.as_ref().len() {
+        vec![arr]
+    } else {
+        let arr = arr.as_ref();
+        let mut res = Vec::new();
+        let mut idx = 0;
+        while idx < arr.len() {
+            let end_idx = idx + len;
+            let end = if end_idx > arr.len() {
+                arr.len() - idx
+            } else {
+                end_idx
+            };
+            res.push(arr.sliced(idx, end).into());
+            idx += len;
+        }
+        res
+    }
 }
 
 pub(crate) fn concat_arr<A>(arrs: &[A]) -> FxResult<A>
@@ -125,6 +149,21 @@ mod test_private {
         let (l, r) = chop_arr(b, 4).unwrap();
         println!("{:?}", l);
         println!("{:?}", r);
+    }
+
+    #[test]
+    fn chop_array_pieces_success() {
+        let a = arc_arr!([1, 2, 3, 4, 5, 6]);
+        println!("{:?}", &a);
+
+        let l = chop_arr_pieces(a, 4);
+        println!("{:?}", l);
+
+        let b = box_arr!([1, 2, 3, 4, 5, 6]);
+        println!("{:?}", &b);
+
+        let l = chop_arr_pieces(b, 4);
+        println!("{:?}", l);
     }
 
     #[test]

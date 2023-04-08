@@ -8,7 +8,7 @@ use std::{collections::VecDeque, ops::RangeBounds};
 
 use arrow2::{array::Array, datatypes::DataType};
 
-use super::private::{chop_arr, concat_arr};
+use super::private::{chop_arr, chop_arr_pieces, concat_arr};
 use super::{ArcArr, BoxArr};
 use crate::error::{FxError, FxResult};
 
@@ -23,6 +23,7 @@ pub type DequeBoxArr = Deque<BoxArr>;
 // Type alias for iter & iter_mut
 pub type DequeIter<'a, A> = std::collections::vec_deque::Iter<'a, A>;
 pub type DequeIterMut<'a, A> = std::collections::vec_deque::IterMut<'a, A>;
+pub type DequeIterOwned<A> = std::collections::vec_deque::IntoIter<A>;
 
 // ================================================================================================
 // Deque
@@ -330,14 +331,19 @@ impl<A: AsRef<dyn Array>> Deque<A> {
         Ok(iter.collect())
     }
 
-    /// Returns the iter of this [`Deque<A>`].
+    /// Returns the reference iter of this [`Deque<A>`].
     pub fn iter(&self) -> DequeIter<A> {
         self.deque.iter()
     }
 
-    /// Returns the iter of this [`Deque<A>`].
+    /// Returns the mutable reference iter of this [`Deque<A>`].
     pub fn iter_mut(&mut self) -> DequeIterMut<A> {
         self.deque.iter_mut()
+    }
+
+    /// Returns the ownership iter of this [`Deque<A>`].
+    pub fn iter_owned(self) -> DequeIterOwned<A> {
+        self.deque.into_iter()
     }
 }
 
@@ -427,6 +433,37 @@ impl<'a, A: AsRef<dyn Array>> Iterator for DequeMutIterator<'a, A> {
 }
 
 // ================================================================================================
+// Iterator: Owned
+// ================================================================================================
+
+/// impl IntoIterator for mut ref [`Deque<A>`]
+impl<A: AsRef<dyn Array>> IntoIterator for Deque<A> {
+    type Item = A;
+
+    type IntoIter = DequeOwnedIterator<A>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        DequeOwnedIterator {
+            iter: self.iter_owned(),
+        }
+    }
+}
+
+/// Mut iterator
+pub struct DequeOwnedIterator<A: AsRef<dyn Array>> {
+    iter: DequeIterOwned<A>,
+}
+
+/// impl Iterator for [`DequeOwnedIterator`]
+impl<A: AsRef<dyn Array>> Iterator for DequeOwnedIterator<A> {
+    type Item = A;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+// ================================================================================================
 // Make same size
 // ================================================================================================
 
@@ -434,48 +471,84 @@ impl<A> Deque<A>
 where
     A: AsRef<dyn Array> + From<BoxArr>,
 {
-    /// Make every Array into the same size, and
-    pub fn make_same_size(&mut self, len: usize) -> FxResult<SameSizedResult> {
+    /// Make every Array into the same size, and the residual at the end
+    pub fn make_same_size(&mut self, len: usize) -> SameSizedResult {
         let total_length = self.array_len();
-        if len > total_length {
-            return Err(FxError::OutBounds);
+        // take deque and convert it into `Vec` type
+        let d = Vec::from(std::mem::take(&mut self.deque));
+
+        // concat all
+        if len >= total_length {
+            let d = concat_arr(&d).unwrap();
+            self.deque.push_back(d);
+
+            return SameSizedResult {
+                each_array_size: total_length,
+                residual_array_size: 0,
+                total_array_num: 1,
+            };
         }
 
+        // collect `A` whose size is less then `len`
         let mut buffer = Vec::<A>::new();
+        // the total length of `A`s in the buffer
         let mut cur_buffer_total_len = 0;
+        // result
         let mut res = Vec::<A>::new();
 
-        while !self.is_empty() {
-            let arr = self.pop_front().unwrap();
+        // iterate through `d`
+        for arr in d.into_iter() {
             let arr_len = arr.as_ref().len();
             cur_buffer_total_len += arr_len;
 
+            // collecting `A`s until the `buffer`'s total len turns into greater than `len`
             if cur_buffer_total_len < len {
                 buffer.push(arr);
                 continue;
-            }
-
-            if cur_buffer_total_len >= len {
+            } else {
+                // the chopped length of the right `A`
                 let r_len = cur_buffer_total_len - len;
-                let (l, r) = chop_arr(arr, arr_len - r_len)?;
+                let (l, r) = chop_arr(arr, arr_len - r_len).unwrap();
+                // till now the `buffer` meets the required length, and concatenate them into one `A`
                 buffer.push(l);
-                let concat = concat_arr(&buffer)?;
+                let concat = concat_arr(&buffer).unwrap();
                 res.push(concat);
+                // clear buffer and reset buffer_total_len's count
                 buffer.clear();
                 cur_buffer_total_len = 0;
-                self.push_front(r)?;
+
+                // chop the right `A` into pieces
+                let mut slices = chop_arr_pieces(r, len);
+
+                // the last part of slices is the residual
+                if let Some(a) = slices.pop() {
+                    // handle the well sliced part first
+                    res.extend(slices);
+                    // if the residual is less then `len`, then cache it into the `buffer`;
+                    // otherwise, push it into the `res`
+                    let a_len = a.as_ref().len();
+                    if a_len < len {
+                        buffer.push(a);
+                        cur_buffer_total_len += a_len;
+                    } else {
+                        res.push(a);
+                    }
+                }
             }
         }
 
-        res.push(concat_arr(&buffer)?);
+        // handle the residual in the `buffer`
+        if !buffer.is_empty() {
+            res.push(concat_arr(&buffer).unwrap());
+        }
 
         self.deque = VecDeque::from(res);
 
-        Ok(SameSizedResult {
+        SameSizedResult {
             each_array_size: len,
             residual_array_size: total_length % len,
             total_array_num: self.len(),
-        })
+        }
     }
 }
 
@@ -532,7 +605,10 @@ mod deque_test {
         ]);
 
         let res = dq.make_same_size(4);
+        println!("{:?}", res);
+        println!("{:?}", dq);
 
+        let res = dq.make_same_size(100);
         println!("{:?}", res);
         println!("{:?}", dq);
     }
@@ -547,7 +623,10 @@ mod deque_test {
         ]);
 
         let res = dq.make_same_size(4);
+        println!("{:?}", res);
+        println!("{:?}", dq);
 
+        let res = dq.make_same_size(100);
         println!("{:?}", res);
         println!("{:?}", dq);
     }
