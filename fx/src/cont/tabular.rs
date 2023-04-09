@@ -8,8 +8,8 @@ use std::ops::RangeBounds;
 use arrow2::datatypes::{DataType, Field, Schema};
 use inherent::inherent;
 
-use super::dqs::{Dqs, EclecticGetMut};
 use super::{ArcArr, DequeArcArr, DequeIterMut, DequeIterOwned, DequeIterRef};
+use crate::ab::dqs::{Dqs, EclecticGetMut};
 use crate::ab::{private, Confined, Eclectic, FxSeq, Purport, StaticPurport};
 use crate::error::{FxError, FxResult};
 
@@ -87,14 +87,18 @@ impl Dqs for FxTabular {
     type MutDeques<'a> = Vec<&'a mut ArcArr>;
 
     type OptDeques = Vec<Option<ArcArr>>;
-    type RefOptDeques<'a> = Vec<Option<&'a ArcArr>>;
-    type MutOptDeques<'a> = Vec<Option<&'a mut ArcArr>>;
+    type OptRefDeques<'a> = Vec<Option<&'a ArcArr>>;
+    type OptMutDeques<'a> = Vec<Option<&'a mut ArcArr>>;
 
     type DequesIter = Vec<DequeIterOwned<ArcArr>>;
     type DequesIterRef<'a> = Vec<DequeIterRef<'a, ArcArr>>;
     type DequesIterMut<'a> = Vec<DequeIterMut<'a, ArcArr>>;
 
-    fn _eclectic_into<E: Eclectic>(data: E) -> FxResult<<FxTabular as Dqs>::EclecticInto> {
+    // ================================================================================================
+    // private impl
+    // ================================================================================================
+
+    fn _eclectic_into<E: Eclectic>(data: E) -> FxResult<Vec<ArcArr>> {
         let res = data
             .into_sequences()
             .into_iter()
@@ -119,6 +123,10 @@ impl Dqs for FxTabular {
 
         Ok(Self { schema, data })
     }
+
+    // ================================================================================================
+    // public impl
+    // ================================================================================================
 
     pub fn new_empty() -> Self {
         Self {

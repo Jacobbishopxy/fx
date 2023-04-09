@@ -8,8 +8,8 @@ use std::ops::RangeBounds;
 use arrow2::datatypes::{DataType, Field, Schema};
 use inherent::inherent;
 
-use super::dqs::{Dqs, EclecticGetMut};
 use super::{ArcArr, DequeArcArr, DequeIterMut, DequeIterOwned, DequeIterRef};
+use crate::ab::dqs::{Dqs, EclecticGetMut};
 use crate::ab::{private, Confined, Eclectic, FxSeq, Purport, StaticPurport};
 use crate::error::{FxError, FxResult};
 
@@ -87,14 +87,18 @@ impl<const W: usize> Dqs for FxTable<W> {
     type MutDeques<'a> = [&'a mut ArcArr; W];
 
     type OptDeques = [Option<ArcArr>; W];
-    type RefOptDeques<'a> = [Option<&'a ArcArr>; W];
-    type MutOptDeques<'a> = [Option<&'a mut ArcArr>; W];
+    type OptRefDeques<'a> = [Option<&'a ArcArr>; W];
+    type OptMutDeques<'a> = [Option<&'a mut ArcArr>; W];
 
     type DequesIter = [DequeIterOwned<ArcArr>; W];
     type DequesIterRef<'a> = [DequeIterRef<'a, ArcArr>; W];
     type DequesIterMut<'a> = [DequeIterMut<'a, ArcArr>; W];
 
-    fn _eclectic_into<E: Eclectic>(data: E) -> FxResult<<FxTable<W> as Dqs>::EclecticInto> {
+    // ================================================================================================
+    // private impl
+    // ================================================================================================
+
+    fn _eclectic_into<E: Eclectic>(data: E) -> FxResult<[ArcArr; W]> {
         if data.width() != W {
             return Err(FxError::LengthMismatch(data.width(), W));
         }
@@ -125,6 +129,10 @@ impl<const W: usize> Dqs for FxTable<W> {
 
         Ok(Self { schema, data })
     }
+
+    // ================================================================================================
+    // public impl
+    // ================================================================================================
 
     pub fn new_empty() -> Self {
         Self {

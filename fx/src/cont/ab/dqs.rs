@@ -7,9 +7,8 @@ use std::ops::RangeBounds;
 
 use arrow2::datatypes::{DataType, Schema};
 
-use super::{DequeIterMut, DequeIterOwned, DequeIterRef};
 use crate::ab::{Confined, Eclectic, Purport};
-use crate::cont::{ArcArr, DequeArcArr};
+use crate::cont::{ArcArr, DequeArcArr, DequeIterMut, DequeIterOwned, DequeIterRef};
 use crate::error::FxResult;
 
 // ================================================================================================
@@ -46,10 +45,10 @@ pub trait Dqs: Sized + Confined + Purport {
         Self: 'a;
 
     type OptDeques: IntoIterator<Item = Option<ArcArr>>;
-    type RefOptDeques<'a>: IntoIterator<Item = Option<&'a ArcArr>>
+    type OptRefDeques<'a>: IntoIterator<Item = Option<&'a ArcArr>>
     where
         Self: 'a;
-    type MutOptDeques<'a>: IntoIterator<Item = Option<&'a mut ArcArr>>
+    type OptMutDeques<'a>: IntoIterator<Item = Option<&'a mut ArcArr>>
     where
         Self: 'a;
 
@@ -97,28 +96,29 @@ pub trait Dqs: Sized + Confined + Purport {
     /// Returns a mutable reference to the data of this [`impl Dqs`] .
     fn mut_data(&mut self) -> Self::MutData<'_>;
 
+    /// Makes all deque contiguous
     fn make_contiguous(&mut self) -> Self::MakeContiguous<'_>;
 
     /// Makes all deque contiguous and returns their references.
     fn make_as_slice(&mut self) -> Self::MakeAsSlice<'_>;
 
-    fn deque_get(&self, index: usize) -> Self::RefOptDeques<'_>;
+    fn deque_get(&self, index: usize) -> Self::OptRefDeques<'_>;
 
     fn deque_get_ok(&self, index: usize) -> FxResult<Self::RefDeques<'_>>;
 
-    fn deque_get_mut(&mut self, index: usize) -> Self::MutOptDeques<'_>;
+    fn deque_get_mut(&mut self, index: usize) -> Self::OptMutDeques<'_>;
 
     fn deque_get_mut_ok(&mut self, index: usize) -> FxResult<Self::MutDeques<'_>>;
 
     fn deque_insert<E: Eclectic>(&mut self, index: usize, value: E) -> FxResult<()>;
 
-    fn deque_back(&self) -> Self::RefOptDeques<'_>;
+    fn deque_back(&self) -> Self::OptRefDeques<'_>;
 
-    fn deque_back_mut(&mut self) -> Self::MutOptDeques<'_>;
+    fn deque_back_mut(&mut self) -> Self::OptMutDeques<'_>;
 
-    fn deque_front(&self) -> Self::RefOptDeques<'_>;
+    fn deque_front(&self) -> Self::OptRefDeques<'_>;
 
-    fn deque_front_mut(&mut self) -> Self::MutOptDeques<'_>;
+    fn deque_front_mut(&mut self) -> Self::OptMutDeques<'_>;
 
     fn deque_pop_back(&mut self) -> Self::OptDeques;
 
@@ -281,6 +281,17 @@ pub trait Dqs: Sized + Confined + Purport {
             .all(|(dq, d)| dq.data_type_match(d))
     }
 
+    fn size_equally(&mut self, _len: usize) {
+        unimplemented!()
+    }
+
+    fn size_by_sequence<I>(&mut self, _sequence: I)
+    where
+        I: IntoIterator<Item = usize>,
+    {
+        unimplemented!()
+    }
+
     // ================================================================================================
     // Functions with different name
     // ================================================================================================
@@ -301,3 +312,5 @@ pub trait Dqs: Sized + Confined + Purport {
         self.deque_push_front(value)
     }
 }
+
+// TODO: impl deque's `size_arrays_equally` & `size_arrays_by_sequence`

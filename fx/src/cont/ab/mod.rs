@@ -6,6 +6,7 @@
 pub mod builder;
 pub mod confined;
 pub mod congruent;
+pub mod dqs;
 pub mod eclectic;
 pub(crate) mod private;
 pub mod purport;
@@ -15,6 +16,7 @@ pub mod seq;
 pub use builder::*;
 pub use confined::*;
 pub use congruent::*;
+pub use dqs::*;
 pub use eclectic::*;
 pub use purport::*;
 pub use receptacle::*;

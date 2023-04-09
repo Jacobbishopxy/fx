@@ -13,6 +13,7 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   │   │   ├── builder.rs
     │   │   │   │   ├── confined.rs
     │   │   │   │   ├── congruent.rs
+    │   │   │   │   ├── dqs.rs
     │   │   │   │   ├── eclectic.rs
     │   │   │   │   ├── mod.rs
     │   │   │   │   ├── private.rs
@@ -24,7 +25,6 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   │   ├── bundle.rs
     │   │   │   ├── bundles.rs
     │   │   │   ├── deque.rs
-    │   │   │   ├── dqs.rs
     │   │   │   ├── ext.rs
     │   │   │   ├── mod.rs
     │   │   │   ├── nullopt.rs
@@ -55,7 +55,8 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │       ├── fx_builder_test.rs
     │       ├── fx_derive_test.rs
     │       ├── fx_iter_test.rs
-    │       └── fx_seq_test.rs
+    │       ├── fx_seq_test.rs
+    │       └── fx_table_tabular_test.rs
     ├── fx-derive
     │   └── src
     │       ├── constant.rs
@@ -82,6 +83,8 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
 - `Receptacle`: common behavior of the `Confined` types
 
 - `Congruent`: `Chunk` related
+
+- `Dqs`: an `inherent` trait for `FxTable` and `FxTabular`
 
 ### Types
 

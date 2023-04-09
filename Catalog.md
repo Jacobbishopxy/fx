@@ -6,6 +6,7 @@
     │   │   │   │   ├── builder.rs
     │   │   │   │   ├── confined.rs
     │   │   │   │   ├── congruent.rs
+    │   │   │   │   ├── dqs.rs
     │   │   │   │   ├── eclectic.rs
     │   │   │   │   ├── mod.rs
     │   │   │   │   ├── private.rs
@@ -17,7 +18,6 @@
     │   │   │   ├── bundle.rs
     │   │   │   ├── bundles.rs
     │   │   │   ├── deque.rs
-    │   │   │   ├── dqs.rs
     │   │   │   ├── ext.rs
     │   │   │   ├── mod.rs
     │   │   │   ├── nullopt.rs
@@ -48,7 +48,8 @@
     │       ├── fx_builder_test.rs
     │       ├── fx_derive_test.rs
     │       ├── fx_iter_test.rs
-    │       └── fx_seq_test.rs
+    │       ├── fx_seq_test.rs
+    │       └── fx_table_tabular_test.rs
     ├── fx-derive
     │   └── src
     │       ├── constant.rs
