@@ -24,6 +24,7 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │   │   │   ├── bundle.rs
     │   │   │   ├── bundles.rs
     │   │   │   ├── deque.rs
+    │   │   │   ├── dqs.rs
     │   │   │   ├── ext.rs
     │   │   │   ├── mod.rs
     │   │   │   ├── nullopt.rs
@@ -174,8 +175,6 @@ Structs and enums provided by Fx crate:
 
 - Streaming I/O
 
-- `fx-macro` supports more builder options for `FxBundle`
-
 - `io::parquet` needs parallel read/write and flexible data param, i.e. `impl FxBatchBuilderGenerator`
 
 - Better conversion among ArcArr/BoxArr/ArcVec/BoxVec
@@ -187,5 +186,3 @@ Structs and enums provided by Fx crate:
 - Type support: `StructArray`/`MutableStructArray`
 
 - Type support: `BinaryArray`/`MutableBinaryArray`
-
-- Let I/O satisfies all containers

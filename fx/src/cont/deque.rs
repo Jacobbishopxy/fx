@@ -21,7 +21,7 @@ pub type DequeArcArr = Deque<ArcArr>;
 pub type DequeBoxArr = Deque<BoxArr>;
 
 // Type alias for iter & iter_mut
-pub type DequeIter<'a, A> = std::collections::vec_deque::Iter<'a, A>;
+pub type DequeIterRef<'a, A> = std::collections::vec_deque::Iter<'a, A>;
 pub type DequeIterMut<'a, A> = std::collections::vec_deque::IterMut<'a, A>;
 pub type DequeIterOwned<A> = std::collections::vec_deque::IntoIter<A>;
 
@@ -289,7 +289,7 @@ impl<A: AsRef<dyn Array>> Deque<A> {
     }
 
     /// Creates an iterator that covers the specified range in the deque
-    pub fn range<R>(&self, range: R) -> DequeIter<A>
+    pub fn range<R>(&self, range: R) -> DequeIterRef<A>
     where
         R: RangeBounds<usize>,
     {
@@ -337,7 +337,7 @@ impl<A: AsRef<dyn Array>> Deque<A> {
     }
 
     /// Returns the reference iter of this [`Deque<A>`].
-    pub fn iter(&self) -> DequeIter<A> {
+    pub fn iter(&self) -> DequeIterRef<A> {
         self.deque.iter()
     }
 
@@ -394,7 +394,7 @@ impl<'a, A: AsRef<dyn Array>> IntoIterator for &'a Deque<A> {
 
 /// Ref iterator
 pub struct DequeRefIterator<'a, A: AsRef<dyn Array>> {
-    iter: DequeIter<'a, A>,
+    iter: DequeIterRef<'a, A>,
 }
 
 /// impl Iterator for [`DequeRefIterator`]
