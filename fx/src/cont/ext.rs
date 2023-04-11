@@ -57,6 +57,7 @@ impl FxSeq for ArcArr {
             DataType::Float32 => PAf32::new_null(data_type, length).arced(),
             DataType::Float64 => PAf64::new_null(data_type, length).arced(),
             DataType::Utf8 => UA::new_null(data_type, length).arced(),
+            DataType::Null => NA::new_null(data_type, length).arced(),
             _ => unimplemented!(),
         }
     }
@@ -191,6 +192,7 @@ impl FxSeq for BoxArr {
             DataType::Float32 => PAf32::new_null(data_type, length).boxed(),
             DataType::Float64 => PAf64::new_null(data_type, length).boxed(),
             DataType::Utf8 => UA::new_null(data_type, length).boxed(),
+            DataType::Null => NA::new_null(data_type, length).boxed(),
             _ => unimplemented!(),
         }
     }

@@ -17,6 +17,7 @@ pub(crate) type PAu64 = PrimitiveArray<u64>;
 pub(crate) type PAf32 = PrimitiveArray<f32>;
 pub(crate) type PAf64 = PrimitiveArray<f64>;
 pub(crate) type UA = Utf8Array<i32>;
+pub(crate) type NA = NullArray;
 
 #[allow(dead_code)]
 pub(crate) enum ArrEnum {

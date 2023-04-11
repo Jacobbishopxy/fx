@@ -111,7 +111,7 @@ where
             let end = if end_idx > arr.len() {
                 arr.len() - idx
             } else {
-                end_idx
+                len
             };
             res.push(arr.sliced(idx, end).into());
             idx += len;
@@ -153,16 +153,16 @@ mod test_private {
 
     #[test]
     fn chop_array_pieces_success() {
-        let a = arc_arr!([1, 2, 3, 4, 5, 6]);
+        let a = arc_arr!([1, 2, 3, 4, 5, 6, 7]);
         println!("{:?}", &a);
 
-        let l = chop_arr_pieces(a, 4);
+        let l = chop_arr_pieces(a, 3);
         println!("{:?}", l);
 
-        let b = box_arr!([1, 2, 3, 4, 5, 6]);
+        let b = box_arr!([1, 2, 3, 4, 5, 6, 7]);
         println!("{:?}", &b);
 
-        let l = chop_arr_pieces(b, 4);
+        let l = chop_arr_pieces(b, 3);
         println!("{:?}", l);
     }
 

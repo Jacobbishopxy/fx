@@ -8,7 +8,10 @@ use std::ops::RangeBounds;
 use arrow2::datatypes::{DataType, Schema};
 
 use crate::ab::{Confined, Eclectic, Purport};
-use crate::cont::{ArcArr, DequeArcArr, DequeIterMut, DequeIterOwned, DequeIterRef};
+use crate::cont::{
+    ArcArr, DequeArcArr, DequeIterMut, DequeIterOwned, DequeIterRef, SameSizedResult,
+    SequenceSizedResult,
+};
 use crate::error::FxResult;
 
 // ================================================================================================
@@ -281,15 +284,21 @@ pub trait Dqs: Sized + Confined + Purport {
             .all(|(dq, d)| dq.data_type_match(d))
     }
 
-    fn size_equally(&mut self, _len: usize) {
-        unimplemented!()
+    fn size_equally(&mut self, len: usize) -> Vec<SameSizedResult> {
+        self.mut_data()
+            .into_iter()
+            .map(|dq: &mut DequeArcArr| dq.size_arrays_equally(len))
+            .collect()
     }
 
-    fn size_by_sequence<I>(&mut self, _sequence: I)
+    fn size_by_sequence<'a, I>(&mut self, sequence: &'a I) -> Vec<SequenceSizedResult>
     where
-        I: IntoIterator<Item = usize>,
+        &'a I: IntoIterator<Item = &'a usize>,
     {
-        unimplemented!()
+        self.mut_data()
+            .into_iter()
+            .map(|dq: &mut DequeArcArr| dq.size_arrays_by_sequence(sequence))
+            .collect()
     }
 
     // ================================================================================================
@@ -312,5 +321,3 @@ pub trait Dqs: Sized + Confined + Purport {
         self.deque_push_front(value)
     }
 }
-
-// TODO: impl deque's `size_arrays_equally` & `size_arrays_by_sequence`

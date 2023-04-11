@@ -398,9 +398,42 @@ mod test_tabular {
     use crate::arc_arr;
 
     #[test]
-    fn deqc_trait_success() {
+    fn dqs_trait_success() {
         let d = FxTabular::new(vec![arc_arr!([1, 2, 3]), arc_arr!(["a", "b", "c"])]);
 
         println!("{:?}", d.deque_lens());
+    }
+
+    #[test]
+    fn dqs_trait_size_equally_success() {
+        let mut d = FxTabular::new(vec![
+            arc_arr!([1, 2, 3, 4, 5, 6]),
+            arc_arr!(["a", "b", "c"]),
+        ]);
+
+        let dd = [arc_arr!([2, 3]), arc_arr!(["d", "e", "f", "g"])];
+
+        d.push_back(dd).unwrap();
+
+        d.size_equally(2);
+
+        println!("{:?}", d);
+    }
+
+    #[test]
+    fn dqs_trait_size_by_sequence_success() {
+        let mut d = FxTabular::new(vec![
+            arc_arr!([1, 2, 3, 4, 5, 6]),
+            arc_arr!(["a", "b", "c"]),
+        ]);
+
+        let dd = [arc_arr!([2, 3]), arc_arr!(["d", "e", "f", "g"])];
+
+        d.push_back(dd).unwrap();
+
+        let s = vec![1, 2, 3];
+        d.size_by_sequence(&s);
+
+        println!("{:?}", d);
     }
 }

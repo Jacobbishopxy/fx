@@ -557,9 +557,9 @@ where
     }
 
     /// Make Array follows the sizes of the input `sequence`,
-    pub fn size_arrays_by_sequence<I>(&mut self, sequence: I) -> SequenceSizedResult
+    pub fn size_arrays_by_sequence<'a, I>(&mut self, sequence: &'a I) -> SequenceSizedResult
     where
-        I: IntoIterator<Item = usize>,
+        &'a I: IntoIterator<Item = &'a usize>,
     {
         let mut sequence = sequence.into_iter();
         // if the `sequence` is empty, then early return
@@ -585,7 +585,7 @@ where
             cur_buffer_total_len += arr_len;
 
             // collecting `A`s until the `buffer`'s total len is greater than `cur_sequence_num`
-            if cur_buffer_total_len < cur_sequence_num {
+            if cur_buffer_total_len < *cur_sequence_num {
                 buffer.push(arr);
                 continue;
             } else {
@@ -726,8 +726,8 @@ mod deque_test {
             arc_arr!([1, 2]),
         ]);
 
-        let seq = vec![2, 3, 4, 5];
-        let res = dq.size_arrays_by_sequence(seq);
+        let seq = vec![2usize, 3, 4, 5];
+        let res = dq.size_arrays_by_sequence(&seq);
         println!("{:?}", res);
         println!("{:?}", dq);
     }
@@ -746,7 +746,7 @@ mod deque_test {
         ]);
 
         let seq = vec![2, 3, 4, 5];
-        let res = dq.size_arrays_by_sequence(seq);
+        let res = dq.size_arrays_by_sequence(&seq);
         println!("{:?}", res);
         println!("{:?}", dq);
     }
