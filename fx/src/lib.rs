@@ -5,6 +5,7 @@
 
 #![feature(type_alias_impl_trait)]
 #![feature(array_methods)]
+#![feature(impl_trait_in_assoc_type)]
 
 mod macros;
 
