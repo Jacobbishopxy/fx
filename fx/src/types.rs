@@ -5,22 +5,21 @@
 
 use arrow2::array::*;
 
-pub(crate) type BA = BooleanArray;
-pub(crate) type PAi8 = PrimitiveArray<i8>;
-pub(crate) type PAi16 = PrimitiveArray<i16>;
-pub(crate) type PAi32 = PrimitiveArray<i32>;
-pub(crate) type PAi64 = PrimitiveArray<i64>;
-pub(crate) type PAu8 = PrimitiveArray<u8>;
-pub(crate) type PAu16 = PrimitiveArray<u16>;
-pub(crate) type PAu32 = PrimitiveArray<u32>;
-pub(crate) type PAu64 = PrimitiveArray<u64>;
-pub(crate) type PAf32 = PrimitiveArray<f32>;
-pub(crate) type PAf64 = PrimitiveArray<f64>;
-pub(crate) type UA = Utf8Array<i32>;
-pub(crate) type NA = NullArray;
+pub type BA = BooleanArray;
+pub type PAi8 = PrimitiveArray<i8>;
+pub type PAi16 = PrimitiveArray<i16>;
+pub type PAi32 = PrimitiveArray<i32>;
+pub type PAi64 = PrimitiveArray<i64>;
+pub type PAu8 = PrimitiveArray<u8>;
+pub type PAu16 = PrimitiveArray<u16>;
+pub type PAu32 = PrimitiveArray<u32>;
+pub type PAu64 = PrimitiveArray<u64>;
+pub type PAf32 = PrimitiveArray<f32>;
+pub type PAf64 = PrimitiveArray<f64>;
+pub type UA = Utf8Array<i32>;
+pub type NA = NullArray;
 
-#[allow(dead_code)]
-pub(crate) enum ArrEnum {
+pub enum ArrEnum {
     BA(BA),
     PAi8(PAi8),
     PAi16(PAi16),
@@ -35,21 +34,20 @@ pub(crate) enum ArrEnum {
     UA(UA),
 }
 
-pub(crate) type BV = MutableBooleanArray;
-pub(crate) type PVi8 = MutablePrimitiveArray<i8>;
-pub(crate) type PVi16 = MutablePrimitiveArray<i16>;
-pub(crate) type PVi32 = MutablePrimitiveArray<i32>;
-pub(crate) type PVi64 = MutablePrimitiveArray<i64>;
-pub(crate) type PVu8 = MutablePrimitiveArray<u8>;
-pub(crate) type PVu16 = MutablePrimitiveArray<u16>;
-pub(crate) type PVu32 = MutablePrimitiveArray<u32>;
-pub(crate) type PVu64 = MutablePrimitiveArray<u64>;
-pub(crate) type PVf32 = MutablePrimitiveArray<f32>;
-pub(crate) type PVf64 = MutablePrimitiveArray<f64>;
-pub(crate) type UV = MutableUtf8Array<i32>;
+pub type BV = MutableBooleanArray;
+pub type PVi8 = MutablePrimitiveArray<i8>;
+pub type PVi16 = MutablePrimitiveArray<i16>;
+pub type PVi32 = MutablePrimitiveArray<i32>;
+pub type PVi64 = MutablePrimitiveArray<i64>;
+pub type PVu8 = MutablePrimitiveArray<u8>;
+pub type PVu16 = MutablePrimitiveArray<u16>;
+pub type PVu32 = MutablePrimitiveArray<u32>;
+pub type PVu64 = MutablePrimitiveArray<u64>;
+pub type PVf32 = MutablePrimitiveArray<f32>;
+pub type PVf64 = MutablePrimitiveArray<f64>;
+pub type UV = MutableUtf8Array<i32>;
 
-#[allow(dead_code)]
-pub(crate) enum VecEnum {
+pub enum VecEnum {
     BV(BV),
     PVi8(PVi8),
     PVi16(PVi16),

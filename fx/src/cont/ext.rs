@@ -15,7 +15,7 @@ use arrow2::chunk::Chunk;
 use arrow2::compute::concatenate::concatenate;
 use arrow2::datatypes::{DataType, Schema};
 
-use crate::ab::{private, Confined, Eclectic, FxSeq, StaticPurport};
+use crate::ab::{private, AsArray, AsVector, Confined, Eclectic, FxSeq, StaticPurport};
 use crate::cont::private::macros::*;
 use crate::error::{FxError, FxResult};
 use crate::types::*;
@@ -165,6 +165,56 @@ impl FxSeq for ArcArr {
     }
 }
 
+impl AsArray for ArcArr {
+    fn as_bool_arr_unchecked(&self) -> &BA {
+        self.as_typed::<BA>().expect("BA")
+    }
+
+    fn as_i8_arr_unchecked(&self) -> &PAi8 {
+        self.as_typed::<PAi8>().expect("PAi8")
+    }
+
+    fn as_i16_arr_unchecked(&self) -> &PAi16 {
+        self.as_typed::<PAi16>().expect("PAi16")
+    }
+
+    fn as_i32_arr_unchecked(&self) -> &PAi32 {
+        self.as_typed::<PAi32>().expect("PAi32")
+    }
+
+    fn as_i64_arr_unchecked(&self) -> &PAi64 {
+        self.as_typed::<PAi64>().expect("PAi64")
+    }
+
+    fn as_u8_arr_unchecked(&self) -> &PAu8 {
+        self.as_typed::<PAu8>().expect("PAu8")
+    }
+
+    fn as_u16_arr_unchecked(&self) -> &PAu16 {
+        self.as_typed::<PAu16>().expect("PAu16")
+    }
+
+    fn as_u32_arr_unchecked(&self) -> &PAu32 {
+        self.as_typed::<PAu32>().expect("PAu32")
+    }
+
+    fn as_u64_arr_unchecked(&self) -> &PAu64 {
+        self.as_typed::<PAu64>().expect("PAu64")
+    }
+
+    fn as_f32_arr_unchecked(&self) -> &PAf32 {
+        self.as_typed::<PAf32>().expect("PAf32")
+    }
+
+    fn as_f64_arr_unchecked(&self) -> &PAf64 {
+        self.as_typed::<PAf64>().expect("PAf64")
+    }
+
+    fn as_str_arr_unchecked(&self) -> &UA {
+        self.as_typed::<UA>().expect("UA")
+    }
+}
+
 // ================================================================================================
 // Box<dyn Array>
 // ================================================================================================
@@ -300,6 +350,56 @@ impl FxSeq for BoxArr {
     }
 }
 
+impl AsArray for BoxArr {
+    fn as_bool_arr_unchecked(&self) -> &BA {
+        self.as_typed::<BA>().expect("BA")
+    }
+
+    fn as_i8_arr_unchecked(&self) -> &PAi8 {
+        self.as_typed::<PAi8>().expect("PAi8")
+    }
+
+    fn as_i16_arr_unchecked(&self) -> &PAi16 {
+        self.as_typed::<PAi16>().expect("PAi16")
+    }
+
+    fn as_i32_arr_unchecked(&self) -> &PAi32 {
+        self.as_typed::<PAi32>().expect("PAi32")
+    }
+
+    fn as_i64_arr_unchecked(&self) -> &PAi64 {
+        self.as_typed::<PAi64>().expect("PAi64")
+    }
+
+    fn as_u8_arr_unchecked(&self) -> &PAu8 {
+        self.as_typed::<PAu8>().expect("PAu8")
+    }
+
+    fn as_u16_arr_unchecked(&self) -> &PAu16 {
+        self.as_typed::<PAu16>().expect("PAu16")
+    }
+
+    fn as_u32_arr_unchecked(&self) -> &PAu32 {
+        self.as_typed::<PAu32>().expect("PAu32")
+    }
+
+    fn as_u64_arr_unchecked(&self) -> &PAu64 {
+        self.as_typed::<PAu64>().expect("PAu64")
+    }
+
+    fn as_f32_arr_unchecked(&self) -> &PAf32 {
+        self.as_typed::<PAf32>().expect("PAf32")
+    }
+
+    fn as_f64_arr_unchecked(&self) -> &PAf64 {
+        self.as_typed::<PAf64>().expect("PAf64")
+    }
+
+    fn as_str_arr_unchecked(&self) -> &UA {
+        self.as_typed::<UA>().expect("UA")
+    }
+}
+
 // ================================================================================================
 // Arc<dyn MutableArray>
 // ================================================================================================
@@ -414,6 +514,56 @@ impl FxSeq for ArcVec {
     }
 }
 
+impl AsVector for ArcVec {
+    fn as_bool_vec_unchecked(&self) -> &BV {
+        self.as_typed::<BV>().expect("BV")
+    }
+
+    fn as_i8_vec_unchecked(&self) -> &PVi8 {
+        self.as_typed::<PVi8>().expect("PVi8")
+    }
+
+    fn as_i16_vec_unchecked(&self) -> &PVi16 {
+        self.as_typed::<PVi16>().expect("PVi16")
+    }
+
+    fn as_i32_vec_unchecked(&self) -> &PVi32 {
+        self.as_typed::<PVi32>().expect("PVi32")
+    }
+
+    fn as_i64_vec_unchecked(&self) -> &PVi64 {
+        self.as_typed::<PVi64>().expect("PVi64")
+    }
+
+    fn as_u8_vec_unchecked(&self) -> &PVu8 {
+        self.as_typed::<PVu8>().expect("PVu8")
+    }
+
+    fn as_u16_vec_unchecked(&self) -> &PVu16 {
+        self.as_typed::<PVu16>().expect("PVu16")
+    }
+
+    fn as_u32_vec_unchecked(&self) -> &PVu32 {
+        self.as_typed::<PVu32>().expect("PVu32")
+    }
+
+    fn as_u64_vec_unchecked(&self) -> &PVu64 {
+        self.as_typed::<PVu64>().expect("PVu64")
+    }
+
+    fn as_f32_vec_unchecked(&self) -> &PVf32 {
+        self.as_typed::<PVf32>().expect("PVf32")
+    }
+
+    fn as_f64_vec_unchecked(&self) -> &PVf64 {
+        self.as_typed::<PVf64>().expect("PVf64")
+    }
+
+    fn as_str_vec_unchecked(&self) -> &UV {
+        self.as_typed::<UV>().expect("UV")
+    }
+}
+
 // ================================================================================================
 // Box<dyn MutableArray>
 // ================================================================================================
@@ -521,6 +671,55 @@ impl FxSeq for BoxVec {
     }
 }
 
+impl AsVector for BoxVec {
+    fn as_bool_vec_unchecked(&self) -> &BV {
+        self.as_typed::<BV>().expect("BV")
+    }
+
+    fn as_i8_vec_unchecked(&self) -> &PVi8 {
+        self.as_typed::<PVi8>().expect("PVi8")
+    }
+
+    fn as_i16_vec_unchecked(&self) -> &PVi16 {
+        self.as_typed::<PVi16>().expect("PVi16")
+    }
+
+    fn as_i32_vec_unchecked(&self) -> &PVi32 {
+        self.as_typed::<PVi32>().expect("PVi32")
+    }
+
+    fn as_i64_vec_unchecked(&self) -> &PVi64 {
+        self.as_typed::<PVi64>().expect("PVi64")
+    }
+
+    fn as_u8_vec_unchecked(&self) -> &PVu8 {
+        self.as_typed::<PVu8>().expect("PVu8")
+    }
+
+    fn as_u16_vec_unchecked(&self) -> &PVu16 {
+        self.as_typed::<PVu16>().expect("PVu16")
+    }
+
+    fn as_u32_vec_unchecked(&self) -> &PVu32 {
+        self.as_typed::<PVu32>().expect("PVu32")
+    }
+
+    fn as_u64_vec_unchecked(&self) -> &PVu64 {
+        self.as_typed::<PVu64>().expect("PVu64")
+    }
+
+    fn as_f32_vec_unchecked(&self) -> &PVf32 {
+        self.as_typed::<PVf32>().expect("PVf32")
+    }
+
+    fn as_f64_vec_unchecked(&self) -> &PVf64 {
+        self.as_typed::<PVf64>().expect("PVf64")
+    }
+
+    fn as_str_vec_unchecked(&self) -> &UV {
+        self.as_typed::<UV>().expect("UV")
+    }
+}
 // ================================================================================================
 // Default implementation for [FxSeq; W]
 // ================================================================================================

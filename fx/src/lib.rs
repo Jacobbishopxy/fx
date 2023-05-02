@@ -13,7 +13,7 @@ pub mod cont;
 mod ctor;
 pub mod error;
 pub mod io;
-mod types;
+pub mod types;
 pub mod value;
 
 // derived proc-macro
@@ -57,6 +57,7 @@ pub mod prelude {
     pub use super::{arc_arr, arc_vec, box_arr, box_vec};
 
     pub use super::error::*;
+    pub use super::types::*;
 
     pub use super::ab::{FromSlice, FromVec};
 }
