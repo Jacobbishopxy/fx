@@ -150,6 +150,18 @@ Structs and enums provided by Fx crate:
 
 - `box_vec`
 
+## Test
+
+- [fx_builder_test](./fx/tests/fx_builder_test.rs): Builder mode. Manually impl builder traits which placed in [builder.rs](./fx/src/cont/ab/builder.rs).
+
+- [fx_derive_test](./fx/tests/fx_derive_test.rs): Powerful builder mode by proc-macro. Given a struct who has been placed the derived macro `#[derive(FX)]`, automatically generate wanted containers. Check [fx-derive](./fx-derive/src/lib.rs) for more details.
+
+- [fx_iter_test](./fx/tests/fx_iter_test.rs): Iterator of `ArcArr`, `BoxArr`, `ArcVec` & `BoxVec`.
+
+- [fx_seq_test](./fx/tests/fx_seq_test.rs): Functionality of `FxSeq` trait (WIP).
+
+- [fx_table_tabular_test](./fx/tests/fx_table_tabular_test.rs): Functionality of `FxTable` and `FxTabular` (WIP).
+
 ## Dependencies
 
 - fx
