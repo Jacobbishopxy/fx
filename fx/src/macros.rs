@@ -46,6 +46,15 @@ macro_rules! impl_from_x_for_value {
                 FxValue::$fxv(value)
             }
         }
+
+        impl From<Option<$t>> for $crate::value::FxValue {
+            fn from(value: Option<$t>) -> Self {
+                match value {
+                    Some(v) => FxValue::$fxv(v),
+                    None => FxValue::Null,
+                }
+            }
+        }
     };
 }
 

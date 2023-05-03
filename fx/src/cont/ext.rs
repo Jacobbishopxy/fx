@@ -15,7 +15,7 @@ use arrow2::chunk::Chunk;
 use arrow2::compute::concatenate::concatenate;
 use arrow2::datatypes::{DataType, Schema};
 
-use crate::ab::{private, AsArray, AsVector, Confined, Eclectic, FxSeq, StaticPurport};
+use crate::ab::*;
 use crate::cont::private::macros::*;
 use crate::error::{FxError, FxResult};
 use crate::types::*;
@@ -94,12 +94,12 @@ impl FxSeq for ArcArr {
         (**self).data_type()
     }
 
-    fn get_nulls(&self) -> Option<Vec<bool>> {
-        self.validity().as_ref().map(|bm| bm.iter().collect())
+    fn get_validity(&self) -> Option<Vec<bool>> {
+        self.validity().map(|bm| bm.iter().collect())
     }
 
-    fn is_null(&self, idx: usize) -> Option<bool> {
-        self.get_nulls().and_then(|e| e.get(idx).copied())
+    fn is_valid(&self, idx: usize) -> Option<bool> {
+        self.get_validity().and_then(|e| e.get(idx).copied())
     }
 
     fn to_arc_array(self) -> FxResult<ArcArr> {
@@ -279,12 +279,12 @@ impl FxSeq for BoxArr {
         (**self).data_type()
     }
 
-    fn get_nulls(&self) -> Option<Vec<bool>> {
-        self.validity().as_ref().map(|bm| bm.iter().collect())
+    fn get_validity(&self) -> Option<Vec<bool>> {
+        self.validity().map(|bm| bm.iter().collect())
     }
 
-    fn is_null(&self, idx: usize) -> Option<bool> {
-        self.get_nulls().and_then(|e| e.get(idx).copied())
+    fn is_valid(&self, idx: usize) -> Option<bool> {
+        self.get_validity().and_then(|e| e.get(idx).copied())
     }
 
     fn to_arc_array(self) -> FxResult<ArcArr> {
@@ -463,14 +463,15 @@ impl FxSeq for ArcVec {
         (**self).data_type()
     }
 
-    fn get_nulls(&self) -> Option<Vec<bool>> {
-        self.validity().as_ref().map(|bm| bm.iter().collect())
+    fn get_validity(&self) -> Option<Vec<bool>> {
+        self.validity().map(|bm| bm.iter().collect())
     }
 
-    fn is_null(&self, idx: usize) -> Option<bool> {
-        self.get_nulls().and_then(|e| e.get(idx).copied())
+    fn is_valid(&self, idx: usize) -> Option<bool> {
+        self.get_validity().and_then(|e| e.get(idx).copied())
     }
 
+    // If atomically reference count (Arc) > 1, then return `FxError::FailedToConvert`
     fn to_arc_array(mut self) -> FxResult<ArcArr> {
         let res = Arc::get_mut(&mut self)
             .ok_or(FxError::FailedToConvert)?
@@ -479,6 +480,7 @@ impl FxSeq for ArcVec {
         Ok(res)
     }
 
+    // If atomically reference count (Arc) > 1, then return `FxError::FailedToConvert`
     fn to_box_array(mut self) -> FxResult<BoxArr> {
         let res = Arc::get_mut(&mut self)
             .ok_or(FxError::FailedToConvert)?
@@ -627,12 +629,12 @@ impl FxSeq for BoxVec {
         (**self).data_type()
     }
 
-    fn get_nulls(&self) -> Option<Vec<bool>> {
-        self.validity().as_ref().map(|bm| bm.iter().collect())
+    fn get_validity(&self) -> Option<Vec<bool>> {
+        self.validity().map(|bm| bm.iter().collect())
     }
 
-    fn is_null(&self, idx: usize) -> Option<bool> {
-        self.get_nulls().and_then(|e| e.get(idx).copied())
+    fn is_valid(&self, idx: usize) -> Option<bool> {
+        self.get_validity().and_then(|e| e.get(idx).copied())
     }
 
     fn to_arc_array(mut self) -> FxResult<ArcArr> {

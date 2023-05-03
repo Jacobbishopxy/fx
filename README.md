@@ -180,10 +180,6 @@ Structs and enums provided by Fx crate:
 
 - `io::parquet` needs parallel read/write and flexible data param, i.e. `impl FxBatchBuilderGenerator`
 
-- Better conversion among ArcArr/BoxArr/ArcVec/BoxVec
-
-- Iterator for ArcArr/BoxArr/ArcVec/BoxVec
-
 - Type support: `ListArray`/`MutableListArray` & `FixedSizeListArray`/`MutableFixedSizeListArray`
 
 - Type support: `StructArray`/`MutableStructArray`

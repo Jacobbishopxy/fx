@@ -19,6 +19,7 @@ pub enum FxValue {
     F32(f32),
     F64(f64),
     Str(String),
+    Null,
 }
 
 impl_from_x_for_value!(bool, Bool);
@@ -33,3 +34,18 @@ impl_from_x_for_value!(u64, U64);
 impl_from_x_for_value!(f32, F32);
 impl_from_x_for_value!(f64, F64);
 impl_from_x_for_value!(String, Str);
+
+impl From<&str> for FxValue {
+    fn from(value: &str) -> Self {
+        FxValue::Str(value.to_owned())
+    }
+}
+
+impl From<Option<&str>> for FxValue {
+    fn from(value: Option<&str>) -> Self {
+        match value {
+            Some(v) => FxValue::Str(v.to_owned()),
+            None => FxValue::Null,
+        }
+    }
+}

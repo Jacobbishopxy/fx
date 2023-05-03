@@ -19,20 +19,43 @@ pub type PAf64 = PrimitiveArray<f64>;
 pub type UA = Utf8Array<i32>;
 pub type NA = NullArray;
 
-pub enum ArrEnum {
-    BA(BA),
-    PAi8(PAi8),
-    PAi16(PAi16),
-    PAi32(PAi32),
-    PAi64(PAi64),
-    PAu8(PAu8),
-    PAu16(PAu16),
-    PAu32(PAu32),
-    PAu64(PAu64),
-    PAf32(PAf32),
-    PAf64(PAf64),
-    UA(UA),
+pub enum ArrEnum<'a> {
+    BA(&'a BA),
+    PAi8(&'a PAi8),
+    PAi16(&'a PAi16),
+    PAi32(&'a PAi32),
+    PAi64(&'a PAi64),
+    PAu8(&'a PAu8),
+    PAu16(&'a PAu16),
+    PAu32(&'a PAu32),
+    PAu64(&'a PAu64),
+    PAf32(&'a PAf32),
+    PAf64(&'a PAf64),
+    UA(&'a UA),
 }
+
+macro_rules! arr_enum_from_x {
+    ($t:ident) => {
+        impl<'a> From<&'a $t> for ArrEnum<'a> {
+            fn from(value: &'a $t) -> Self {
+                ArrEnum::$t(value)
+            }
+        }
+    };
+}
+
+arr_enum_from_x!(BA);
+arr_enum_from_x!(PAi8);
+arr_enum_from_x!(PAi16);
+arr_enum_from_x!(PAi32);
+arr_enum_from_x!(PAi64);
+arr_enum_from_x!(PAu8);
+arr_enum_from_x!(PAu16);
+arr_enum_from_x!(PAu32);
+arr_enum_from_x!(PAu64);
+arr_enum_from_x!(PAf32);
+arr_enum_from_x!(PAf64);
+arr_enum_from_x!(UA);
 
 pub type BV = MutableBooleanArray;
 pub type PVi8 = MutablePrimitiveArray<i8>;
@@ -47,17 +70,40 @@ pub type PVf32 = MutablePrimitiveArray<f32>;
 pub type PVf64 = MutablePrimitiveArray<f64>;
 pub type UV = MutableUtf8Array<i32>;
 
-pub enum VecEnum {
-    BV(BV),
-    PVi8(PVi8),
-    PVi16(PVi16),
-    PVi32(PVi32),
-    PVi64(PVi64),
-    PVu8(PVu8),
-    PVu16(PVu16),
-    PVu32(PVu32),
-    PVu64(PVu64),
-    PVf32(PVf32),
-    PVf64(PVf64),
-    UV(UV),
+pub enum VecEnum<'a> {
+    BV(&'a BV),
+    PVi8(&'a PVi8),
+    PVi16(&'a PVi16),
+    PVi32(&'a PVi32),
+    PVi64(&'a PVi64),
+    PVu8(&'a PVu8),
+    PVu16(&'a PVu16),
+    PVu32(&'a PVu32),
+    PVu64(&'a PVu64),
+    PVf32(&'a PVf32),
+    PVf64(&'a PVf64),
+    UV(&'a UV),
 }
+
+macro_rules! vec_enum_from_x {
+    ($t:ident) => {
+        impl<'a> From<&'a $t> for VecEnum<'a> {
+            fn from(value: &'a $t) -> Self {
+                VecEnum::$t(value)
+            }
+        }
+    };
+}
+
+vec_enum_from_x!(BV);
+vec_enum_from_x!(PVi8);
+vec_enum_from_x!(PVi16);
+vec_enum_from_x!(PVi32);
+vec_enum_from_x!(PVi64);
+vec_enum_from_x!(PVu8);
+vec_enum_from_x!(PVu16);
+vec_enum_from_x!(PVu32);
+vec_enum_from_x!(PVu64);
+vec_enum_from_x!(PVf32);
+vec_enum_from_x!(PVf64);
+vec_enum_from_x!(UV);
