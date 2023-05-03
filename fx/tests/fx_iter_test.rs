@@ -3,9 +3,8 @@
 //! date: 2023/03/03 21:44:41 Friday
 //! brief:
 
-use fx::ab::FromSlice;
 use fx::array::*;
-use fx::cont::{ArcArr, ArcVec};
+use fx::prelude::*;
 
 #[test]
 fn into_inner_test() {
@@ -57,18 +56,51 @@ fn iter_test() {
     }
 }
 
-// TODO
 #[test]
-fn arc_iter_test() {
+fn arc_box_iter_test() {
     // ================================================================================================
     // Arr
     // ================================================================================================
 
-    let _p_arr = ArcArr::from_slice([1, 2, 3]);
+    let aa = arc_arr!([1i8, 2, 3]);
+    let iter_aa = aa.into_iter();
+    iter_aa.for_each(|e| println!("> {:?}", e));
+    println!("\n");
+
+    let aa = arc_arr!([Some(1u8), None, Some(3)]);
+    let iter_aa = aa.into_iter();
+    iter_aa.for_each(|e| println!("> {:?}", e));
+    println!("\n");
+
+    let ba = box_arr!([1i8, 2, 3]);
+    let iter_ba = ba.into_iter();
+    iter_ba.for_each(|e| println!("> {:?}", e));
+    println!("\n");
+    let ba = box_arr!([Some(1u8), None, Some(3)]);
+    let iter_ba = ba.into_iter();
+    iter_ba.for_each(|e| println!("> {:?}", e));
+    println!("\n");
 
     // ================================================================================================
     // Vec
     // ================================================================================================
 
-    let _p_vec = ArcVec::from_slice([1, 2, 3]);
+    let av = arc_vec!([1i8, 2, 3]);
+    let iter_av = av.into_iter();
+    iter_av.for_each(|e| println!("> {:?}", e));
+    println!("\n");
+
+    let av = arc_vec!([Some(1u8), None, Some(3)]);
+    let iter_av = av.into_iter();
+    iter_av.for_each(|e| println!("> {:?}", e));
+    println!("\n");
+
+    let bv = box_vec!([1i8, 2, 3]);
+    let iter_bv = bv.into_iter();
+    iter_bv.for_each(|e| println!("> {:?}", e));
+    println!("\n");
+    let bv = box_vec!([Some(1u8), None, Some(3)]);
+    let iter_bv = bv.into_iter();
+    iter_bv.for_each(|e| println!("> {:?}", e));
+    println!("\n");
 }

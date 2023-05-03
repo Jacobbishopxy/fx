@@ -80,3 +80,30 @@ where
 
     fn pop_chunk(&mut self) -> FxResult<()>;
 }
+
+macro_rules! next_arr_val {
+    ($s:expr, $ar:ident) => {
+        if let ArrEnum::$ar(a) = $s.data {
+            Some(FxValue::from(a.get($s.index).clone()))
+        } else {
+            None
+        }
+    };
+}
+
+pub(crate) use next_arr_val;
+
+macro_rules! next_vec_val {
+    ($s:expr, $ar:ident) => {
+        if let VecEnum::$ar(v) = $s.data {
+            v.values().get($s.index).cloned().map(FxValue::from)
+            // let c = v.values().get($s.index).cloned();
+            // dbg!(&c);
+            // c.map(FxValue::from)
+        } else {
+            None
+        }
+    };
+}
+
+pub(crate) use next_vec_val;

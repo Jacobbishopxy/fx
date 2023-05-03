@@ -10,6 +10,7 @@ use std::marker::PhantomData;
 use arrow2::array::Array;
 use arrow2::datatypes::DataType;
 
+use super::private::{next_arr_val, next_vec_val};
 use crate::cont::{ArcArr, ArcVec, BoxArr, BoxVec};
 use crate::error::{FxError, FxResult};
 use crate::types::*;
@@ -170,16 +171,6 @@ pub trait AsVector {
 // IntoIterator (Arr)
 // ================================================================================================
 
-macro_rules! next_arr_val {
-    ($s:expr, $ar:ident) => {
-        if let ArrEnum::$ar(a) = $s.data {
-            Some(FxValue::from(a.get($s.index).clone()))
-        } else {
-            None
-        }
-    };
-}
-
 pub struct FxArrIntoIterator<'a, T: FxSeq> {
     data_type: &'a DataType,
     data: ArrEnum<'a>,
@@ -259,19 +250,6 @@ impl<'a> IntoIterator for FxBoxArr<'a> {
 // ================================================================================================
 // IntoIterator (Vec)
 // ================================================================================================
-
-macro_rules! next_vec_val {
-    ($s:expr, $ar:ident) => {
-        if let VecEnum::$ar(v) = $s.data {
-            v.values().get($s.index).cloned().map(FxValue::from)
-            // let c = v.values().get($s.index).cloned();
-            // dbg!(&c);
-            // c.map(FxValue::from)
-        } else {
-            None
-        }
-    };
-}
 
 pub struct FxVecIntoIterator<'a, T: FxSeq> {
     data_type: &'a DataType,
