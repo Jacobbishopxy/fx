@@ -49,6 +49,7 @@
     │       ├── fx_derive_test.rs
     │       ├── fx_iter_test.rs
     │       ├── fx_seq_test.rs
+    │       ├── fx_sizing_dqs_test.rs
     │       └── fx_table_tabular_test.rs
     ├── fx-derive
     │   └── src

@@ -155,7 +155,7 @@ impl FxSeq for ArcArr {
 
     fn concat(&mut self, ss: &[&Self]) -> FxResult<&mut Self> {
         let mut ars = vec![self.as_ref()];
-        let ss_d = ss.iter().map(|s| s.deref().deref()).collect::<Vec<_>>();
+        let ss_d = ss.iter().map(|s| (*s).deref()).collect::<Vec<_>>();
         ars.extend_from_slice(&ss_d);
 
         let ct = concatenate(&ars)?;
@@ -340,7 +340,7 @@ impl FxSeq for BoxArr {
 
     fn concat(&mut self, ss: &[&Self]) -> FxResult<&mut Self> {
         let mut ars = vec![self.as_ref()];
-        let ss_d = ss.iter().map(|s| s.deref().deref()).collect::<Vec<_>>();
+        let ss_d = ss.iter().map(|s| (*s).deref()).collect::<Vec<_>>();
         ars.extend_from_slice(&ss_d);
 
         let ct = concatenate(&ars)?;

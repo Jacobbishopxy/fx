@@ -56,6 +56,7 @@ Yet another [Fabrix](https://github.com/Jacobbishopxy/fabrix) without using [Pol
     │       ├── fx_derive_test.rs
     │       ├── fx_iter_test.rs
     │       ├── fx_seq_test.rs
+    │       ├── fx_sizing_dqs_test.rs
     │       └── fx_table_tabular_test.rs
     ├── fx-derive
     │   └── src
@@ -189,8 +190,6 @@ Structs and enums provided by Fx crate:
 - Reader/Writer for `Eclectic` (single thread) & `Receptacle` (parallel)
 
 - Streaming I/O
-
-- `io::parquet` needs parallel read/write and flexible data param, i.e. `impl FxBatchBuilderGenerator`
 
 - Type support: `ListArray`/`MutableListArray` & `FixedSizeListArray`/`MutableFixedSizeListArray`
 

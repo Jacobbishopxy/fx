@@ -398,7 +398,10 @@ mod test_table {
             arc_arr!(["a", "b", "c"]),
         ]);
 
-        let dd = [arc_arr!([2, 3]), arc_arr!(["d", "e", "f", "g"])];
+        let dd = [
+            arc_arr!([7, 8]),
+            arc_arr!(["d", "e", "f", "g", "h", "i", "j", "k"]),
+        ];
 
         d.push_back(dd).unwrap();
 
@@ -406,5 +409,44 @@ mod test_table {
         d.size_by_sequence(&s);
 
         println!("{:?}", d);
+    }
+
+    #[test]
+    fn dqs_trait_to_chunks_equally_success() {
+        let mut d = FxTable::<2>::new(vec![
+            arc_arr!([1, 2, 3, 4, 5, 6]),
+            arc_arr!(["a", "b", "c"]),
+        ]);
+
+        let dd = [
+            arc_arr!([7, 8, 9]),
+            arc_arr!(["d", "e", "f", "g", "h", "i", "j", "k"]),
+        ];
+
+        d.push_back(dd).unwrap();
+        println!("{:?}", d.ref_data());
+
+        let c = d.to_chunks_equally(2);
+
+        println!("{:?}", c);
+        println!("{:?}", d.ref_data());
+    }
+
+    #[test]
+    fn dqs_trait_to_chunks_by_sequence_success() {
+        let mut d = FxTable::<2>::new(vec![
+            arc_arr!([1, 2, 3, 4, 5, 6]),
+            arc_arr!(["a", "b", "c"]),
+        ]);
+
+        let dd = [arc_arr!([2, 3]), arc_arr!(["d", "e", "f", "g"])];
+
+        d.push_back(dd).unwrap();
+        println!("{:?}", d.ref_data());
+
+        let c = d.to_chunks_by_sequence(&[1, 2, 3, 4]);
+
+        println!("{:?}", c);
+        println!("{:?}", d.ref_data());
     }
 }

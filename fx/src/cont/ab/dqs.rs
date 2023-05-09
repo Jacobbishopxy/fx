@@ -5,6 +5,7 @@
 
 use std::ops::RangeBounds;
 
+use arrow2::chunk::Chunk;
 use arrow2::datatypes::{DataType, Schema};
 
 use crate::ab::{Confined, Eclectic, Purport};
@@ -284,6 +285,7 @@ pub trait Dqs: Sized + Confined + Purport {
             .all(|(dq, d)| dq.data_type_match(d))
     }
 
+    /// Sizing arrays in each deque into the same size.
     fn size_equally(&mut self, len: usize) -> Vec<SameSizedResult> {
         self.mut_data()
             .into_iter()
@@ -291,6 +293,37 @@ pub trait Dqs: Sized + Confined + Purport {
             .collect()
     }
 
+    /// Sizing arrays in each deque equally and transform them into [`Vec<Chunk<ArcArr>>`]
+    /// The rest data which cannot be transformed to [`chunk`] will still be left in `self.data`.
+    fn to_chunks_equally(&mut self, len: usize) -> Vec<Chunk<ArcArr>> {
+        self.size_equally(len);
+        let mut res = Vec::new();
+
+        'bk: loop {
+            // if any of the dq does not match the `len`, break the loop
+            for dq in self.ref_data().into_iter() {
+                match dq.front() {
+                    Some(a) if a.len() == len => { /* pass */ }
+                    _ => break 'bk,
+                }
+            }
+
+            let mut chunk_buf = Vec::new();
+            for dq in self.mut_data().into_iter() {
+                match dq.pop_front() {
+                    Some(a) => chunk_buf.push(a),
+                    None => break 'bk,
+                }
+            }
+
+            let chunk = Chunk::new(chunk_buf);
+            res.push(chunk);
+        }
+
+        res
+    }
+
+    /// Sizing arrays in each deque by size sequence.
     fn size_by_sequence<'a, I>(&mut self, sequence: &'a I) -> Vec<SequenceSizedResult>
     where
         &'a I: IntoIterator<Item = &'a usize>,
@@ -299,6 +332,39 @@ pub trait Dqs: Sized + Confined + Purport {
             .into_iter()
             .map(|dq: &mut DequeArcArr| dq.size_arrays_by_sequence(sequence))
             .collect()
+    }
+
+    /// Sizing arrays in each deque by size sequence and transform them into [`Vec<Chunk<ArcArr>>`]
+    /// The rest data which cannot be transformed to [`chunk`] will still be left in `self.data`.
+    fn to_chunks_by_sequence<'a, I>(&mut self, sequence: &'a I) -> Vec<Chunk<ArcArr>>
+    where
+        &'a I: IntoIterator<Item = &'a usize>,
+    {
+        self.size_by_sequence(sequence);
+        let mut res = Vec::new();
+
+        'bk: for len in sequence.into_iter() {
+            // if any of the dq does not match the `len`, break the loop
+            for dq in self.ref_data().into_iter() {
+                match dq.front() {
+                    Some(a) if a.len() == *len => { /* pass */ }
+                    _ => break 'bk,
+                }
+            }
+
+            let mut chunk_buf = Vec::new();
+            for dq in self.mut_data().into_iter() {
+                match dq.pop_front() {
+                    Some(a) => chunk_buf.push(a),
+                    None => break 'bk,
+                }
+            }
+
+            let chunk = Chunk::new(chunk_buf);
+            res.push(chunk);
+        }
+
+        res
     }
 
     // ================================================================================================
