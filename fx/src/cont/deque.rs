@@ -532,7 +532,9 @@ where
                     // if the residual is less then `len`, then cache it into the `buffer`;
                     // otherwise, push it into the `res`
                     let a_len = a.as_ref().len();
-                    if a_len < len {
+                    if a_len == 0 {
+                        continue;
+                    } else if a_len < len {
                         buffer.push(a);
                         cur_buffer_total_len += a_len;
                     } else {
@@ -599,7 +601,9 @@ where
                 cur_buffer_total_len = 0;
 
                 // handle the rest part of the chopped arr in the next loop
-                self.deque.push_front(r);
+                if !r.as_ref().is_empty() {
+                    self.deque.push_front(r);
+                }
                 // if sequence ends up earlier than `deque`'s operation, break the loop
                 match sequence.next() {
                     Some(l) => cur_sequence_num = l,
@@ -686,6 +690,10 @@ mod deque_test {
             arc_arr!([1, 2]),
         ]);
 
+        let res = dq.size_arrays_equally(3);
+        println!("{:?}", res);
+        println!("{:?}", dq);
+
         let res = dq.size_arrays_equally(4);
         println!("{:?}", res);
         println!("{:?}", dq);
@@ -703,6 +711,10 @@ mod deque_test {
             box_arr!([1, 2, 3, 4]),
             box_arr!([1, 2]),
         ]);
+
+        let res = dq.size_arrays_equally(3);
+        println!("{:?}", res);
+        println!("{:?}", dq);
 
         let res = dq.size_arrays_equally(4);
         println!("{:?}", res);
@@ -726,7 +738,12 @@ mod deque_test {
             arc_arr!([1, 2]),
         ]);
 
-        let seq = vec![2usize, 3, 4, 5];
+        let seq = vec![2, 3, 4, 5];
+        let res = dq.size_arrays_by_sequence(&seq);
+        println!("{:?}", res);
+        println!("{:?}", dq);
+
+        let seq = vec![2, 3, 4, 5, 6, 8];
         let res = dq.size_arrays_by_sequence(&seq);
         println!("{:?}", res);
         println!("{:?}", dq);
@@ -746,6 +763,11 @@ mod deque_test {
         ]);
 
         let seq = vec![2, 3, 4, 5];
+        let res = dq.size_arrays_by_sequence(&seq);
+        println!("{:?}", res);
+        println!("{:?}", dq);
+
+        let seq = vec![2, 3, 4, 5, 6, 8];
         let res = dq.size_arrays_by_sequence(&seq);
         println!("{:?}", res);
         println!("{:?}", dq);
