@@ -183,7 +183,7 @@ Structs and enums provided by Fx crate:
 
 ## Misc
 
-- To get a tree view of this project, run `cargo make --makefile fx.toml tree`
+- To get a tree view of this project, run `cargo make tree`
 
 ## Todo
 
