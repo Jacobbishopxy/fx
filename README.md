@@ -109,9 +109,9 @@ Traits implementation for Rust and Arrow types:
 
 - `HashMap<I, E>`: `HashMap<I, E> where I: Hash + Eq, E: Eclectic` with `Receptacle` trait implemented
 
-### Structs and Enums
+### Struct and Enum
 
-Structs and enums provided by Fx crate:
+Struct and enum provided by Fx crate:
 
 - `NullableOptions`: indicates fields' nullable status
 
