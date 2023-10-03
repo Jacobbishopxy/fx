@@ -20,7 +20,7 @@ pub mod value;
 pub use fx_derive::FX;
 
 // re-export
-pub use arrow2::*;
+// pub use arrow2::*;
 
 // ================================================================================================
 // Crate namespace ab
